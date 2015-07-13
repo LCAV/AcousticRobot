@@ -9,8 +9,8 @@ Test reading files and timed sending
 with command line arguments
 
 """
-import csv, time, sys, getopt
 from __future__ import division, print_function
+import csv, time, sys, getopt
 
 
 #Get required file from command line
