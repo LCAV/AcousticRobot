@@ -9,8 +9,6 @@ try:
 except getopt.GetoptError:
 	print("error1: type read_timed_file.py -i <inputfile>")
 	sys.exit(2)
-
-
 for opt, arg in opts:
 	if opt == '-h':
 		print("error2: type read_timed_file.py -i <inputfile>")
@@ -20,7 +18,7 @@ for opt, arg in opts:
 print('Input file is',inputfile)
 
 
-#%%
+#%% Send out and receive commands
 try:
 	file_last = 0
 	with open(inputfile) as f:
