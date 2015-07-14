@@ -2,9 +2,6 @@
 from __future__ import division, print_function
 import csv, time, sys, getopt
 
-''' Initialization '''
-valid_array = ['i','f','b','l','r','e','v','u','d','a','o','c','sh','sa','s','pl','pr','g','tu','td','z'] # valid commands
-ts = 0.1 #default sampling time [s]
 
 ''' Get parameters from command line '''
 def get_parameters():
@@ -21,7 +18,12 @@ def get_parameters():
 			print("error2: syntax is file.py -i <inputfile> -o <outputfile> -t <sampling time [s]>")
 			sys.exit()
 		elif opt in ("-i","--ifile"):
-			inputfile = arg
+			try:
+				with open(arg,'r+'):
+					inputfile = arg
+			except:
+				print('error3: please choose a valid input file')
+				sys.exit()
 		elif opt in ("-t","--t"):
 			try:
 				t_sample = float(arg)
@@ -30,7 +32,7 @@ def get_parameters():
 				sys.exit()
 		elif opt in ("-o","--ofile"):
 			try:
-				with open(arg) as f:
+				with open(arg,'r+'):
 					outputfile = arg
 			except:
 				print('error4: please choose a valid output file')
@@ -38,6 +40,7 @@ def get_parameters():
 	print('Input file is',inputfile)
 	print('Output file is',outputfile)
 	print('Sampling time is',t_sample)
+	sys.exit()
 	return inputfile,outputfile,t_sample
 	
 ''' Read p and g commands '''
@@ -109,7 +112,7 @@ def send_commands(time_array, command_array,outputf):
 	end_time = time_array[-1] # last element
 	real_start = time.time()
 	last_time = 0 # used for timing real operations
-	with open(outputf,'wb') as f:
+	with open(outputf,'wt') as f:
 		c=csv.writer(f,delimiter='\t')
 		for i in list(range(int(end_time/ts)+1)):
 			command = command_array[counter]
