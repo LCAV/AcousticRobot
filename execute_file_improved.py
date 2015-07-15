@@ -1,7 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function
-import csv, time, sys, getopt, socket
+import csv, time, sys, getopt, socket, os, signal
 
+def signal_handler(signal, frame):
+	print('Program stopped manually')
+	sys.exit()
+
+''' Open or create a file '''
+def touchopen(filename,*args, **kwargs):
+	fd = os.open(filename, os.O_RDWR | os.O_CREAT)
+	return os.fdopen(fd, *args, **kwargs)
 
 ''' Get parameters from command line '''
 def get_parameters():
@@ -18,8 +26,8 @@ def get_parameters():
 			print("error2: syntax is file.py -i <inputfile> -o <outputfile> -t <sampling time [s]>")
 			sys.exit()
 		elif opt in ("-i","--ifile"):
-			try:
-				with open(arg,'r+'):
+			try:	
+				with touchopen(arg,'r+'):
 					inputfile = arg
 			except:
 				print('error3: please choose a valid input file')
@@ -32,7 +40,7 @@ def get_parameters():
 				sys.exit()
 		elif opt in ("-o","--ofile"):
 			try:
-				with open(arg,'r+'):
+				with touchopen(arg,'r+'):
 					outputfile = arg
 			except:
 				print('error4: please choose a valid output file')
@@ -83,7 +91,7 @@ def read_file(inputfile,ts):
 			if diff_file < 0:
 				print('error5: non-incrementing time value after ',time_array)
 				sys.exit()
-			# Check if time is multiple of sampling time
+			#�Check if time is multiple of sampling time
 			elif (round(file_time/ts)%1) > 0: # use round because of rounding errors
 				print('error6: not a multiple of sampling time:', file_time )
 				sys.exit()
@@ -106,16 +114,19 @@ def setup_network():
 		s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 		s.connect((TCP_IP,TCP_PORT))
 		return s
+	except (KeyboardInterrupt, SystemExit):
+		print('error8: could not connect to robot, manually stopped')
+		sys.exit()
 	except:
 		print('error8: could not connect to robot')
-	
+		sys.exit()
 
 ''' Send commands '''
 def send_commands(time_array, command_array,outputf,s):
 	counter = 0
 	end_time = time_array[-1] # last element
 	real_start = time.time()
-	with open(outputf,'wt') as f:
+	with touchopen(outputf,'wt') as f:
 		c=csv.writer(f,delimiter='\t')
 		for i in list(range(int(end_time/ts)+1)):
 			command = command_array[counter]
@@ -123,12 +134,14 @@ def send_commands(time_array, command_array,outputf,s):
 			this_time = time.time()
 			if (i == (int(times/ts))): # current time is one of the file times
 				print('{0:15s} \t {1:5.4f} \t {2:5.4f}'.format(command, times, this_time-real_start))
-				s.send(command)
+				#s.send(command) # for python 2 (str)
+				s.send(command.encode()) # for python 3 (bytes)
 				counter += 1
 				if command[0] == 'g':
 					#print('write parameter and time to file')
 					#c.writerow([times,command])
 					data = s.recv(BUFFER_SIZE)	
+					data = data.decode("utf-8") # for python 3
 					c.writerow([time.time()-real_start,data])	
 			time.sleep(ts-(time.time()-this_time))
 
@@ -148,6 +161,7 @@ valid_params_other = ['PORT','LED_GPIO','PAN_NOM_SPEED','TILT_NOM_SPEED']
 TCP_IP = '172.16.156.137'
 TCP_PORT = 51717
 BUFFER_SIZE = 1024
+signal.signal(signal.SIGINT, signal_handler)
 
 ts = 0.1 #default sampling time [s]
 inputfile,outputfile,ts = get_parameters()
