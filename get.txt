@@ -1,5 +1,0 @@
-0	i
-2	g l NOM_SPEED
-4	p l NOM_SPEED 13
-8	g l NOM_SPEED
-10	s
