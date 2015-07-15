@@ -2,9 +2,45 @@
 from __future__ import division, print_function
 import csv, time, sys, getopt, socket, os, signal
 
+''' Print help for this function '''
+def print_help():
+	msg = """ 
+---------------------------------------------
+               How to use:
+---------------------------------------------
+
+python file.py -i <inputfile> [-o <outputfile>] [-t <sampling time(s)>] 
+
+The inputfile is a mandatory argument that contains the path to the file with the specified commands. 
+The file has to have only entries of the syntax
+time1 \t command1
+time2 \t command2
+etc.
+where the time is given in integer or decimal seconds (e.g. 1.503 or 3) and command is a valid command taken from the text file "commands.txt" 
+The times describe the absolute times (starting from the moment of execution) and therefore need to be incrementing. If two commands are given at the same time, they will in fact be executed one after the other. 
+
+The outputfile is the path to a file where the output messages of the robot are saved to. The file is created if non-existant and if the file is existant, it is overwritten. 
+If no outpufile is specified, the results are saved in output/default.txt
+
+The sampling time is minimum time between two commands can be sent to or received from the robot. It should be chosen as big as possible while allowing for all specified times in the input file. Its default value is 0.1, allowing thus time increments of 0.1 in the input file.
+
+-------------------------------------------- """
+	print(msg)
+
+''' Interrupt handler for stopping on KeyInterrupt '''
 def signal_handler(signal, frame):
 	print('Program stopped manually')
-	sys.exit()
+	clean_up()
+
+''' Exit function and remove output file if empty '''
+def clean_up():
+	try: 
+		# Check if file is empty 
+		if not os.path.getsize(outputfile):
+			os.remove(outputfile)
+		sys.exit(1)
+	except:
+		sys.exit(1)
 
 ''' Open or create a file '''
 def touchopen(filename,*args, **kwargs):
@@ -17,34 +53,34 @@ def get_parameters():
 	outputfile='./output/default.txt'
 	t_sample = ts
 	try: 
-		opts,args = getopt.getopt(sys.argv[1:],"i:o:t:",["ifile=","ofile=","t="])
+		opts,args = getopt.getopt(sys.argv[1:],"hi:o:t:",["ifile=","ofile=","t="])
 	except getopt.GetoptError:
-		print("error1: syntax is file.py -i <inputfile> -o <outputfile> -t <sampling time [s]>")
-		sys.exit()
+		print("error1 usage: file.py -i <inputfile> [-o <outputfile>] [-t <sampling time (s)>]")
+		sys.exit(2)
 	for opt, arg in opts:
-		if opt == '-h':
-			print("error2: syntax is file.py -i <inputfile> -o <outputfile> -t <sampling time [s]>")
-			sys.exit()
+		if opt in ("-h"):
+			print_help()
+			sys.exit(2)
 		elif opt in ("-i","--ifile"):
 			try:	
 				with touchopen(arg,'r+'):
 					inputfile = arg
 			except:
 				print('error3: please choose a valid input file')
-				sys.exit()
+				sys.exit(2)
 		elif opt in ("-t","--t"):
 			try:
 				t_sample = float(arg)
 			except:
-				print('error3: please specify a valid sampling time')
-				sys.exit()
+				print('error4: Please specify a valid sampling time')
+				sys.exit(2)
 		elif opt in ("-o","--ofile"):
 			try:
 				with touchopen(arg,'r+'):
 					outputfile = arg
 			except:
-				print('error4: please choose a valid output file')
-				sys.exit()
+				print('error5: please choose a valid output file')
+				sys.exit(2)
 	print('Input file is',inputfile)
 	print('Output file is',outputfile)
 	print('Sampling time is',t_sample)
@@ -75,8 +111,8 @@ def read_file(inputfile,ts):
 			try:
 				file_time = float(line['time'])
 			except:
-				print('error4: non-valid time:',line['time'])
-				sys.exit()
+				print('error6: non-valid time:',line['time'])
+				clean_up()
 			file_command = line['command']
 			diff_file = file_time - file_last
 			# Check if file starts with i 
@@ -86,23 +122,23 @@ def read_file(inputfile,ts):
 					if choice == 'y':
 						break
 					elif choice =='n':
-						sys.exit()
+						clean_up()
 			# Check if time increments correctly
 			if diff_file < 0:
-				print('error5: non-incrementing time value after ',time_array)
-				sys.exit()
+				print('error7: non-incrementing time value after ',time_array)
+				clean_up()
 			#�Check if time is multiple of sampling time
 			elif (round(file_time/ts)%1) > 0: # use round because of rounding errors
-				print('error6: not a multiple of sampling time:', file_time )
-				sys.exit()
+				print('error8: not a multiple of sampling time:', file_time )
+				clean_up()
 			else:
 			# Check if all commands are valid
 				if (valid_array.count(file_command) > 0) or read_setandget(file_command): # command is valid
 					time_array.append(file_time)
 					command_array.append(file_command)
 				else:
-					print('error7: non-valid command ',file_command)
-					sys.exit()
+					print('error9: non-valid command ',file_command)
+					clean_up()
 			counter += 1
 			file_last = file_time
 		return time_array, command_array
@@ -115,11 +151,11 @@ def setup_network():
 		s.connect((TCP_IP,TCP_PORT))
 		return s
 	except (KeyboardInterrupt, SystemExit):
-		print('error8: could not connect to robot, manually stopped')
-		sys.exit()
+		print('error10: could not connect to robot, manually stopped')
+		clean_up()
 	except:
-		print('error8: could not connect to robot')
-		sys.exit()
+		print('error11: could not connect to robot')
+		clean_up()
 
 ''' Send commands '''
 def send_commands(time_array, command_array,outputf,s):
@@ -146,7 +182,7 @@ def send_commands(time_array, command_array,outputf,s):
 			time.sleep(ts-(time.time()-this_time))
 
 
-''' Stop robot by default '''
+''' Stop robot by default in the end '''
 def default_stop():
 	time.sleep(2)
 	print('robot stopped automatically')
@@ -155,7 +191,7 @@ def default_stop():
 ''' Initialization '''
 valid_array = ['i','f','b','l','r','e','v','u','d','a','o','c','sh','sa','s','pl','pr','g','tu','td','z'] # valid commands
 valid_boards = ['r','l','n','o']
-valid_params_motors = ['NOM_SPEED','KP','KI','Kd','ACC_INC','ACC_DEC','MIN_SPEED','POS_MARG','SPEED_POS']
+valid_params_motors = ['NOM_SPEED','KP','KI','KD','ACC_INC','ACC_DIV','MIN_SPEED','POS_MARG','SPEED_POS']
 valid_params_neck = ['NOM_PWM','NOM_ANGLE']
 valid_params_other = ['PORT','LED_GPIO','PAN_NOM_SPEED','TILT_NOM_SPEED']	
 TCP_IP = '172.16.156.137'
@@ -166,7 +202,8 @@ signal.signal(signal.SIGINT, signal_handler)
 ts = 0.1 #default sampling time [s]
 inputfile,outputfile,ts = get_parameters()
 (times, commands) = read_file(inputfile,ts)
-robot_socket = setup_network()
-send_commands(times, commands, outputfile,robot_socket)
+#robot_socket = setup_network()
+#send_commands(times, commands, outputfile,robot_socket)
 default_stop()
-robot_socket.close() # close socket when done communicating
+clean_up()
+#robot_socket.close() # close socket when done communicating
