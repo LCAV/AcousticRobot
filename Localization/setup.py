@@ -22,7 +22,7 @@ def plotimage(img,height):
 height=300
 dist,p1,p2,rmin,rmax=(30,10,35,1,30)
 # Get test images
-img = cv2.imread("room_dots.jpeg",cv2.IMREAD_GRAYSCALE)
+img = cv2.imread("pics/room_dots.jpeg",cv2.IMREAD_GRAYSCALE)
 h, b_global = cv2.threshold(img,254,255,cv2.THRESH_BINARY)
 b_adapt = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,5,0)
 b = [img,b_adapt]
