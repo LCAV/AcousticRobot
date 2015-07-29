@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-import future
-from future.utils import iteritems
-import cv2, os, sys, getopt
+from __future__ import division
+import cv2, sys, getopt, urllib
 import numpy as np
 import cv2.cv as cv
 import matplotlib.pyplot as plt
-import urllib
 
 '''--------------  Basics ------------------ '''
+
 ''' Create 1-channel CV_8U image '''
 def gray_conversion(img):
     if img.dtype != 'uint8' or img.shape[2] != 1:
@@ -17,6 +16,7 @@ def gray_conversion(img):
 def rgb_conversion(img):
     b,g,r = cv2.split(img)
     return cv2.merge([r,g,b])
+
 ''' Get centroid from contour '''
 def get_centroid(cnt):
     # Find centroid of contour
@@ -25,9 +25,10 @@ def get_centroid(cnt):
     return cx,cy
 
 '''----------  Program handling ------------ '''
+
 ''' Plot where 4 indicator points can be picked by mouse-click'''
 class InteractivePlot:
-    def __init__(self,pict,name):
+    def __init__(self,pict,name,number):
         self.x1 = 0.0
         self.y1 = 0.0
         self.x2 = 0.0
@@ -38,14 +39,21 @@ class InteractivePlot:
         self.y4 = 0.0
         self.pict = pict
         self.name = name
+        self.number = int(number)
     def setpoints(self):
-        print("Choose the 4 indicator points (left to right, top to bottom)")
+        if self.number==4:
+            print("Choose the 4 indicator points (left to right, top to bottom)")
+        else:
+            print("Choose the point that contains the color of interest")
+
         self.cid = self.pict.canvas.mpl_connect('button_press_event',self.onclick)
     def onclick(self,event):
         if self.x1==0.0 and self.y1 == 0.0:
             self.x1 = event.xdata
             self.y1 = event.ydata
             print('1: {0:5.2f},{1:5.2f}'.format(self.x1,self.y1))
+            if self.number!=4:
+                plt.close()
         elif self.x2==0.0 and self.y2 == 0.0:
             self.x2 = event.xdata
             self.y2 = event.ydata
@@ -60,10 +68,14 @@ class InteractivePlot:
             print('4: {0:5.2f},{1:5.2f}'.format(self.x4,self.y4))
             plt.close()
     def getpoints(self):
-        return self.x1,self.y1,self.x2,self.y2,self.x3,self.y3,self.x4,self.y4
+        if self.number == 4:
+            return self.x1,self.y1,self.x2,self.y2,self.x3,self.y3,self.x4,self.y4
+        else:
+            return self.x1,self.y1
     def draw(self):
         plt.imshow(self.name)
         plt.show()
+
 ''' Get filename from command line '''
 def get_filename():
     inputfile = ''
@@ -83,6 +95,7 @@ def get_filename():
                         sys.exit(2)
 
     return inputfile
+
 ''' Get the current webcam image from IP-stream '''
 def get_image():
     img = ''
@@ -115,64 +128,56 @@ def get_image():
             sys.exit(1)
 
 ''' --------   Image Processing ------------ '''
-''' Circle detection using Contour Polygone vertix counting '''
-def get_circles_contours(img):
-    img = gray_conversion(img)
-    ret, thresh = cv2.threshold(img,200,255,cv2.THRESH_BINARY)
 
-    # Get contours (and hierarchy)
-    contours, h = cv2.findContours(thresh,cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+''' Get edges using Canny '''
+def get_edges_canny(img,param):
+    thresh1 = param
+    thresh2 = param/2
 
-    # Transform picture to 3-channel greyscale for better contour visibility
-    img = cv2.cvtColor(img,cv2.COLOR_GRAY2BGR)
-
-    if contours == 0:
-        print("no contours detected")
-    else:
-        circle_count = 0
-        for cnt in contours:
-            approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
-            if len(approx)>10:
-                circle_count+=1
-                # print all (-1) contours
-                cv2.drawContours(img,[cnt],-1,(0,255,255),5)
-
-        print("Contours: ",circle_count," circles detected")
-    return img,contours
+    edges = cv2.Canny(img,thresh1,thresh2)
+    plt.figure(5),plt.imshow(edges,'gray'),plt.title('Canny'),plt.show(block=False)
+    return edges
 
 ''' Circle detection using HoughTransform '''
 def get_circles_hough(img):
     b = 0 #number of circles detected
+    p1,p2,rmin,rmax = (100,30,0,0)
+
+
     img = gray_conversion(img)
     # Transform picture to 3-channel greyscale for better contour visibility
     cimg = img.copy()
     cimg = cv2.cvtColor(cimg,cv2.COLOR_GRAY2BGR)
 
-    img = cv2.medianBlur(img, 5)
-    circles = cv2.HoughCircles(img, cv.CV_HOUGH_GRADIENT, 1 , 30, np.array([]), 10,15,1,20)
+    # ƒor debugging only
+    #edg = get_edges_canny(img,p1)
+    circles = cv2.HoughCircles(img, cv.CV_HOUGH_GRADIENT, 1 , 10, np.array([]),
+                               p1,p2,rmin,rmax)
     if circles != None:
         a, b, c = circles.shape
         print("Hough: ",b," circles detected")
         for i in range(b):
-            cv2.circle(cimg, (circles[0][i][0], circles[0][i][1]), circles[0][i][2], (0, 255, 255), 3, cv2.CV_AA)
-            cv2.circle(cimg, (circles[0][i][0], circles[0][i][1]), 2, (255, 255, 0), 3, cv2.CV_AA) # draw center of circle
+            cv2.circle(cimg, (circles[0][i][0], circles[0][i][1]), circles[0][i][2], (0, 255, 0), 3, cv2.CV_AA)
+            cv2.circle(cimg, (circles[0][i][0], circles[0][i][1]), 2, (0, 255, 0), 3, cv2.CV_AA) # draw center of circle
+    else:
+        print("Hough: no circles detected")
 
-    return cimg, positions
+    return cimg, circles
 
-''' DOESN'T WORK: Background Subtractor '''
-def get_background(img):
-    bg_operator = cv2.BackgroundSubtractorMOG()
-    img_bg = bg_operator.apply(img)
-    img_bg = cv2.imdecode(img_bg,cv2.IMREAD_GRAYSCALE)
-    return img_bg
-
-''' Red contours extraction '''
-def extract_red(img):
+''' Color contours extraction '''
+def extract_color(img,range_min,range_max):
     i=0
     max_area=0
+    cx = cy = 0
+
     img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+    img = rgb_conversion(img)
+
+    plt.imshow(img),plt.show(block=False)
+
+
     # Returns all pixels that lie in specified range
-    thresh = cv2.inRange(img_hsv,np.array((0,80,80)),np.array((20,255,255)))
+    thresh = cv2.inRange(img_hsv,range_min,range_max)
 
     # Finds all  contours from binary image (wihtout hierarchy) Possibly RETR_EXTERNAL works too
     contours, hierarchy=cv2.findContours(thresh,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
@@ -183,31 +188,31 @@ def extract_red(img):
         # Check if new best contour
         area = cv2.contourArea(cnt)
         if area > max_area:
+            print("new area: ",area)
             max_area = area
             best_cnt = cnt
 
-        cv2.drawContours(img,[cnt],-1,(0,255/len(contours)*i,0),3)
-        cv2.drawContours(tmp,[cnt],-1,(0,255/len(contours)*i,0),3)
+        cv2.drawContours(img,[cnt],-1,(0,255,0),3)# Green
+        cv2.drawContours(tmp,[cnt],-1,(0,255,0),3)# Green
         i+=1
 
-    cx,cy = get_centroid(cnt)
-
     # Convert colors for correct display in Matplotlib:
-    img = rgb_conversion(img)
+    try:
+        cx,cy = get_centroid(best_cnt)
+        cv2.circle(img,(cx,cy),20,(0,255,255),2)
+    except:
+        print("No red contours found")
 
-    cv2.circle(img,(cx,cy),20,(0,255,255),2)
-    return img,tmp,contours,(cx,cy)
+    return img,tmp,contours #,(cx,cy),thresh
 
-''' Extract cirlces from different contours '''
 def extract_circles(img,contours):
-    cimg = gray_conversion(img)
-    cimg = cv2.cvtColor(cimg,cv2.COLOR_GRAY2BGR)
-    contours_circle = []
-
-    # Define circle to be matched
+    circle_contours = []
+    circle_centers = []
+    best_cnt=0
     radius = 20
     thresh_fit = 0.10 # threshold underneath which shape is considered circle
 
+    # Define circle to be matched
     size =  int(radius*2+10)
     a = b =  int(round(size/2))
     y,x = np.ogrid[-a:size-a,-b:size-b]
@@ -215,6 +220,10 @@ def extract_circles(img,contours):
     mask = np.zeros((size,size),dtype=np.uint8)
     mask[circ] = 255
     mask_cpy=np.copy(mask)
+
+    cimg = gray_conversion(img)
+    cimg = cv2.cvtColor(cimg,cv2.COLOR_GRAY2BGR)
+
     # ƒind contours (changes the image mask! )
     circle, h = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
 
@@ -233,30 +242,31 @@ def extract_circles(img,contours):
         approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
         print("length:",len(cnt))
         print("number of vertices:",len(approx))
-        np_circle = np.array(circle[0],dtype=np.int32)
 
         # Compare to test circle
+        np_circle = np.array(circle[0],dtype=np.int32)
         shape_fit = cv2.matchShapes(np_circle,cnt,cv.CV_CONTOURS_MATCH_I1,0)
         print("fit:",shape_fit)
-        if shape_fit < max_fit:
+
+        # ƒind best fit (currently not used)
+        if shape_fit < max_fit and shape_fit != 0.0:
             max_fit = shape_fit
             best_cnt = cnt
-
-        if shape_fit < thresh_fit:
-            contours_circle.append(cnt)
-
-    cx,cy = get_centroid(best_cnt)
-
-    for cnt in contours_circle:
-        cv2.drawContours(cimg,cnt,-1,(0,255,255),2)
+        # find circles
+        if shape_fit < thresh_fit and shape_fit != 0.0:
+            print("circle")
+            circle_contours.append(cnt)
+            cv2.drawContours(cimg,cnt,-1,(0,255,255),1)
+            cx,cy = get_centroid(cnt)
+            circle_centers.append([cx,cy])
 
     plt.figure(2),plt.imshow(cimg),plt.show(block=False)
-    return cimg, (cx,cy)
+    return cimg, circle_centers
 
 ''' Apply geometric transformation to get "view from top"  '''
 def manual_transformation(img):
     # Get indicator points
-    img_i = InteractivePlot(plt.figure(),img)
+    img_i = InteractivePlot(plt.figure(),img,4)
     img_i.setpoints()
     img_i.draw()
     x1,y1,x2,y2,x3,y3,x4,y4 = img_i.getpoints()
@@ -271,12 +281,112 @@ def manual_transformation(img):
     img_flat = cv2.warpPerspective(img,M,(xreal,yreal))
     return img_flat
 
+''' Determine shade of red '''
+def manual_calibration(img):
+    #Get point of interest
+    img=rgb_conversion(img)
+    img_i = InteractivePlot(plt.figure(),img,1)
+    img_i.setpoints()
+    img_i.draw()
+    x,y = img_i.getpoints()
+    print("RGB: ",img[y][x])
+    img = cv2.cvtColor(img,cv2.COLOR_RGB2HSV)
+    range_hsv = img[y][x]
+    print("HSV: ",range_hsv)
+
+    # Works well for orange:
+    # range_hsv=np.array([ 19, 236, 240])
+    range_min = range_hsv - 10
+    range_max = range_hsv + 10
+    return range_min, range_max
+
+''' Determine shade of red automatically '''
+def automatic_calibration(img,thresh_diff,col_diff):
+    img_ref = cv2.imread("pics/real.jpg",cv2.IMREAD_COLOR)
+    img_ref = cv2.GaussianBlur(img_ref,(3,3),0)
+    img = cv2.GaussianBlur(img,(3,3),0)
+
+    # get difference mask
+    img_diff = cv2.subtract(img, img_ref)
+    img_diff = gray_conversion(img_diff)
+    mask = np.zeros(img_diff.shape,dtype=np.uint8)
+    mask[img_diff >= thresh_diff] = 1
+
+    # get corresponding colors
+    img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+    colors = img_hsv[mask==1]
+
+    # confidence interval
+    range_mean = np.mean(colors,axis=0)
+    range_dev = np.std(colors,axis=0,ddof=1)
+    # evaluate weather all elements of each row are in given confidence interval
+    colors_clean = colors[np.all(abs(colors-range_mean)/range_dev<=col_diff,axis=1)]
+
+    # find min and max of each color components
+    rmin = np.amin(colors_clean,axis=0)
+    rmax = np.amax(colors_clean,axis=0)
+    return rmin,rmax
+
+''' Determine two shades of read automatically '''
+def autoamtic_calibration2(img):
+    img_ref = cv2.imread("pics/real.jpg",cv2.IMREAD_COLOR)
+    img_ref = cv2.GaussianBlur(img_ref,(3,3),0)
+    img = cv2.GaussianBlur(img,(3,3),0)
+
+    img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+    img_ref_hsv = cv2.cvtColor(img_ref,cv2.COLOR_BGR2HSV)
+
+    # 1D Histogram
+    hist = cv2.calcHist(img_hsv,[0],None,[180],[0,180])
+    hist_ref = cv2.calcHist(img_ref_hsv,[0],None,[180],[0,180])
+    hist_diff = abs(hist - hist_ref)
+    hist_avg = np.divide(hist_diff,hist)
+    hist_avg[~np.isfinite(hist_avg)]=0
+
+    hists=[hist,hist_ref,hist_diff]
+    plcolors = ('r','g','b')
+    i = 0
+    for h in  hists:
+        plt.plot(h,color=plcolors[i])
+        i+=1
+    plt.show(block=False)
+    i = 0
+
+    plt.figure(2), plt.plot(hist_avg),plt.show(block=False)
+
+    # 2D Histogram
+    hist2 = cv2.calcHist(img_hsv,[0,1],None,[180,256],[0,180,0,256])
+    hist_ref2 = cv2.calcHist(img_ref_hsv,[0,1],None,[180,256],
+                                [0,180,0,256])
+    hist_diff2 = abs(hist2-hist_ref2)
+    sys.exit(1)
+
+    # 3D Histogram
+    hist3 = cv2.calcHist(img_hsv,[0,1,2],None,[180,256,256],
+                        [0,180,0,256,0,256])
+    hist_ref3 = cv2.calcHist(img_ref_hsv,[0,1,2],None,[180,256,256],
+                            [0,180,0,256,0,256])
+    hist_diff3 = abs(hist2 - hist_ref2)
+    hists2=[hist3,hist_ref3,hist_diff3]
+    plt.figure(3)
+    for h in hists2:
+        plt.subplot(131),plt.xlim([0,56])
+        plt.plot(h[1,1,:],color=plcolors[i])
+        plt.subplot(132),plt.xlim([0,56])
+        plt.plot(h[1,:,1],color=plcolors[i],linestyle='_')
+        plt.subplot(133),plt.xlim([0,80])
+        plt.plot(h[:,1,1],color=plcolors[i],linestyle=':')
+        i += 1
+
+    plt.show(block=False)
+    sys.exit(1)
+    return 0
+
 ''' ----------------   Main  --------------- '''
 choice = "y"
 while True:
     try:
         if choice == "y":
-            # Close previous plots
             plt.close('all')
 
             # Read image
@@ -286,31 +396,52 @@ while True:
             else:
                 img = cv2.imread(inputfile,cv2.IMREAD_COLOR)
 
-            img_flat = img
+            # Calibrate image
+            # img = cv2.medianBlur(img,5)
+            # range_min,range_max = manual_calibration(img)
+            orange_min,orange_max = automatic_calibration(img,50,1)
 
-            # Find robot position using different methods
-            # Extract red shapes
-            img_red,img_temp,cont_red,positions = extract_red(img_flat)
-            # Extract image contours
-            img_match, positions = extract_circles(img_temp,cont_red)
-            img_hough, positions = get_circles_hough(img_temp)
+            # Extract reference points
+            # orange
+            img_orange,img_temp,cont_orange = extract_color(img,orange_min,
+                                                            orange_max)
+            # Get centers from orange contours
+            cont_array = np.array(cont_orange)
+            centers = []
+            for cnt in cont_array
+                new_center = np.mean(cnt,axis=0)
 
-            #imgs = [img_cont,img_hough,img_red]
-            imgs = {'extract_red':img_red,'circles_match':img_match,'circles_hough':img_hough,
-                    }
+            # circles
+            img_temp=cv2.GaussianBlur(img_temp,(5,5),10)
+            img_match, pos_match = extract_circles(img_temp,cont_orange)
+            img_hough, pos_hough = get_circles_hough(img_temp)
+
+            # Visualisation of results
+            imgs = {'extract_color temp':img_temp,'extract_color':img_orange,
+                    'circles_match':img_match}#,'circles_hough':img_hough}
             n = len(imgs)
             plt.figure(figsize=(10,10))
             i = 1
-            for (tit,im) in iteritems(imgs):
-                plt.subplot(n,1,i),plt.imshow(im)
+            for (tit,im) in imgs.items():
+                #plt.subplot(n,1,i),plt.imshow(im)
+                plt.close(i),plt.figure(i),plt.imshow(im)
                 plt.title(tit)
                 i+=1
-
             plt.show(block=False)
+            print(pos_match)
+
+
+
+            sys.exit(1)
+            # Extract red color
+            red_min, red_max = manual_calibration(img)
+            img_red,img_tempred,cont_red = extract_color(img,red_min,red_max)
+
 
         elif choice == "n":
             sys.exit(1)
-        choice = raw_input("Do you want to perform another localisation? (y/n)")
+        #choice = raw_input("Do you want to perform another localisation? (y/n)")
+        choice = "n"
     except (KeyboardInterrupt, SystemExit):
         print("Program terminated by user")
         sys.exit(1)
