@@ -89,9 +89,11 @@ class InteractivePlot:
 def get_parameters():
     inputfile = ''
     outputfile = ''
+    calibfile=''
     number = 139
     try:
-        opts,args = getopt.getopt(sys.argv[1:],"i:o:n:",["ifile=","ofile=","number="])
+        opts,args = getopt.getopt(sys.argv[1:],"i:o:c:n:m",
+                                  ["ifile=","ofile=","calibfile=","number="])
     except getopt.GetoptError:
         print("usage file.py -i <inputfile> -o <outputfile> -n <cameranumber>")
         sys.exit(2)
@@ -106,13 +108,20 @@ def get_parameters():
                         sys.exit(2)
         elif opt in ("-o","--ofile"):
             outputfile=arg
+        elif opt in ("-c","--calibfile"):
+            calibfile=arg
         elif opt in ("-n","--number"):
-            number = arg
+            try:
+                number = int(arg)
+            except:
+                print("Enter correct camera number (139 or 141 corresponding to IP")
+                sys.exit(2)
+
             if number!=139 and number !=141:
                 print("Enter correct camera number (139 or 141 corresponding to IP")
                 sys.exit(2)
 
-    return inputfile, outputfile,number
+    return inputfile,outputfile,calibfile,number
 ''' Get the current webcam image from IP-stream '''
 def get_image(n):
     img = ''
@@ -361,13 +370,18 @@ def manual_calibration(img):
 
     return range_hsv, range_min, range_max
 ''' Determine shade of red automatically '''
-def automatic_calibration(img,thresh_diff,col_diff):
-    img_ref = cv2.imread("pics/real.jpg",cv2.IMREAD_COLOR)
+def automatic_calibration(img,calibfile,thresh_diff,col_diff):
+    #img_ref = cv2.imread("pics/real.jpg",cv2.IMREAD_COLOR)
+    img_ref = cv2.imread(referencefile,cv2.IMREAD_COLOR)
     img_ref = cv2.GaussianBlur(img_ref,(3,3),0)
     img = cv2.GaussianBlur(img,(3,3),0)
 
     # get difference mask
-    img_diff = cv2.subtract(img, img_ref)
+    try:
+        img_diff = cv2.subtract(img, img_ref)
+    except:
+        print("Calibration picture needs to be of the same size!")
+
     img_diff = gray_conversion(img_diff)
     mask = np.zeros(img_diff.shape,dtype=np.uint8)
     mask[img_diff >= thresh_diff] = 1
@@ -466,7 +480,6 @@ def order_points(pts):
     pts = [pts[:,1],pts[:,0]]
     return np.array(pts).T
 
-
 ''' ----------------   Main  --------------- '''
 choice = "y"
 while True:
@@ -476,7 +489,7 @@ while True:
             nexti = 1
 
             # Read image
-            inputfile,outputfile,n = get_parameters()
+            inputfile,outputfile,calibfile,n = get_parameters()
             if inputfile == '':
                 img = get_image(n)
             else:
@@ -484,8 +497,8 @@ while True:
 
             if outputfile != '':
                 img = get_image(n)
-                cv2.imwrite("pics/calibration.jpg",img)
-
+                cv2.imwrite(outputfile,img)
+                sys.exit(1)
             #----------- Extract reference points----------#
             # range_min,range_max = manual_calibration(img)
             orange_min,orange_max = automatic_calibration(img,50,1)
