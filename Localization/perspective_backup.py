@@ -22,17 +22,6 @@ def get_centroid(cnt):
     M = cv2.moments(cnt)
     cx,cy = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
     return cx,cy
-''' Visualize results '''
-def visualization(imgs,nexti):
-    n = len(imgs)
-    i = nexti
-    for (tit,im) in imgs.items():
-        #plt.subplot(n,1,i),plt.imshow(im)
-        plt.close(i),plt.figure(i),plt.imshow(im)
-        plt.title(tit)
-        i+=1
-    plt.show(block=False)
-    return i
 
 '''----------  Program handling ------------ '''
 
@@ -85,15 +74,14 @@ class InteractivePlot:
     def draw(self):
         plt.imshow(self.name)
         plt.show()
+
 ''' Get filename from command line '''
-def get_parameters():
+def get_filename():
     inputfile = ''
-    outputfile = ''
-    number = 139
     try:
-        opts,args = getopt.getopt(sys.argv[1:],"i:o:n:",["ifile=","ofile=","number="])
+        opts,args = getopt.getopt(sys.argv[1:],"i:",["ifile="])
     except getopt.GetoptError:
-        print("usage file.py -i <inputfile> -o <outputfile> -n <cameranumber>")
+        print("usage file.py -i <inputfile>")
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-i","--ifile"):
@@ -104,26 +92,17 @@ def get_parameters():
                     inputfile=raw_input("Could not open input file, enter valid filename (or q to quit)")
                     if inputfile == "q":
                         sys.exit(2)
-        elif opt in ("-o","--ofile"):
-            outputfile=arg
-        elif opt in ("-n","--number"):
-            number = arg
-            if number!=139 and number !=141:
-                print("Enter correct camera number (139 or 141 corresponding to IP")
-                sys.exit(2)
 
-    return inputfile, outputfile,number
+    return inputfile
+
 ''' Get the current webcam image from IP-stream '''
-def get_image(n):
+def get_image():
     img = ''
     not_found = 1
     counter = 1
     bytes=''
     try:
-        if n == 139:
-            stream = urllib.urlopen("http://172.16.156.139:8080/?action=stream")
-        elif n == 141:
-            stream = urllib.urlopen("http://172.16.156.141:8080/?action=stream")
+        stream = urllib.urlopen("http://172.16.156.139:8080/?action=stream")
     except:
         print("Could not open stream")
         sys.exit(1)
@@ -332,7 +311,21 @@ def extract_color(img,range_min,range_max):
     except:
         print("No red contours found")
 
-    return img,tmp,contours,(cx,cy),thresh
+    return img,tmp,contours #,(cx,cy),thresh
+''' Apply geometric transformation to get "view from top"  '''
+def geometric_transformation(img,pts_2D,pts_3D=[]):
+    if pts_3D == []:
+        pts_3D = get_3D_points(img)
+    M = cv2.getPerspectiveTransform(pts_3D,pts_2D)
+    img_flat = cv2.warpPerspective(img,M,(xreal,yreal))
+    return img_flat
+def get_3D_points(img):
+    # Get indicator points
+    img_i = InteractivePlot(plt.figure(),img,4)
+    img_i.setpoints()
+    img_i.draw()
+    x1,y1,x2,y2,x3,y3,x4,y4 = img_i.getpoints()
+    return  np.float32([x1,y1],[x2,y2],[x3,y3],[x4,y4])
 ''' Determine shade of red '''
 def manual_calibration(img):
     #Get point of interest
@@ -360,6 +353,7 @@ def manual_calibration(img):
     range_max=range_max.astype(np.uint8)
 
     return range_hsv, range_min, range_max
+
 ''' Determine shade of red automatically '''
 def automatic_calibration(img,thresh_diff,col_diff):
     img_ref = cv2.imread("pics/real.jpg",cv2.IMREAD_COLOR)
@@ -386,6 +380,7 @@ def automatic_calibration(img,thresh_diff,col_diff):
     rmin = np.amin(colors_clean,axis=0)
     rmax = np.amax(colors_clean,axis=0)
     return rmin,rmax
+
 ''' Determine two shades of red automatically '''
 def autoamtic_calibration2(img):
     img_ref = cv2.imread("pics/real.jpg",cv2.IMREAD_COLOR)
@@ -441,58 +436,28 @@ def autoamtic_calibration2(img):
     sys.exit(1)
     return 0
 
-''' --------------  Geometry ---------------'''
-''' Apply geometric transformation to get "view from top"  '''
-def geometric_transformation(img,pts_2D,size,pts_3D=[]):
-    if pts_3D == []:
-        pts_3D = get_3D_points(img)
-    M = cv2.getPerspectiveTransform(pts_3D,pts_2D)
-    img_flat = cv2.warpPerspective(img,M,size)
-    return img_flat
-def get_3D_points(img):
-    # Get indicator points
-    img_i = InteractivePlot(plt.figure(),img,4)
-    img_i.setpoints()
-    img_i.draw()
-    x1,y1,x2,y2,x3,y3,x4,y4 = img_i.getpoints()
-    return  np.float32([x1,y1],[x2,y2],[x3,y3],[x4,y4])
-def order_points(pts):
-    pts_3D_top=pts[0][:2]
-    pts_3D_bot=pts[0][-2:]
-    pt1,pt2=sorted(pts_3D_top,key=operator.itemgetter(1))
-    pt3,pt4=sorted(pts_3D_bot,key=operator.itemgetter(1))
-    pts = [pt1,pt2,pt3,pt4]
-    pts = np.array(pts)
-    pts = [pts[:,1],pts[:,0]]
-    return np.array(pts).T
-
-
 ''' ----------------   Main  --------------- '''
 choice = "y"
 while True:
     try:
         if choice == "y":
             plt.close('all')
-            nexti = 1
 
             # Read image
-            inputfile,outputfile,n = get_parameters()
+            inputfile=get_filename()
             if inputfile == '':
-                img = get_image(n)
+                img = get_image()
             else:
                 img = cv2.imread(inputfile,cv2.IMREAD_COLOR)
-
-            if outputfile != '':
-                img = get_image(n)
-                cv2.imwrite("pics/calibration.jpg",img)
 
             #----------- Extract reference points----------#
             # range_min,range_max = manual_calibration(img)
             orange_min,orange_max = automatic_calibration(img,50,1)
 
             # orange
-            img_orange,img_temp,cont_orange,pos,th = extract_color(img,orange_min,
+            img_orange,img_temp,cont_orange = extract_color(img,orange_min,
                                                             orange_max)
+
             # circles
             #img_temp=cv2.GaussianBlur(img_temp,(5,5),0)
             #img_match, pos_match = get_circles_match(img_temp,cont_orange)
@@ -500,44 +465,43 @@ while True:
                                                      250,200,20,5)
             #img_hough, pos_hough = get_circles_hough(img_temp)
 
-            imgs = {'extract_color':img_orange,
-                    'circles_count':img_count}
-            nexti=visualization(imgs,nexti)
+            # Visualisation of results
+            imgs = {'extract_color':img_orange,#'extract_color':img_orange,
+                    #'circles_match':img_match,
+                    'circles_count':img_count}#,'circles_hough':img_hough}
+            n = len(imgs)
+            plt.figure(figsize=(10,10))
+            i = 1
+            for (tit,im) in imgs.items():
+                #plt.subplot(n,1,i),plt.imshow(im)
+                plt.close(i),plt.figure(i),plt.imshow(im)
+                plt.title(tit)
+                i+=1
+            plt.show(block=False)
 
             #-------------- Project image to 2D -----------#
-            width = 1800
-            height = 2000
-            r_width = 800
-            r_height = 400
-            r_margin = (width-r_width)/2
-            pts_2D = np.float32([[r_margin,height-r_height],
-                                 [width-r_margin,height-r_height],
-                                 [r_margin,height],[width-r_margin,height]])
+            xreal = 600
+            yreal = 400
+            pts_2D = np.float32([[0,0],[xreal,0],[0,yreal],[xreal,yreal]])
             pts_3D = pos_count.astype(np.float32)
-            pts_3D = order_points(pts_3D)
-            img_flat = geometric_transformation(img,pts_2D,(width,height),pts_3D)
+            # get into right order
+            pts_3D_top=pts_3D[0][:2]
+            pts_3D_bot=pts_3D[0][-2:]
+            pt1,pt2=sorted(pts_3D_top,key=operator.itemgetter(1))
+            pt3,pt4=sorted(pts_3D_bot,key=operator.itemgetter(1))
 
-            imgs = {'original image':rgb_conversion(img),
-                    'projected image':rgb_conversion(img_flat)}
-            nexti=visualization(imgs,nexti)
+            img_flat = geometric_transformation(img,pts_2D,pts_3D)
+
             #--------------Extract robot location----------#
-            # red_hsv,red_min, red_max = manual_calibration(img_flat)
+            # red_hsv,red_min, red_max = manual_calibration(img)
             # works well:
             red_min = np.array([156,190,235],dtype=np.uint8)
             red_max = np.array([180,230,255],dtype=np.uint8)
-            img_red,img_tempred,cont_red,pos,th = extract_color(img_flat,red_min,red_max)
-            # works with img:250,230,50,15
-            # works with img_flat:254,251,200,50
+            img_red,img_tempred,cont_red = extract_color(img,red_min,red_max)
             img_robot,pos_robot = get_circles_count(img_tempred,cont_red,
-                                                    250,250,300,50)
-            if pos_robot == []:
-                pos_robot = pos[0][0]
-            else:
-                pos_robot = pos_robot[0][0]
-
-            imgs = {'extract red':img_red,
-                    'circles_count':img_robot}
-            nexti=visualization(imgs,nexti)
+                                                    250,230,50,15)
+            plt.imshow(img_count)
+            plt.show(block=False)
 
         elif choice == "n":
             sys.exit(1)

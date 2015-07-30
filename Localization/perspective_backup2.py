@@ -25,6 +25,7 @@ def get_centroid(cnt):
 ''' Visualize results '''
 def visualization(imgs,nexti):
     n = len(imgs)
+    plt.figure(figsize=(10,10))
     i = nexti
     for (tit,im) in imgs.items():
         #plt.subplot(n,1,i),plt.imshow(im)
@@ -86,14 +87,12 @@ class InteractivePlot:
         plt.imshow(self.name)
         plt.show()
 ''' Get filename from command line '''
-def get_parameters():
+def get_filename():
     inputfile = ''
-    outputfile = ''
-    number = 139
     try:
-        opts,args = getopt.getopt(sys.argv[1:],"i:o:n:",["ifile=","ofile=","number="])
+        opts,args = getopt.getopt(sys.argv[1:],"i:",["ifile="])
     except getopt.GetoptError:
-        print("usage file.py -i <inputfile> -o <outputfile> -n <cameranumber>")
+        print("usage file.py -i <inputfile>")
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-i","--ifile"):
@@ -104,26 +103,16 @@ def get_parameters():
                     inputfile=raw_input("Could not open input file, enter valid filename (or q to quit)")
                     if inputfile == "q":
                         sys.exit(2)
-        elif opt in ("-o","--ofile"):
-            outputfile=arg
-        elif opt in ("-n","--number"):
-            number = arg
-            if number!=139 and number !=141:
-                print("Enter correct camera number (139 or 141 corresponding to IP")
-                sys.exit(2)
 
-    return inputfile, outputfile,number
+    return inputfile
 ''' Get the current webcam image from IP-stream '''
-def get_image(n):
+def get_image():
     img = ''
     not_found = 1
     counter = 1
     bytes=''
     try:
-        if n == 139:
-            stream = urllib.urlopen("http://172.16.156.139:8080/?action=stream")
-        elif n == 141:
-            stream = urllib.urlopen("http://172.16.156.141:8080/?action=stream")
+        stream = urllib.urlopen("http://172.16.156.139:8080/?action=stream")
     except:
         print("Could not open stream")
         sys.exit(1)
@@ -463,8 +452,7 @@ def order_points(pts):
     pt3,pt4=sorted(pts_3D_bot,key=operator.itemgetter(1))
     pts = [pt1,pt2,pt3,pt4]
     pts = np.array(pts)
-    pts = [pts[:,1],pts[:,0]]
-    return np.array(pts).T
+    return pts
 
 
 ''' ----------------   Main  --------------- '''
@@ -476,15 +464,11 @@ while True:
             nexti = 1
 
             # Read image
-            inputfile,outputfile,n = get_parameters()
+            inputfile=get_filename()
             if inputfile == '':
-                img = get_image(n)
+                img = get_image()
             else:
                 img = cv2.imread(inputfile,cv2.IMREAD_COLOR)
-
-            if outputfile != '':
-                img = get_image(n)
-                cv2.imwrite("pics/calibration.jpg",img)
 
             #----------- Extract reference points----------#
             # range_min,range_max = manual_calibration(img)
@@ -505,8 +489,8 @@ while True:
             nexti=visualization(imgs,nexti)
 
             #-------------- Project image to 2D -----------#
-            width = 1800
-            height = 2000
+            width = 1500
+            height = 1000
             r_width = 800
             r_height = 400
             r_margin = (width-r_width)/2
@@ -529,11 +513,9 @@ while True:
             # works with img:250,230,50,15
             # works with img_flat:254,251,200,50
             img_robot,pos_robot = get_circles_count(img_tempred,cont_red,
-                                                    250,250,300,50)
+                                                    250,230,50,15)
             if pos_robot == []:
                 pos_robot = pos[0][0]
-            else:
-                pos_robot = pos_robot[0][0]
 
             imgs = {'extract red':img_red,
                     'circles_count':img_robot}
