@@ -90,7 +90,7 @@ def get_parameters():
     inputfile = ''
     outputfile = ''
     calibfile=''
-    number = 139
+    number = 0
     try:
         opts,args = getopt.getopt(sys.argv[1:],"i:o:c:n:m",
                                   ["ifile=","ofile=","calibfile=","number="])
@@ -157,6 +157,7 @@ def get_image(n):
             sys.exit(1)
 
 ''' --------   Image Processing ------------ '''
+
 ''' Get edges using Canny '''
 def get_edges_canny(img,param):
     thresh1 = param
@@ -372,7 +373,7 @@ def manual_calibration(img):
 ''' Determine shade of red automatically '''
 def automatic_calibration(img,calibfile,thresh_diff,col_diff):
     #img_ref = cv2.imread("pics/real.jpg",cv2.IMREAD_COLOR)
-    img_ref = cv2.imread(referencefile,cv2.IMREAD_COLOR)
+    img_ref = cv2.imread(calibfile,cv2.IMREAD_COLOR)
     img_ref = cv2.GaussianBlur(img_ref,(3,3),0)
     img = cv2.GaussianBlur(img,(3,3),0)
 
@@ -456,6 +457,7 @@ def autoamtic_calibration2(img):
     return 0
 
 ''' --------------  Geometry ---------------'''
+
 ''' Apply geometric transformation to get "view from top"  '''
 def geometric_transformation(img,pts_2D,size,pts_3D=[]):
     if pts_3D == []:
@@ -499,9 +501,15 @@ while True:
                 img = get_image(n)
                 cv2.imwrite(outputfile,img)
                 sys.exit(1)
+
+            if calibfile == '':
+                calibfile = "pics/calibration.jpg"
+
+            if n == 0:
+                n = 139
             #----------- Extract reference points----------#
             # range_min,range_max = manual_calibration(img)
-            orange_min,orange_max = automatic_calibration(img,50,1)
+            orange_min,orange_max = automatic_calibration(img,calibfile,50,1)
 
             # orange
             img_orange,img_temp,cont_orange,pos,th = extract_color(img,orange_min,
@@ -533,6 +541,7 @@ while True:
             imgs = {'original image':rgb_conversion(img),
                     'projected image':rgb_conversion(img_flat)}
             nexti=visualization(imgs,nexti)
+
             #--------------Extract robot location----------#
             # red_hsv,red_min, red_max = manual_calibration(img_flat)
             # works well:
