@@ -214,9 +214,9 @@ def get_circles_count(img,contours,t_around,t_inside,w,r):
         around = img[mask==1]
         inside = img[mask==2]
         col_around = around.cumsum()[-1]/around.shape[0] #average color of aroud
-        print("average color around circle:",col_around)
+        #print("average color around circle:",col_around)
         col_inside = inside.cumsum()[-1]/inside.shape[0]
-        print("average color inside circle:",col_inside)
+        #print("average color inside circle:",col_inside)
 
         if  col_around > t_around and col_inside < t_inside:
             #print("circle detected")
@@ -229,7 +229,7 @@ def get_circles_count(img,contours,t_around,t_inside,w,r):
         diff = abs(np.subtract(centers[i],centers[i+1]))
         mean = np.mean([centers[i],centers[i+1]],axis = 0)
         if np.array([diff<t_pixels]).all():
-            print("Count: duplicate found: ",centers[i],centers[i+1])
+            #print("Count: duplicate found: ",centers[i],centers[i+1])
             centers[i+1] = mean
             rmv.append(i)
 
@@ -371,24 +371,38 @@ def manual_calibration(img):
 
     return range_hsv, range_min, range_max
 ''' Determine shade of red automatically '''
-def automatic_calibration(img,calibfile,thresh_diff,col_diff):
+def automatic_calibration(img,range_min,range_max,thresh_diff,col_diff):
     #img_ref = cv2.imread("pics/real.jpg",cv2.IMREAD_COLOR)
-    img_ref = cv2.imread(calibfile,cv2.IMREAD_COLOR)
-    img_ref = cv2.GaussianBlur(img_ref,(3,3),0)
-    img = cv2.GaussianBlur(img,(3,3),0)
+    #img_ref = cv2.imread(calibfile,cv2.IMREAD_COLOR)
+    #img_ref = cv2.GaussianBlur(img_ref,(3,3),0)
+    #img = cv2.GaussianBlur(img,(3,3),0)
+
+
+    img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+    # Spectrum contains limit (180)
+    if range_min[0] > range_max[0]:
+        range_int = np.array([180,range_max[1],range_max[2]],dtype=np.uint8)
+        img_diff1 = cv2.inRange(img_hsv,range_min,range_int)
+        range_int = np.array([0,range_min[1],range_min[2]],dtype=np.uint8)
+        img_diff2 = cv2.inRange(img_hsv,range_int,range_max)
+        img_diff = cv2.add(img_diff1,img_diff2)
+    else:
+        img_diff = cv2.inRange(img_hsv,range_min,range_max)
+
+    #img_ref = cv2.inRange(img_ref,range_min,range_max)
+
 
     # get difference mask
-    try:
-        img_diff = cv2.subtract(img, img_ref)
-    except:
-        print("Calibration picture needs to be of the same size!")
+    #try:
+    #    img_diff = cv2.subtract(img, img_ref)
+    #except:
+    #    print("Calibration picture needs to be of the same size!")
 
-    img_diff = gray_conversion(img_diff)
+    #img_diff = gray_conversion(img_diff)
     mask = np.zeros(img_diff.shape,dtype=np.uint8)
     mask[img_diff >= thresh_diff] = 1
 
     # get corresponding colors
-    img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     colors = img_hsv[mask==1]
 
     # confidence interval
@@ -396,11 +410,11 @@ def automatic_calibration(img,calibfile,thresh_diff,col_diff):
     range_dev = np.std(colors,axis=0,ddof=1)
     # evaluate weather all elements of each row are in given confidence interval
     colors_clean = colors[np.all(abs(colors-range_mean)/range_dev<=col_diff,axis=1)]
-
+    print(colors_clean)
     # find min and max of each color components
     rmin = np.amin(colors_clean,axis=0)
     rmax = np.amax(colors_clean,axis=0)
-    return rmin,rmax
+    return rmin,rmax,img_diff
 ''' Determine two shades of red automatically '''
 def autoamtic_calibration2(img):
     img_ref = cv2.imread("pics/real.jpg",cv2.IMREAD_COLOR)
@@ -455,6 +469,41 @@ def autoamtic_calibration2(img):
     plt.show(block=False)
     sys.exit(1)
     return 0
+''' Calibration loop '''
+def calibration_loop(img,w,r,n,h_diff,h_min):
+    h_max = h_min+h_diff
+    not_found = 1
+    counter = 1
+    while not_found:
+        thresh_diff = 30
+        col_diff = 1
+        col_min = np.array([h_min,128,0],dtype=np.uint8)
+        col_max = np.array([h_max,255,255],dtype=np.uint8)
+        print(col_min,col_max)
+        # orange
+        img_color,img_temp,cont_color,pos,th = extract_color(img,col_min,
+                                                    col_max)
+        # circles
+        circ_color,pos_color = get_circles_count(img_temp,cont_color,
+                                                250,250,w,r)
+        if pos_color.shape[1] == n:
+            print("working range found:")
+            not_found = 0
+
+        if counter >= 255:
+            print("nothing found after 255 iterations")
+            sys.exit(1)
+
+        counter += 1
+        h_min += 1
+        h_min = np.mod(h_min,180)
+        h_max += 1
+        h_max = np.mod(h_max,180)
+        if h_min == h_max:
+            print("nothing found after going through all possibilites")
+            sys.exit(1)
+
+    return img_color,circ_color,pos_color
 
 ''' --------------  Geometry ---------------'''
 
@@ -507,64 +556,73 @@ while True:
 
             if n == 0:
                 n = 139
+
+            h,s,v = cv2.split(cv2.cvtColor(img,cv2.COLOR_BGR2HSV))
+            plt.figure(nexti),plt.imshow(h),plt.colorbar(),plt.show(block=False)
+            nexti +=1
             #----------- Extract reference points----------#
-            # range_min,range_max = manual_calibration(img)
-            orange_min,orange_max = automatic_calibration(img,calibfile,50,1)
+            #orange_min,orange_max,orange_hsv = manual_calibration(img)
 
-            # orange
-            img_orange,img_temp,cont_orange,pos,th = extract_color(img,orange_min,
-                                                            orange_max)
-            # circles
-            #img_temp=cv2.GaussianBlur(img_temp,(5,5),0)
-            #img_match, pos_match = get_circles_match(img_temp,cont_orange)
-            img_count, pos_count = get_circles_count(img_temp,cont_orange,
-                                                     250,200,20,5)
-            #img_hough, pos_hough = get_circles_hough(img_temp)
+            # find orange
+            w = 20
+            r = 5
+            n = 4
+            h_diff = 10
+            h_min = 170
+            img_org,circ_org,pos_org = calibration_loop(img,w,r,n,h_diff,h_min)
 
-            imgs = {'extract_color':img_orange,
-                    'circles_count':img_count}
+            imgs = {'extracted orange':img_org,
+                    'circles orange':circ_org}
             nexti=visualization(imgs,nexti)
+
+            # find red
+            w = 200
+            r = 40
+            n = 1
+            h_diff = 10
+            h_min = 140
+
+            img_red,circ_red,pos_red = calibration_loop(img,w,r,n,h_diff,h_min)
+
+            imgs = {'extracted red':img_red,
+                    'circles red':circ_red}
+            nexti=visualization(imgs,nexti)
+            print("reference point positions:",pos_org)
+            print("robot position:",pos_red)
 
             #-------------- Project image to 2D -----------#
-            width = 1800
-            height = 2000
-            r_width = 800
-            r_height = 400
-            r_margin = (width-r_width)/2
-            pts_2D = np.float32([[r_margin,height-r_height],
-                                 [width-r_margin,height-r_height],
-                                 [r_margin,height],[width-r_margin,height]])
-            pts_3D = pos_count.astype(np.float32)
+            # position of real points in mm
+            pt0 = (0,0)
+            pt1 = (0,4126)
+            pt2 = (4203,5450)
+            pt3 = (4218,-1602)
+            pts_2D = np.array([pt3,pt2,pt0,pt1])
+            # move points to positive range
+            pts_2D = pts_2D - np.amin(pts_2D,axis=0)
+            # stretch image
+            pts_2D = pts_2D + np.amax(pts_2D,axis=0)
+            pts_2D = order([pts_2D])
+            size = 2*np.amax(pts_2D,axis=0)
+            # Projection to rectangle
+            #width = 1200
+            #height = 900
+            #r_width = 600
+            #r_height = 900
+            #r_margin = (width-r_width)/2
+            #pts_2D = np.float32([[r_margin,height-r_height],
+            #                     [width-r_margin,height-r_height],
+            #                     [r_margin,height],[width-r_margin,height]])
+            pts_3D = pos_org.astype(np.float32)
             pts_3D = order_points(pts_3D)
-            img_flat = geometric_transformation(img,pts_2D,(width,height),pts_3D)
+            img_flat = geometric_transformation(img,pts_2D,(size[0],size[1]),pts_3D)
 
-            imgs = {'original image':rgb_conversion(img),
+            imgs = {#'original image':rgb_conversion(img),
                     'projected image':rgb_conversion(img_flat)}
-            nexti=visualization(imgs,nexti)
-
-            #--------------Extract robot location----------#
-            # red_hsv,red_min, red_max = manual_calibration(img_flat)
-            # works well:
-            red_min = np.array([156,190,235],dtype=np.uint8)
-            red_max = np.array([180,230,255],dtype=np.uint8)
-            img_red,img_tempred,cont_red,pos,th = extract_color(img_flat,red_min,red_max)
-            # works with img:250,230,50,15
-            # works with img_flat:254,251,200,50
-            img_robot,pos_robot = get_circles_count(img_tempred,cont_red,
-                                                    250,250,300,50)
-            if pos_robot == []:
-                pos_robot = pos[0][0]
-            else:
-                pos_robot = pos_robot[0][0]
-
-            imgs = {'extract red':img_red,
-                    'circles_count':img_robot}
             nexti=visualization(imgs,nexti)
 
         elif choice == "n":
             sys.exit(1)
-        #choice = raw_input("Do you want to perform another localisation? (y/n)")
-        choice = "n"
+        choice = raw_input("Do you want to perform another localisation? (y/n)")
     except (KeyboardInterrupt, SystemExit):
         print("Program terminated by user")
         sys.exit(1)
