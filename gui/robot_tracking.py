@@ -188,6 +188,9 @@ class CalibrationWidget(QtGui.QWidget):
             self.camera[i].resize(self.cam_w, self.cam_h)
             self.camera[i].setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
 
+        self.camera[0].mousePressEvent = self.cam0_mouseEvent
+        self.camera[1].mousePressEvent = self.cam1_mouseEvent
+
         # Setup a timer to update cameras regularly
         self.cam_timer = QtCore.QTimer()
         self.cam_timer.start(self.cam_refresh)
@@ -204,22 +207,37 @@ class CalibrationWidget(QtGui.QWidget):
         self.show()
         self.raise_()
 
-    def mousePressEvent(self, QMouseEvent):
+    def cam0_mouseEvent(self, QMouseEvent):
 
         p = QMouseEvent.pos()
         self.cam_mark[0].append(p)
+        self.updateCameras()
+
+    def cam1_mouseEvent(self, QMouseEvent):
+
+        p = QMouseEvent.pos()
+        self.cam_mark[1].append(p)
+        self.updateCameras()
 
     def paintCircles(self):
 
-        paint = QtGui.QPainter(self.camera[0].pixmap())
+        for i in xrange(self.cam_num):
+            pixmap = self.camera[i].pixmap()
 
-        radx = 10
-        rady = 10
-        # draw red circles
-        paint.setPen(QtCore.Qt.red)
-        #paint.setBrush(QtCore.Qt.yellow)
-        for center in self.cam_mark[0]:
-            paint.drawEllipse(center, radx, rady)
+            # need to test if pixmap exists or risk a seg fault!!!
+            if pixmap is not None:
+
+                # obtain the painter
+                paint = QtGui.QPainter(pixmap)
+
+                radx = 5
+                rady = 5
+                # draw red circles
+                paint.setPen(QtCore.Qt.darkRed)
+                paint.setBrush(QtCore.Qt.darkRed)
+                for k,center in enumerate(self.cam_mark[i]):
+                    paint.drawEllipse(center, radx, rady)
+                    paint.drawText(center+QtCore.QPoint(1.5*radx,-1.5*rady), str(k+1))
 
     def run_cam_update(self):
         if not self.cam_updating:
@@ -280,15 +298,16 @@ class CalibrationWidget(QtGui.QWidget):
 
             # create EDM from distances
             diam = self.markers.diameter
-            D[0,1] = D[1,0] = distances['d12'] + diam/2
-            D[0,2] = D[2,0] = distances['d13'] + diam/2
-            D[0,3] = D[3,0] = distances['d14'] + diam/2
-            D[1,2] = D[2,1] = distances['d23'] + diam/2
-            D[1,3] = D[3,1] = distances['d24'] + diam/2
-            D[3,2] = D[2,3] = distances['d34'] + diam/2
+            D[0,1] = D[1,0] = distances['d12'] + diam
+            D[0,2] = D[2,0] = distances['d13'] + diam
+            D[0,3] = D[3,0] = distances['d14'] + diam
+            D[1,2] = D[2,1] = distances['d23'] + diam
+            D[1,3] = D[3,1] = distances['d24'] + diam
+            D[3,2] = D[2,3] = distances['d34'] + diam
             D **= 2
 
             self.markers.fromEDM(D)
+            self.markers.normalize()
 
             self.figure.update_figure(self.markers)
 
