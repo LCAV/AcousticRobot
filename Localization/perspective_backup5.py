@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
-from __future__ import print_function
 import cv2, sys, getopt, urllib, operator
 import numpy as np
 import cv2.cv as cv
@@ -21,7 +20,7 @@ def rgb_conversion(img):
 def get_centroid(cnt):
     # Find centroid of contour
     M = cv2.moments(cnt)
-    cy,cx = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
+    cx,cy = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
     return cx,cy
 ''' Visualize results '''
 def visualization(imgs,nexti,colorbar=0,switch=0):
@@ -43,7 +42,7 @@ def visualization(imgs,nexti,colorbar=0,switch=0):
 
 '''----------  Program handling ------------ '''
 
-''' Plot where 4 reference points can be picked by mouse-click'''
+''' Plot where 4 indicator points can be picked by mouse-click'''
 class InteractivePlot:
     def __init__(self,pict,name,number):
         self.x1 = 0.0
@@ -60,37 +59,37 @@ class InteractivePlot:
         self.number = int(number)
     def setpoints(self):
         if self.number==4:
-            print("Click on the 4 reference points in order")
+            print("Click on the 4 indicator points (left to right, top to bottom)")
         else:
             print("Click on the robot head")
 
         self.cid = self.pict.canvas.mpl_connect('button_press_event',self.onclick)
     def onclick(self,event):
         if self.x1==0.0 and self.y1 == 0.0:
-            self.y1 = event.xdata
-            self.x1 = event.ydata
+            self.x1 = event.xdata
+            self.y1 = event.ydata
             print('1: {0:5.2f},{1:5.2f}'.format(self.x1,self.y1))
-            range_hsv = self.hsv[self.x1][self.y1]
+            range_hsv = self.hsv[self.y1][self.x1]
             print('HSV:',range_hsv)
             if self.number!=4:
                 plt.close()
         elif self.x2==0.0 and self.y2 == 0.0:
-            self.y2 = event.xdata
-            self.x2 = event.ydata
+            self.x2 = event.xdata
+            self.y2 = event.ydata
             print('2: {0:5.2f},{1:5.2f}'.format(self.x2,self.y2))
-            range_hsv = self.hsv[self.x2][self.y2]
+            range_hsv = self.hsv[self.y2][self.x2]
             print('HSV:',range_hsv)
         elif self.x3==0.0 and self.y3 == 0.0:
-            self.y3 = event.xdata
-            self.x3 = event.ydata
+            self.x3 = event.xdata
+            self.y3 = event.ydata
             print('3: {0:5.2f},{1:5.2f}'.format(self.x3,self.y3))
-            range_hsv = self.hsv[self.x3][self.y3]
+            range_hsv = self.hsv[self.y3][self.x3]
             print('HSV:',range_hsv)
         elif self.x4==0.0 and self.y4 == 0.0:
-            self.y4 = event.xdata
-            self.x4 = event.ydata
+            self.x4 = event.xdata
+            self.y4 = event.ydata
             print('4: {0:5.2f},{1:5.2f}'.format(self.x4,self.y4))
-            range_hsv = self.hsv[self.x4][self.y4]
+            range_hsv = self.hsv[self.y4][self.x4]
             print('HSV:',range_hsv)
             plt.close()
     def getpoints(self):
@@ -351,7 +350,7 @@ def extract_color(img,range_min,range_max):
 
     # Convert colors for correct display in Matplotlib:
     try:
-        cy,cx = get_centroid(best_cnt)
+        cx,cy = get_centroid(best_cnt)
         cv2.circle(img,(cx,cy),20,(0,255,255),2)
         #print("Extract: Contours found")
     except:
@@ -376,12 +375,12 @@ def manual_calibration(img,n,R):
     x,y = np.ogrid[:img.shape[0],:img.shape[1]]
     for i in range(n):
         if n > 1:
-            cy = points[i][1]
-            cx = points[i][0]
+            cy = points[i][0]
+            cx = points[i][1]
         else:
-            cy = points[1]
-            cx = points[0]
-        circle = (x-cx)*(x-cx) + (y-cy)*(y-cy) <= R*R
+            cy = points[0]
+            cx = points[1]
+        circle = (x-cx)*(x-cx) + (y-cy)*(y-cy) <= r*r
         circle = circle.astype(np.uint8)
         img_mask[circle==1]=1
 
@@ -517,9 +516,8 @@ def calib_loop(img,w,r,n,H_MAX,H_MIN,H_DIFF,t):
     col = colors[0:10*counter,:,:]#Keep only non-zero colors
     col = cv2.cvtColor(col,cv2.COLOR_HSV2RGB)
     # restore points in order of clicking
-    print(pos_color)
     pos_color = restore_order(points,pos_color)
-    return img_color,circ_color,points,pos_color
+    return img_color,circ_color,pos_color
 
 ''' --------------  Geometry ---------------'''
 
@@ -544,21 +542,18 @@ def order_points(pts):
     pt3,pt4=sorted(pts_3D_bot,key=operator.itemgetter(1))
     pts = [pt1,pt2,pt3,pt4]
     pts = np.array(pts)
-    return np.array(pts)
+    pts = [pts[:,1],pts[:,0]]
+    return np.array(ptis).T
 def restore_order(original,moved):
     if moved.shape[1] == 4:
         i = 0
-        original = np.array(original)
+        original = np.array([original])
+        original = np.vstack((original[0][:,1],original[0][:,0])).T
         pts = np.zeros((4,2),dtype=np.float32)
         for pos in original:
             comp = abs(moved-pos)<20
             maxim = np.where(comp[0][:,0]&comp[0][:,1])[0]
-            try:
-                pts[i,:] = moved[0][maxim[0],:]
-            except:
-                #pts[i,:] = [0]
-                print("Problem in restore order: probably not valid reference points")
-                break
+            pts[i,:] = moved[:,maxim[0]]
             i+=1
     else:
         pts = moved
@@ -574,10 +569,10 @@ def format_points(pts_2D):
     #pts_2D = order_points([pts_2D])
     size = np.amax(pts_2D,axis=0)+margin
 
-    img_test = np.zeros((size[1],size[0]))
+    img_test = np.zeros((size[0],size[1]))
     img_test = img_test.astype(np.uint8)
     for pt in pts_2D:
-        cv2.circle(img_test,(pt[0],pt[1]),10,(255),3,cv2.CV_AA)
+        cv2.circle(img_test,(pt[1],pt[0]),10,(255),3,cv2.CV_AA)
 
     pts_2D = np.vstack(([pts_2D[:,1]],[pts_2D[:,0]])).T
     return img_test,pts_2D,size
@@ -627,69 +622,33 @@ while True:
             H_MIN = 175
             H_MAX = 20
             t = 254
-            img_org,circ_org,points,pos_org = calib_loop(img,w,r,n,H_MAX,H_MIN,H_DIFF,t)
-            if pos_org.shape[1] == 0:
-                print("No reference points found. Try again!")
-                break
+            img_org,circ_org,pos_org = calib_loop(img,w,r,n,H_MAX,H_MIN,H_DIFF,t)
+
+            #pos_org = np.array([[  690.,   116.],[  701.,  1127.],[  127.,  1180.],[  133.,   105.]], dtype=float32)
+
             #-------------- Project image to 2D -----------#
-            # position of real points in cm, pt = (x,y)
+            # position of real points in cm
             pt0 = (0,0)
-            pt1 = (412.6,0)
-            pt2 = (545.0,420.3)
-            pt3 = (-160.2,421.8)
+            pt1 = (0,412.6)
+            pt2 = (420.3,545.0)
+            pt3 = (421.8,-160.2)
             pts_2D = np.array([pt0,pt1,pt2,pt3])
             img_test,pts_2D,size = format_points(pts_2D)
 
             pts_3D = pos_org.astype(np.float32)
-            # ƒor some reason, the points have to be flipped for the transformation
-            pts_3D = np.vstack(([pts_3D[:,1],pts_3D[:,0]])).T
-            pts_2D = np.vstack(([pts_2D[:,1],pts_2D[:,0]])).T
+            pts_3D = np.vstack(([pts_3D[:,1]],[pts_3D[:,0]])).T
 
-            img_flat = geometric_transformation(img,pts_2D,(size[0],size[1]),pts_3D)
+            img_flat = geometric_transformation(img,pts_2D,(size[1],size[0]),pts_3D)
 
-            #-------------- Find robot position  ----------#
+
+            ##------------- Find robot position  ----------#
             w = 200
             r = 40
             n = 1
             H_MIN = 160
             H_MAX = 0
             t = 254
-            img_red2,circ_red2,points2,pos_red2 = calib_loop(img_flat,w,r,n,H_MAX,H_MIN,H_DIFF,t)
-
-            if pos_red2.shape[1] ==  0:
-                print("Robot could not be detected. Try again!")
-                break
-            ##------------------ Summary ------------------#
-            img_summary = img_flat.copy()
-            img_summary = rgb_conversion(img_summary)
-            # refernce positions abs
-            r = np.zeros((2,4))
-            i = 0
-            for pts in pts_2D:
-                r[:,i] = [pts[0],pts[1]]
-                cv2.circle(img_summary,(pts[0],pts[1]),10,(255,0,0),3,cv2.CV_AA)
-                i+=1
-            # absolute robot position
-            px = pos_red2[0][0][1]
-            py = pos_red2[0][0][0]
-            p = np.array([px,py])
-            # relative robot position
-            p_rel = p-r[:,0]
-            cv2.circle(img_summary,(px,py),10,(0,255,0),3,cv2.CV_AA)
-            print("relative robot position",p_rel)
-            print("reference points position")
-            print(r.T)
-
-            # write results into file
-            with open("positions.txt","w") as f:
-                for pt in p_rel:
-                    f.write(str(pt)+'\t')
-                f.write("\n")
-                for pt in p:
-                    f.write(str(pt)+'\t')
-                f.write("\n")
-                for rt in r.T:
-                    f.write(str(rt[0])+"\t"+str(rt[1])+"\n")
+            img_red2,circ_red2,pos_red2 = calib_loop(img_flat,w,r,n,H_MAX,H_MIN,H_DIFF,t)
 
             #---------------  Visualization    ------------#
             h,s,v = cv2.split(cv2.cvtColor(img,cv2.COLOR_BGR2HSV))
@@ -704,10 +663,9 @@ while True:
             nexti=visualization(imgs,nexti)
             imgs = {'reference points':img_test,
                     'projected image':rgb_conversion(img_flat)}
-            #nexti=visualization(imgs,nexti,0,1)
-            imgs = {'summary':img_summary}
             nexti=visualization(imgs,nexti,0,1)
-
+            print("reference point positions:",pos_org)
+            print("robot position:",pos_red2)
         elif choice == "n":
             sys.exit(1)
         choice = raw_input("Do you want to perform another localisation? (y/n)")
