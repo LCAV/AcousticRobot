@@ -1,4 +1,6 @@
 
+import numpy as np
+
 def find_focal(X, H):
     """
     Find the location of the focal point of the camera (assuming no distortion)
@@ -45,3 +47,32 @@ def build_system(U,Q):
 
     return A,b
 
+
+if __name__ == '__main__':
+
+    m = 4
+
+    # points in xy plane
+    X = np.random.exponential(size=(3,m))
+    X[2,:] = 1.
+    X = X.astype('float32')
+
+    # create a basis for the plane that contains x-axis and goes through (0,1,1)
+    scaling = 0.2 
+    v1 = np.r_[1.,0.,0.]
+    v2 = np.r_[0,1,1]/np.sqrt(2)
+    P = scaling*np.array([v1, v2]).T.astype('float32')
+
+    Y = np.dot(P.T, X)
+
+    import cv2
+    H = cv2.getPerspectiveTransform(Y.T, X[:2,:].T)
+    print P/scaling - H[:,:2]
+    print P/scaling
+    print H
+
+    import matplotlib.pyplot as plt
+    plt.plot(X[0,:], X[1,:], 'o')
+    plt.plot(Y[0,:], Y[1,:], 'o')
+
+    plt.show()
