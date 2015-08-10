@@ -2,7 +2,7 @@
 .DS_Store
 
 # Result files
-.png
-.jpeg
-.jpg
-.txt
+*.png
+*.jpeg
+*.jpg
+*.txt
