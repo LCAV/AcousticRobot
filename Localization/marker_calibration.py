@@ -130,12 +130,12 @@ if __name__ == '__main__':
 
     marker_diameter = 0.040 # 4 cm
 
-    D[0,1] = D[1,0] = 4.126 + marker_diameter/2
-    D[0,2] = D[2,0] = 6.878 + marker_diameter/2
-    D[0,3] = D[3,0] = 4.508 + marker_diameter/2
-    D[1,2] = D[2,1] = 4.401 + marker_diameter/2
-    D[1,3] = D[3,1] = 7.113 + marker_diameter/2
-    D[3,2] = D[2,3] = 7.002 + marker_diameter/2
+    D[0,1] = D[1,0] = 4.126 + marker_diameter
+    D[0,2] = D[2,0] = 6.878 + marker_diameter
+    D[0,3] = D[3,0] = 4.508 + marker_diameter
+    D[1,2] = D[2,1] = 4.401 + marker_diameter
+    D[1,3] = D[3,1] = 7.113 + marker_diameter
+    D[3,2] = D[2,3] = 7.002 + marker_diameter
 
     M1 = MarkerSet(m=m, dim=dim, diameter=marker_diameter)
     M1.fromEDM(D**2)
