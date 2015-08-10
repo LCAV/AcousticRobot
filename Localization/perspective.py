@@ -1,31 +1,33 @@
-#:-*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 from __future__ import division
 from __future__ import print_function
 import cv2, sys, getopt, urllib, operator
+import sys
 import numpy as np
 import cv2.cv as cv
 import matplotlib.pyplot as plt
 import marker_calibration as mark
 import time
-'''--------------  Basics ------------------ '''
+import get_image as get
 
-''' Create 1-channel CV_8U image '''
+'''--------------  Basics ------------------ '''
 def gray_conversion(img):
+    ''' Create 1-channel CV_8U image '''
     if img.dtype != 'uint8' or img.shape[2] != 1:
         img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     return img
-''' Convert BGR (opencv) to RGB (matplotlib) '''
 def rgb_conversion(img):
+    ''' Convert BGR (opencv) to RGB (matplotlib) '''
     b,g,r = cv2.split(img)
     return cv2.merge([r,g,b])
-''' Get centroid from contour '''
 def get_centroid(cnt):
+    ''' Get centroid from contour '''
     # Find centroid of contour
     M = cv2.moments(cnt)
     cy,cx = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
     return cx,cy
-''' Visualize results '''
 def visualization(imgs,nexti,colorbar=0,switch=0):
+    ''' Visualize results '''
     n = len(imgs)
     i = nexti
     for (tit,im) in imgs.items():
@@ -43,9 +45,8 @@ def visualization(imgs,nexti,colorbar=0,switch=0):
     return i
 
 '''----------  Program handling ------------ '''
-
-''' Plot where 4 reference points can be picked by mouse-click'''
 class InteractivePlot:
+    ''' Plot where 4 reference points can be picked by mouse-click'''
     def __init__(self,pict,name,number):
         self.x1 = 0.0
         self.y1 = 0.0
@@ -103,8 +104,9 @@ class InteractivePlot:
     def draw(self):
         plt.imshow(self.name)
         plt.show()
-''' Get filename from command line '''
+
 def get_parameters():
+    ''' Get filename from command line '''
     inputfile = ''
     outputfile = ''
     calibfile=''
@@ -140,52 +142,18 @@ def get_parameters():
                 sys.exit(2)
 
     return inputfile,outputfile,calibfile,number
-''' Get the current webcam image from IP-stream '''
-def get_image(n):
-    img = ''
-    not_found = 1
-    counter = 1
-    bytes=''
-    try:
-        if n == 139:
-            stream = urllib.urlopen("http://172.16.156.139:8080/?action=stream")
-        elif n == 141:
-            stream = urllib.urlopen("http://172.16.156.141:8080/?action=stream")
-    except:
-        print("Could not open stream")
-        sys.exit(1)
-    while not_found:
-        counter = counter+1
-        try:
-            bytes+=stream.read(1024)
-            a = bytes.find('\xff\xd8')
-            b = bytes.find('\xff\xd9')
-            # New image found
-            if a!=-1 and b!=-1:
-                jpg = bytes[a:b+2]
-                bytes = bytes[b+2:]
-                i = cv2.imdecode(np.fromstring(jpg,dtype=np.uint8),cv2.CV_LOAD_IMAGE_COLOR)
-                not_found=0
-                return i
-            if counter > 10000:
-                print("Timeout while loading stream")
-                sys.exit(1)
-        except:
-            print("Could not load stream")
-            sys.exit(1)
 
 ''' --------   Image Processing ------------ '''
-
-''' Get edges using Canny '''
 def get_edges_canny(img,param):
+    ''' Get edges using Canny '''
     thresh1 = param
     thresh2 = param/2
 
     edges = cv2.Canny(img,thresh1,thresh2)
     plt.figure(5),plt.imshow(edges,'gray'),plt.title('Canny'),plt.show(block=False)
     return edges
-''' Circle detection using HoughTransform '''
 def get_circles_hough(img):
+    ''' Circle detection using HoughTransform '''
     b = 0 #number of circles detected
     p1,p2,rmin,rmax = (100,30,0,0)
 
@@ -209,8 +177,8 @@ def get_circles_hough(img):
         print("Hough: no circles detected")
 
     return cimg, circles
-''' Circles detection by counting pixels around contour centers '''
 def get_circles_count(img,contours,t,w,r):
+    ''' Circles detection by counting pixels around contour centers '''
     t_pixels=r #minimum distance between two circle centers
 
     img = gray_conversion(img)
@@ -263,8 +231,8 @@ def get_circles_count(img,contours,t,w,r):
         cv2.circle(cimg,(centers[0][i][1],centers[0][i][0]),20,(0,255,0),1,cv2.CV_AA)
         cv2.circle(cimg,(centers[0][i][1],centers[0][i][0]),2,(0,0,0),1,cv2.CV_AA)
     return cimg, centers
-''' Circle detection by matchShape '''
 def get_circles_match(img,contours):
+    ''' Circle detection by matchShape '''
     circle_contours = []
     circle_centers = []
     best_cnt=0
@@ -320,8 +288,8 @@ def get_circles_match(img,contours):
 
     print("Match: ",len(circle_centers), " circles detected: ",circle_centers)
     return cimg, circle_centers
-''' Color contours extraction '''
 def extract_color(img,range_min,range_max):
+    ''' Color contours extraction '''
     i=0
     max_area=0
     best_cnt = 1
@@ -367,8 +335,8 @@ def extract_color(img,range_min,range_max):
         #print("Extract: No contours found")
 
     return img,tmp,contours,(cx,cy),img_diff
-''' Determine shade of red '''
 def manual_calibration(img,n,R):
+    ''' Determine shade of red '''
     #Get point of interest
     img=rgb_conversion(img)
     img_hsv = cv2.cvtColor(img,cv2.COLOR_RGB2HSV)
@@ -394,8 +362,8 @@ def manual_calibration(img,n,R):
         img_mask[circle==1]=1
 
     return img_mask, points
-''' Determine shade of red automatically '''
 def automatic_calibration(img,range_min,range_max,thresh_diff,col_diff):
+    ''' Determine shade of red automatically '''
 
     img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     # Spectrum contains limit (180)
@@ -420,8 +388,8 @@ def automatic_calibration(img,range_min,range_max,thresh_diff,col_diff):
     rmin = np.amin(colors_clean,axis=0)
     rmax = np.amax(colors_clean,axis=0)
     return rmin,rmax,img_diff
-''' Determine two shades of red automatically '''
 def get_histograms(img,img_mask,n):
+    ''' Determine two shades of red automatically '''
     img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     img_mask = img_mask.astype(np.uint8)
     hsv_reduced = img_mask*img_hsv
@@ -442,8 +410,8 @@ def get_histograms(img,img_mask,n):
     plt.legend('s')
     plt.show(block=False)
     return hist_h,hist_s
-''' Calibration loop '''
 def calib_loop(img,w,r,n,H_MAX,H_MIN,H_DIFF,t):
+    ''' Calibration loop '''
     h_diff = 20
 
     h_min = H_MIN
@@ -455,7 +423,7 @@ def calib_loop(img,w,r,n,H_MAX,H_MIN,H_DIFF,t):
 
     # Get regions of interest
     img_mask,points = manual_calibration(img,n,r*5)
-    hist_h, hist_s = get_histograms(img,img_mask,n*10)
+    #hist_h, hist_s = get_histograms(img,img_mask,n*10)
 
     img_reduced = img.copy()
     img_reduced[img_mask==0] = 255
@@ -498,9 +466,8 @@ def calib_loop(img,w,r,n,H_MAX,H_MIN,H_DIFF,t):
     return img_color,circ_color,pos_color
 
 ''' --------------  Geometry ---------------'''
-
-''' Apply geometric transformation to get "view from top"  '''
 def geometric_transformation(img,pts_real,size,pts_img=[]):
+    ''' Apply geometric transformation to get "view from top"  '''
     if pts_img == []:
         pts_img = get_img_points(img)
     M = cv2.getPerspectiveTransform(pts_img,pts_real)
@@ -564,17 +531,17 @@ while True:
             # Read image
             inputfile,outputfile,calibfile,n_cam = get_parameters()
             if inputfile == '':
-                img = get_image(n_cam)
+                img = get.get_image(n_cam)
             else:
                 img = cv2.imread(inputfile,cv2.IMREAD_COLOR)
 
             if outputfile != '':
-                img = get_image(n_cam)
+                img = get.get_image(n_cam)
                 cv2.imwrite(outputfile,img)
                 sys.exit(1)
 
             if calibfile == '':
-                calibfile = "pics/calibration.jpg"
+               calibfile = "pics/calibration.jpg"
 
             if n_cam == 0:
                 n_cam = 139
@@ -686,6 +653,8 @@ while True:
                     f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
                 for m in M:
                     f.write(str(m[0,0])+"\t"+str(m[0,1])+"\t"+str(m[0,2])+"\n")
+                for pt in pts_real:
+                    f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
             #---------------  Visualization    ------------#
             h,s,v = cv2.split(cv2.cvtColor(img,cv2.COLOR_BGR2HSV))
             #imgs = {'original h component':h,
