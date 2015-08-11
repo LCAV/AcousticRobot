@@ -645,7 +645,7 @@ while True:
             M = np.matrix(M)
             # write results into file
             name='pos/pos_' +str(n_cam)+'_'+str(int(time.mktime(time.gmtime())))
-            with open(name,"w") as f:
+            with open(name+str(".txt"),"w") as f:
                 for pt in p:
                     f.write(str(pt)+'\t')
                 f.write("\n")

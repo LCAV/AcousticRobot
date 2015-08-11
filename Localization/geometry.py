@@ -21,12 +21,12 @@ def get_parameters():
     return fname
 
 def get_positions(fname):
+    i = 0
+    pts_img = np.zeros((4,2))
+    M = np.zeros((3,3))
+    pts_real = np.zeros((4,2))
     with open(fname,"r") as f:
         c = csv.reader(f,delimiter = '\t')
-        i = 0
-        pts_img = np.zeros((4,2))
-        M = np.zeros((3,3))
-        pts_real = np.zeros((4,2))
         for line in c:
             if i == 0:
                 p = [float(x) for x in line if x!='']
