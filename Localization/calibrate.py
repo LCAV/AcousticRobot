@@ -37,7 +37,8 @@ def get_param():
         if opt in ('--n',"-n"):
             n = int(arg)
     return save_dir, square_size,n
-def saveinfile(rms,cam,dist,rvecs,tvecs):
+
+def save_camera(rms,cam,dist,rvecs,tvecs):
     global save_dir, n
     ''' save camera parameters in file '''
     with open(save_dir+"/results"+str(n)+".txt","w") as f:
@@ -55,7 +56,8 @@ def saveinfile(rms,cam,dist,rvecs,tvecs):
             for i in range(3):
                 f.write("{:10.4f}\t".format(tvecs[j][i][0]))
             f.write("\n")
-def readfromfile(dim):
+
+def read_camera():
     ''' get camera parameters from file '''
     global save_dir, n
     i=0
@@ -67,26 +69,62 @@ def readfromfile(dim):
     with open(save_dir+"/results"+str(n)+".txt","r") as f:
         print("reading...")
         c = csv.reader(f,delimiter='\t')
+        count = sum(1 for _ in c) # number of lines in file
+        dim = int((count-5)/2) #number of images in folder
+        f.seek(0) # go back to beginning of file
+        c = csv.reader(f,delimiter='\t')
         for line in c:
             if i == 0:
                 rms = line
             elif i >= 1 and i <= 3:
                 cam[i-1,:] = line
             elif i == 4:
-                dist = [float(x) for x in line if x!='' ]
+                dist = [float(x) for x in line if x!='']
             elif i>=5 and i<5+dim:
-                rvecs.append(line)
+                rvecs.append([float(x) for x in line if x!=''])
             elif i>=5+dim and i <5+2*dim:
-                tvecs.append(line)
+                tvecs.append([float(x) for x in line if x!=''])
             i+=1
-    return rms,cam,[np.array(dist)],rvecs,tvecs
-def get_calibpoints(img, counter):
+    return rms,cam,[np.array(dist)],np.array(rvecs),np.array(tvecs)
+
+def read_positions(fname):
+    ''' get reference point and robot positions from file '''
+    i = 0
+    pts_img = np.zeros((4,2))
+    M = np.zeros((3,3))
+    pts_obj = np.zeros((4,2))
+    with open(fname,"r") as f:
+        c = csv.reader(f,delimiter = '\t')
+        for line in c:
+            if i == 0:
+                p = [float(x) for x in line if x!='']
+            elif i > 0 and i <=4:
+                pts_img[i-1,:] = line
+            elif i > 4 and i <= 7:
+                M[i-5,:] = line
+            elif i > 7 and i<= 11:
+                pts_obj[i-8,:] = line
+            i+=1
+    obj_points = np.hstack((pts_obj,np.ones((4,1))))
+    img_points = pts_img
+
+    obj_points = obj_points.astype(np.float32)
+    img_points = img_points.astype(np.float32)
+    return obj_points, img_points, p
+
+def get_calibpoints(img,pattern_size, counter):
     '''
     returns pairs of object- and image points (chess board corners)
     for camera calibration
     '''
-    global save_dir,n
+    global save_dir,n,square_size
+
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    pattern_points = np.zeros( (np.prod(pattern_size), 3), np.float32 )
+    pattern_points[:,:2] = np.indices(pattern_size).T.reshape(-1, 2)
+    pattern_points *= square_size
+
+    h, w = 0, 0
     found, corners = cv2.findChessboardCorners(gray, pattern_size)
     fig,ax=plt.subplots()
     if found:
@@ -111,6 +149,7 @@ def get_calibpoints(img, counter):
             ax.imshow(img),plt.show(block=False)
             print(str(counter)+': chessboard not found')
         return [],[]
+
 def undo_fisheye(img,cam,dist):
     # intrinsic parameters
     fx = cam[0,0]
@@ -148,53 +187,82 @@ def undo_fisheye(img,cam,dist):
     # cv.Undistort2(src,dst, intrinsics, dist_coeffs)
     return np.array(dst)
 
-if __name__ == '__main__':
-    import sys
-    import getopt
-    from glob import glob
-    import get_image
-
-    save_dir,square_size,n = get_param()
-
-    pattern_size = (8, 5)
-    pattern_points = np.zeros( (np.prod(pattern_size), 3), np.float32 )
-    pattern_points[:,:2] = np.indices(pattern_size).T.reshape(-1, 2)
-    pattern_points *= square_size
-
+def get_intrinsic():
+    choice = "y"
+    counter = 1
     obj_points = []
     img_points = []
-    h, w = 0, 0
-    counter = 1
-    #choice = "y"
-    choice = "n"
+    pattern_size = (8, 5)
     while True:
         try:
-            #-------------------------- Collect Data --------------------------#
+            # Collect Data
             if choice == "y":
                 img = get_image.get_image(n)
                 h, w = img.shape[:2]
-                img_pt, obj_pt = get_calibpoints(img, counter)
+                img_pt, obj_pt = get_calibpoints(img,pattern_size,counter)
                 if not img_pt == None:
                     img_points.append(img_pt)
                     obj_points.append(obj_pt)
                 counter += 1
                 choice = raw_input("Do you want to take another image? (y/n)")
             elif choice == "n":
-            #------------------------ Calibrate Camera ------------------------#
-                #rms,cam,dist,rv,tv = cv2.calibrateCamera(obj_points, img_points,
-                #                                         (w,h), None, None)
-                #saveinfile(rms,cam,dist,rv,tv)
-
-            #-------------------------- Undo Fisheye --------------------------#
-                rms,cam,dist,rvecs,tvecs = readfromfile(5)
-                img_number = [1,2,3,4,5]
-                for i in img_number:
-                    img_in=cv2.imread(save_dir+"/input"+str(n)+"_"+str(i)+".jpg",
-                                    cv2.IMREAD_COLOR)
-                    undone = undo_fisheye(img_in,cam,dist)
-                    cv2.imwrite(save_dir+"/undone"+str(n)+"_"+str(i)+".jpg",undone)
-                sys.exit(1)
+            # Calibrate Camera
+                rms,cam,dist,rv,tv = cv2.calibrateCamera(obj_points, img_points,
+                                                         (w,h), None, None)
+                return 1
         except KeyboardInterrupt:
             print("program terminated by user")
             sys.exit(1)
+
+
+if __name__ == '__main__':
+    import sys
+    import getopt
+    from glob import glob
+    import get_image
+
+    #------------------------- Get parameters -------------------------#
+
+    save_dir,square_size,n = get_param()
+
+    #------------------------ Calibrate Camera ------------------------#
+
+    # make new calibration
+    # rms,cam,dist,rv,tv = get_intrinsic()
+    # save_camera(rms,cam,dist,rv,tv)
+    # load calibration
+    __,cam,dist,rv,tv = read_camera()
+
+    #-------------------------- Undo Fisheye --------------------------#
+
+    #for f in os.lsitdir(save_dir):
+    #    if f.startswith("input"):
+    #        img_in=cv2.imread(save_dir+"/"+f,cv2.IMREAD_COLOR)
+    #        undone = undo_fisheye(img_in,cam,dist)
+    #        cv2.imwrite(save_dir+"/"+f.replace("input","undone"),undone)
+
+    #------------------------- Locate Cameras -------------------------#
+
+    # use newest file from this camera
+    f_newest = '0000000000'
+    for f in os.listdir('pos/'):
+        if f.startswith("pos_"+str(n)):
+            if int(f[-10:]) > int(f_newest[-10:]):
+                f_newest = f
+    fname = 'pos/'+f_newest
+    opts,ipts,p = read_positions(fname)
+    rval, rvec, tvec = cv2.solvePnP(opts,ipts,cam,dist[0],rv,tv,0,cv2.CV_ITERATIVE)
+
+    #--------------------------- Get Robot 3D -------------------------#
+    rmat, j = cv2.Rodrigues(rvec)
+    cam_mat = np.matrix(cam)
+    r1 = np.matrix(rmat[:,0]).T
+    r2 = np.matrix(rmat[:,1]).T
+    t= np.matrix(tvec)
+    H = cam_mat * np.hstack((r1,r2,t))
+    # normalization
+    H = H/t[2]
+    p_2D = np.matrix(np.hstack((p,1)))
+    p_3D = H*p_2D.T
+
 

@@ -24,7 +24,7 @@ def get_positions(fname):
     i = 0
     pts_img = np.zeros((4,2))
     M = np.zeros((3,3))
-    pts_real = np.zeros((4,2))
+    pts_obj = np.zeros((4,2))
     with open(fname,"r") as f:
         c = csv.reader(f,delimiter = '\t')
         for line in c:
@@ -35,34 +35,36 @@ def get_positions(fname):
             elif i > 4 and i <= 7:
                 M[i-5,:] = line
             elif i > 7 and i<= 11:
-                pts_real[i-8,:] = line
+                pts_obj[i-8,:] = line
             i+=1
-    return np.array(p),np.array(pts_img),np.matrix(M),np.array(pts_real)
+    return np.array(p),np.array(pts_img),np.matrix(M),np.array(pts_obj)
 
-def visualize_points(pts_real,pts_img,M):
+def visualize_points(pts_obj,pts_img,M):
+    ''' creates 3D graphs of image- and object points '''
+
     # fix real points to constant height
-    pts_real_3D = np.hstack((pts_real,np.ones((4,1))))
-    pts_real_3D = np.matrix(pts_real_3D)
-    pts_img_3D = M.I*pts_real_3D.T
+    pts_obj_3D = np.hstack((pts_obj,np.ones((4,1))))
+    pts_obj_3D = np.matrix(pts_obj_3D)
+    pts_img_3D = M.I*pts_obj_3D.T
     test_img = (pts_img_3D/pts_img_3D[2,:]).T
     pts_img_3D = pts_img_3D.T
-    pts_real_3D = pts_real_3D.T
+    pts_obj_3D = pts_obj_3D.T
 
     # fix image points to constant height
     # pts_img_3D = np.hstack((pts_img,np.ones((4,1))))
     # pts_img_3D = np.matrix(pts_img_3D)
-    # pts_real_3D = M*pts_img_3D.T
-    #test_real = (pts_real_3D/pts_real_3D[2,:]).T
+    # pts_obj_3D = M*pts_img_3D.T
+    #test_real = (pts_obj_3D/pts_obj_3D[2,:]).T
 
     p_old = pts_img_3D.T[:,3]
-    p_prime_old = pts_real_3D[:,3]
+    p_prime_old = pts_obj_3D[:,3]
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     colors = ['r','b','g','m']
     for i in range(4):
         p = pts_img_3D.T[:,i]
-        p_prime = pts_real_3D[:,i]
+        p_prime = pts_obj_3D[:,i]
 
         t = np.linspace(-1,2,100)
         s = np.linspace(-1,2,100)
@@ -101,29 +103,28 @@ def visualize_points(pts_real,pts_img,M):
 
     plt.show(block=False)
 
-fname = get_parameters()
-p,pts_img,M,pts_real = get_positions(fname)
-visualize_points(pts_real,pts_img,M)
+if __name__ = '__main__':
+    fname = get_parameters()
+    p,pts_img,M,pts_obj = get_positions(fname)
+    visualize_points(pts_obj,pts_img,M)
 
-camera_matrix = np.zeros((3, 3))
-camera_matrix[0,0]= 2200.0
-camera_matrix[1,1]= 2200.0
-camera_matrix[2,2]=1.0
-camera_matrix[0,2]=750.0
-camera_matrix[1,2]=750.0
+    camera_matrix[1,1]= 2200.0
+    camera_matrix[2,2]=1.0
+    camera_matrix[0,2]=750.0
+    camera_matrix[1,2]=750.0
 
-dist_coefs = np.zeros(4)
+    dist_coefs = np.zeros(4)
 
-obj_points = np.hstack((pts_real,np.zeros((4,1))))
-img_points = pts_img
+    obj_points = np.hstack((pts_obj,np.zeros((4,1))))
+    img_points = pts_img
 
-obj_points = obj_points.astype(np.float32)
-img_points = img_points.astype(np.float32)
+    obj_points = obj_points.astype(np.float32)
+    img_points = img_points.astype(np.float32)
 
-h = 1944
-w = 2592
-size=(w,h)
-sys.exit(1)
-retval,cam,dist,rvecs,tvecs = cv2.calibrateCamera([obj_points], [img_points],
-                                                  size, camera_matrix, dist_coefs,
-                                                  flags=cv2.CALIB_USE_INTRINSIC_GUESS)
+    h = 1944
+    w = 2592
+    size=(w,h)
+    sys.exit(1)
+    retval,cam,dist,rvecs,tvecs = cv2.calibrateCamera([obj_points], [img_points],
+                                                    size, camera_matrix, dist_coefs,
+                                                    flags=cv2.CALIB_USE_INTRINSIC_GUESS)

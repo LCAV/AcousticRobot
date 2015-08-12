@@ -144,39 +144,6 @@ def get_parameters():
     return inputfile,outputfile,calibfile,number
 
 ''' --------   Image Processing ------------ '''
-def get_edges_canny(img,param):
-    ''' Get edges using Canny '''
-    thresh1 = param
-    thresh2 = param/2
-
-    edges = cv2.Canny(img,thresh1,thresh2)
-    plt.figure(5),plt.imshow(edges,'gray'),plt.title('Canny'),plt.show(block=False)
-    return edges
-def get_circles_hough(img):
-    ''' Circle detection using HoughTransform '''
-    b = 0 #number of circles detected
-    p1,p2,rmin,rmax = (100,30,0,0)
-
-
-    img = gray_conversion(img)
-    # Transform picture to 3-channel greyscale for better contour visibility
-    cimg = img.copy()
-    cimg = cv2.cvtColor(cimg,cv2.COLOR_GRAY2BGR)
-
-    # ƒor debugging only
-    #edg = get_edges_canny(img,p1)
-    circles = cv2.HoughCircles(img, cv.CV_HOUGH_GRADIENT, 1 , 10, np.array([]),
-                               p1,p2,rmin,rmax)
-    if circles != None:
-        a, b, c = circles.shape
-        print("Hough: ",b," circles detected: ",circles)
-        for i in range(b):
-            cv2.circle(cimg, (circles[0][i][0], circles[0][i][1]), circles[0][i][2], (0, 255, 0), 3, cv2.CV_AA)
-            cv2.circle(cimg, (circles[0][i][0], circles[0][i][1]), 2, (0, 255, 0), 3, cv2.CV_AA) # draw center of circle
-    else:
-        print("Hough: no circles detected")
-
-    return cimg, circles
 def get_circles_count(img,contours,t,w,r):
     ''' Circles detection by counting pixels around contour centers '''
     t_pixels=r #minimum distance between two circle centers
@@ -231,63 +198,6 @@ def get_circles_count(img,contours,t,w,r):
         cv2.circle(cimg,(centers[0][i][1],centers[0][i][0]),20,(0,255,0),1,cv2.CV_AA)
         cv2.circle(cimg,(centers[0][i][1],centers[0][i][0]),2,(0,0,0),1,cv2.CV_AA)
     return cimg, centers
-def get_circles_match(img,contours):
-    ''' Circle detection by matchShape '''
-    circle_contours = []
-    circle_centers = []
-    best_cnt=0
-    radius = 5
-    thresh_fit = 0.10 # threshold underneath which shape is considered circle
-    max_fit = 100
-
-    # Define circle to be matched
-    size =  int(radius*2+10)
-    a = b =  int(round(size/2))
-    y,x = np.ogrid[-a:size-a,-b:size-b]
-    circ = x*x + y*y <= radius*radius
-    mask = np.zeros((size,size),dtype=np.uint8)
-    mask[circ] = 255
-    mask_cpy=np.copy(mask)
-
-    cimg = gray_conversion(img)
-    cimg = cv2.cvtColor(cimg,cv2.COLOR_GRAY2BGR)
-
-    # ƒind contours (changes the image mask! )
-    circle, h = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
-
-    show_img = np.zeros(mask.shape,dtype=np.uint8)
-    for cnt in circle:
-        cv2.drawContours(show_img,[cnt],-1,(255,255,255),5)
-    #plt.figure(),plt.imshow(show_img,'gray'),plt.show(block=False)
-
-    i = 1
-    for cnt in contours:
-        #print("contour number:",i)
-        i+=1
-
-        # Count vertices
-        approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
-        #print("length:",len(cnt))
-        #print("number of vertices:",len(approx))
-
-        # Compare to test circle
-        np_circle = np.array(circle[0],dtype=np.int32)
-        shape_fit = cv2.matchShapes(np_circle,cnt,cv.CV_CONTOURS_MATCH_I1,0)
-        #print("fit:",shape_fit)
-
-        # ƒind best fit (currently not used)
-        if shape_fit < max_fit and shape_fit != 0.0:
-            max_fit = shape_fit
-            best_cnt = cnt
-        # find circles
-        if shape_fit < thresh_fit and shape_fit != 0.0:
-            circle_contours.append(cnt)
-            cv2.drawContours(cimg,cnt,-1,(0,255,255),1)
-            cx,cy = get_centroid(cnt)
-            circle_centers.append([cx,cy])
-
-    print("Match: ",len(circle_centers), " circles detected: ",circle_centers)
-    return cimg, circle_centers
 def extract_color(img,range_min,range_max):
     ''' Color contours extraction '''
     i=0
