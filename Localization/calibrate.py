@@ -105,7 +105,7 @@ def read_positions(fname):
             elif i > 7 and i<= 11:
                 pts_obj[i-8,:] = line
             i+=1
-    obj_points = np.hstack((pts_obj,np.ones((4,1))))
+    obj_points = np.hstack((pts_obj,np.zeros((4,1))))
     img_points = pts_img
 
     obj_points = obj_points.astype(np.float32)
@@ -230,6 +230,7 @@ if __name__ == '__main__':
     # make new calibration
     # rms,cam,dist,rv,tv = get_intrinsic()
     # save_camera(rms,cam,dist,rv,tv)
+
     # load calibration
     __,cam,dist,rv,tv = read_camera()
 
@@ -243,26 +244,46 @@ if __name__ == '__main__':
 
     #------------------------- Locate Cameras -------------------------#
 
-    # use newest file from this camera
-    f_newest = '0000000000'
-    for f in os.listdir('pos/'):
-        if f.startswith("pos_"+str(n)):
-            if int(f[-10:]) > int(f_newest[-10:]):
-                f_newest = f
-    fname = 'pos/'+f_newest
-    opts,ipts,p = read_positions(fname)
-    rval, rvec, tvec = cv2.solvePnP(opts,ipts,cam,dist[0],rv,tv,0,cv2.CV_ITERATIVE)
+    # parameters
+    px_size = 1.4*10**-3 # mm per pixel
+    x0 = np.matrix([1000,500,0])
+    xc = dict()
+    n_cameras = [139,141]
+    ipts_dic = dict()
+    opts_dic = dict()
+    cam_mat_dic = dict()
+    rmat_dic = dict()
+    t_dic = dict()
+    H_dic = dict()
+    p_2D_dic = dict()
+    p_3D_dic = dict()
 
-    #--------------------------- Get Robot 3D -------------------------#
-    rmat, j = cv2.Rodrigues(rvec)
-    cam_mat = np.matrix(cam)
-    r1 = np.matrix(rmat[:,0]).T
-    r2 = np.matrix(rmat[:,1]).T
-    t= np.matrix(tvec)
-    H = cam_mat * np.hstack((r1,r2,t))
-    # normalization
-    H = H/t[2]
-    p_2D = np.matrix(np.hstack((p,1)))
-    p_3D = H*p_2D.T
+    for n in n_cameras:
+        __,cam,dist,rv,tv = read_camera()
+        # use newest file from this camera
+        f_newest = '0000000000'
+        for f in os.listdir('pos/'):
+            if f.startswith("pos_"+str(n)):
+                if int(f[-10:]) > int(f_newest[-10:]):
+                    f_newest = f
+        fname = 'pos/'+f_newest
+        opts,ipts,p = read_positions(fname)
+        cam = cam*px_size #camera matrix in mm
+        ipts_dic[n] = px_size*ipts #img points in mm
+        opts_dic[n] = opts*10 #object points in mm
+        __,rvec,tvec = cv2.solvePnP(opts_dic[n],ipts_dic[n],cam,dist[0],rv,tv,0,cv2.CV_ITERATIVE)
 
+        #--------------------------- Get Robot 3D -------------------------#
+        rmat, j = cv2.Rodrigues(rvec)
+        rmat_dic[n] = np.matrix(rmat)
+        cam_mat_dic[n] = np.matrix(cam)
+        r1 = rmat_dic[n][:,0]
+        r2 = rmat_dic[n][:,1]
+        t_dic[n]= np.matrix(tvec)
+        H = cam_mat_dic[n] * np.hstack((r1,r2,t_dic[n]))
+        # normalization
+        H_dic[n] = H/t_dic[n][2]
+        p_2D_dic[n] = np.matrix(np.hstack((p,0)))
+        p_3D_dic[n] = H*p_2D_dic[n].T
 
+        xc[n] = rmat_dic[n]*x0.T+t_dic[n]
