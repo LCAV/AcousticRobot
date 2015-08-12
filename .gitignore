@@ -1,8 +1,11 @@
 # System files
 .DS_Store
 
+# Executable files
+*.pyc
+
 # Result files
-pos/
+Localisation/pos/
 *.png
 *.jpeg
 *.jpg
