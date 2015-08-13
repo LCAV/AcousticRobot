@@ -1,0 +1,12 @@
+# System files
+.DS_Store
+
+# Executable files
+*.pyc
+
+# Result files
+Localisation/pos/
+*.png
+*.jpeg
+*.jpg
+*.txt
