@@ -107,7 +107,7 @@ def read_positions(fname):
             elif i > 7 and i<= 11:
                 pts_obj[i-8,:] = line
             i+=1
-    obj_points = np.hstack((pts_obj,np.zeros((4,1))))
+    obj_points = np.hstack((pts_obj,np.ones((4,1))))
     img_points = pts_img
 
     obj_points = obj_points.astype(np.float32)
@@ -190,6 +190,7 @@ def undo_fisheye(img,cam,dist):
     return np.array(dst)
 
 def get_intrinsic():
+    ''' intrinsic (and extrinsic) camera  calibration using checkboard '''
     choice = "y"
     counter = 1
     obj_points = []
@@ -209,9 +210,7 @@ def get_intrinsic():
                 choice = raw_input("Do you want to take another image? (y/n)")
             elif choice == "n":
             # Calibrate Camera
-                rms,cam,dist,rv,tv = cv2.calibrateCamera(obj_points, img_points,
-                                                         (w,h), None, None)
-                return 1
+                return img_points, obj_points, (w,h)
         except KeyboardInterrupt:
             print("program terminated by user")
             sys.exit(1)
@@ -228,14 +227,17 @@ class Camera:
         R,__ = cv2.Rodrigues(self.r)
         self.R = np.matrix(R)
         self.Proj = self.C*np.hstack((self.R,self.t))
-    def reposition(self,ipts,opts):
-        __,rvec,tvec = cv2.solvePnP(opts_dic[n],ipts_dic[n],self.C,self.dist,
-                                    self.r,self.t,0,cv2.CV_ITERATIVE)
+    def reposition(self,opts,ipts,guess,flag):
+        if flag == cv2.CV_P3P or flag == cv2.CV_EPNP:
+            ipts = np.ascontiguousarray(ipts[:,:2]).reshape((4,1,2))
+        __,rvec,tvec = cv2.solvePnP(opts,ipts,self.C,self.dist,
+                                    self.r,self.t,guess,flag)
         self.r = rvec
         self.t = tvec
         R,__ = cv2.Rodrigues(self.r)
         self.R = np.matrix(R)
         self.Proj = self.C*np.hstack((self.R,self.t))
+
 if __name__ == '__main__':
     import sys
     import getopt
@@ -251,14 +253,15 @@ if __name__ == '__main__':
     #------------------------ Calibrate Camera ------------------------#
 
     # make new calibration
-    # rms,cam,dist,rv,tv = get_intrinsic()
-    # save_camera(rms,cam,dist,rv,tv)
+    img_points,obj_points,size = get_intrinsic()
+    rms,cam,dist,rv,tv = cv2.calibrateCamera(obj_points,img_points,size, None, None)
+    save_camera(rms,cam,dist,rv,tv)
 
-    # load calibration
-    #__,cam,dist,rv,tv = read_camera()
 
     #-------------------------- Undo Fisheye --------------------------#
 
+    # load calibration
+    #__,cam,dist,rv,tv = read_camera()
     #for f in os.lsitdir(save_dir):
     #    if f.startswith("input"):
     #        img_in=cv2.imread(save_dir+"/"+f,cv2.IMREAD_COLOR)
@@ -269,7 +272,7 @@ if __name__ == '__main__':
 
     # parameters
     px_size = 1.4*10**-3 # mm per pixel
-    x0 = np.matrix([10000,5000,0])
+    x0 = np.matrix([10000,5000,0]) # real position of robot in mm
     n_cameras = [139,141]
 
     xc = dict()
@@ -284,9 +287,14 @@ if __name__ == '__main__':
     r_height_px = r_height/px_size # robot height in pixels
 
     camera_dic = dict()
+    t_guess = {139:np.array([8000,-8000,3000]),
+               141:np.array([12000,12000,3000])}
+    t_guess = {139:np.array([-3000,4000,4700]),
+               141:np.array([3000,-1000,20000])}
     for i in n_cameras:
         n = i
         __,cam,dist,rv,tv = read_camera()
+        tv = np.array([t_guess[n]],dtype=np.float32)
         camera_dic[n] = Camera(n,cam,dist,rv.T,tv.T)
 
     for (count,camera) in iteritems(camera_dic):
@@ -303,7 +311,11 @@ if __name__ == '__main__':
         #ipts = px_size*ipts # img points in mm
         ipts_dic[n] = ipts
         opts_dic[n] = opts*10 #object points in mm
-        camera.reposition(opts_dic[n],ipts_dic[n])
+        #flag = cv2.CV_P3P
+        flag = cv2.CV_ITERATIVE
+        use_guess = 0
+        #flag = cv2.CV_EPNP
+        camera.reposition(opts_dic[n],ipts_dic[n],use_guess,flag)
         #-------------------------- Check transform -----------------------#
         # check with robot position
         ### method 1
@@ -315,11 +327,8 @@ if __name__ == '__main__':
         # xc_norm[n] = np.diag(np.matrix([fx,fy]).T*xc_norm[n][:2].T)+c[:2].T # u, v
         ### method 2
         # xc_norm[n],__ = cv2.projectPoints(np.array(x0,dtype=np.float32),rvec,tvec,cam,dist[0])
+
         ### best method
-        xc[n] = camera.Proj*np.vstack((x0.T,1))
-        s = xc[n][2]
-        xc_norm[n] = xc[n]/s
-        #print("robot, test:",np.array(xc_norm[n])[0:2].T[0],"real: check image")
         # check with reference point
         p1 = opts_dic[n][1]
         #xc_norm[n],__ = cv2.projectPoints(np.array([p1]),rvec,tvec,cam,dist[0])
@@ -330,11 +339,6 @@ if __name__ == '__main__':
         #--------------------------- Get Robot 3D -------------------------#
         (r1,r2,r3) = camera.R.T[:,:]
         p_img_dic[n] = np.matrix(np.hstack((p,1)))
-        ### method 1 doesn't work cause not everything in one plane
-        #H = camera.C* np.hstack((r1.T,r2.T,camera.t))
-        #H = H/camera.t[2]
-        #p_obj_dic[n] = H*p_img_dic[n].T
-        ### method 2
         A[n] = np.hstack(([p_img_dic[n].T,-camera.C*r1.T,-camera.C*r2.T]))
         b[n] = camera.C*(r3.T*r_height+camera.t)
         p_obj_dic[n] = A[n].I*b[n]

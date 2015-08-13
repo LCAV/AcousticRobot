@@ -502,7 +502,7 @@ while True:
 
             M1 = mark.MarkerSet(m=m,dim=dim,diameter=marker_diameter)
             M1.fromEDM(D**D)
-            M1.normalize
+            M1.normalize()
             pts_real = M1.X.T*100
             img_test,pts_real,size = format_points(pts_real)
 
