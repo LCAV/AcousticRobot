@@ -1,4 +1,6 @@
 
+import numpy as np
+
 def find_focal(X, H):
     """
     Find the location of the focal point of the camera (assuming no distortion)
@@ -23,6 +25,8 @@ def find_focal(X, H):
     # solve the overdetermined system in the least-square sense
     c, res, rank, s = np.linalg.lstsq(A,b)
 
+    print res
+
     return c
 
 
@@ -39,9 +43,57 @@ def build_system(U,Q):
 
     A = np.zeros((3*m, 3))
     for i in xrange(m):
-        A[3*i:3*(i+1),:] = u2cm(u[:,i])
+        A[3*i:3*(i+1),:] = u2cm(U[:,i])
 
     b = np.cross(Q,U, axisa=0, axisb=0, axisc=0).flatten(order='F')
 
     return A,b
+
+
+if __name__ == '__main__':
+
+    m = 4
+
+    # points in xy plane
+    X = np.random.exponential(size=(3,m))
+    X[2,:] = 1.
+    X = X.astype('float32')
+
+    # create a basis for the plane that contains x-axis and goes through (0,1,1)
+    scaling = 0.2
+    v1 = np.r_[1.,0.,0.]
+    v2 = np.r_[0,1,1]/np.sqrt(2)
+    P = np.array([v1, v2]).T.astype('float32')
+
+    Y = scaling*np.dot(P.T, X) + np.random.randn(2,m)*0.
+    Y = Y.astype('float32')
+
+    import cv2
+    H = cv2.getPerspectiveTransform(X[:2,:].T, Y.T)
+    #H /= np.linalg.norm(H, axis=1)
+    print P - H[:,:2]
+    print P
+    print H
+    print Y
+    #print np.dot(H, np.concatenate((Y, np.ones((1,4))), axis=0))
+    Y_p = np.dot(H, X)
+    print Y_p[:,:]
+    #print Y_p[:2,:]/Y_p[2,:]
+
+    c = find_focal(X[:2,:], H)
+    print 'c=',c
+
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    Y3 = scaling*np.dot(P, Y)
+
+    ax.scatter(X[0,:], X[1,:], zs=X[2,:], c='b', depthshade=False)
+    ax.scatter(Y_p[0,:], Y_p[1,:], zs=Y_p[2,:], c='k', depthshade=False)
+    ax.scatter([c[0]], [c[1]], zs=[c[2]], c='r', depthshade=False)
+
+    plt.show()
 
