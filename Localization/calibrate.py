@@ -2,6 +2,7 @@
 #!/usr/bin/env python
 from __future__ import division
 from __future__ import print_function
+from future.utils import iteritems
 import numpy as np
 import cv2
 import cv2.cv as cv
@@ -14,8 +15,8 @@ USAGE = '''
 USAGE: calib.py [--save <output path>] [--square_size <square size>] [--n <camera_number>]]
 '''
 
-save_dir = ''
-n = 139
+global save_dir
+global n
 
 def get_param():
     ''' returns parameters from command line '''
@@ -60,6 +61,7 @@ def save_camera(rms,cam,dist,rvecs,tvecs):
 def read_camera():
     ''' get camera parameters from file '''
     global save_dir, n
+    import numpy as np
     i=0
     rms = 0.0
     cam = np.zeros((3,3))
@@ -226,14 +228,22 @@ class Camera:
         R,__ = cv2.Rodrigues(self.r)
         self.R = np.matrix(R)
         self.Proj = self.C*np.hstack((self.R,self.t))
-
-
+    def reposition(self,ipts,opts):
+        __,rvec,tvec = cv2.solvePnP(opts_dic[n],ipts_dic[n],self.C,self.dist,
+                                    self.r,self.t,0,cv2.CV_ITERATIVE)
+        self.r = rvec
+        self.t = tvec
+        R,__ = cv2.Rodrigues(self.r)
+        self.R = np.matrix(R)
+        self.Proj = self.C*np.hstack((self.R,self.t))
 if __name__ == '__main__':
     import sys
     import getopt
     from glob import glob
     import get_image
 
+    save_dir = ''
+    n = 139
     #------------------------- Get parameters -------------------------#
 
     save_dir,square_size,n = get_param()
@@ -266,17 +276,21 @@ if __name__ == '__main__':
     xc_norm = dict()
     ipts_dic = dict()
     opts_dic = dict()
-    cam_mat_dic = dict()
-    rmat_dic = dict()
-    t_dic = dict()
     p_img_dic = dict()
     p_obj_dic = dict()
-    r_height = 1000 # robot height in mm
+    A = dict()
+    b = dict()
+    r_height = 1390 # robot height in mm
     r_height_px = r_height/px_size # robot height in pixels
 
-    for n in n_cameras:
+    camera_dic = dict()
+    for i in n_cameras:
+        n = i
         __,cam,dist,rv,tv = read_camera()
-        camera = Camera(n,cam,dist,rv.T,tv.T)
+        camera_dic[n] = Camera(n,cam,dist,rv.T,tv.T)
+
+    for (count,camera) in iteritems(camera_dic):
+        n = camera.n
         # use newest file from this camera
         f_newest = '0000000000'
         for f in os.listdir('pos/'):
@@ -289,47 +303,63 @@ if __name__ == '__main__':
         #ipts = px_size*ipts # img points in mm
         ipts_dic[n] = ipts
         opts_dic[n] = opts*10 #object points in mm
-        __,rvec,tvec = cv2.solvePnP(opts_dic[n],ipts_dic[n],cam,dist[0],rv,tv,0,cv2.CV_ITERATIVE)
-
+        camera.reposition(opts_dic[n],ipts_dic[n])
         #-------------------------- Check transform -----------------------#
-        rmat, j = cv2.Rodrigues(rvec)
-        rmat_dic[n] = np.matrix(rmat)
-        cam_mat_dic[n] = np.matrix(cam)
-        t_dic[n]= np.matrix(tvec)
-
         # check with robot position
-        c = cam_mat_dic[n][:,2]
-        fx = cam_mat_dic[n][0,0]
-        fy = cam_mat_dic[n][1,1]
         ### method 1
+        #c = camera.C[:,2]
+        #fx = camera.C[0,0]
+        #fy = camera.C[1,1]
         # xc[n] = rmat_dic[n]*x0.T+t_dic[n]
         # xc_norm[n] = xc[n]/xc[n][2] # x', y'
         # xc_norm[n] = np.diag(np.matrix([fx,fy]).T*xc_norm[n][:2].T)+c[:2].T # u, v
         ### method 2
         # xc_norm[n],__ = cv2.projectPoints(np.array(x0,dtype=np.float32),rvec,tvec,cam,dist[0])
         ### best method
-        xc[n] = cam_mat_dic[n]*np.hstack((rmat_dic[n],t_dic[n]))*np.vstack((x0.T,1))
+        xc[n] = camera.Proj*np.vstack((x0.T,1))
         s = xc[n][2]
         xc_norm[n] = xc[n]/s
-        print("robot, test:",np.array(xc_norm[n])[0:2].T[0],"real: check image")
+        #print("robot, test:",np.array(xc_norm[n])[0:2].T[0],"real: check image")
         # check with reference point
         p1 = opts_dic[n][1]
         #xc_norm[n],__ = cv2.projectPoints(np.array([p1]),rvec,tvec,cam,dist[0])
-        xc[n] = cam_mat_dic[n]*np.hstack((rmat_dic[n],t_dic[n]))*np.matrix(np.hstack((p1,1))).T
+        xc[n] = camera.Proj*np.matrix(np.hstack((p1,1))).T
         xc_norm[n] = xc[n]/xc[n][2]
         print("reference, test:",np.array(xc_norm[n])[0:2].T[0],"real:",ipts_dic[n][1])
 
         #--------------------------- Get Robot 3D -------------------------#
-        (r1,r2,r3) = rmat_dic[n].T[:,:]
-        ### method 1 doesn't work cause not everything in one plane
-        H = cam_mat_dic[n] * np.hstack((r1.T,r2.T,t_dic[n]))
-        H = H/t_dic[n][2]
+        (r1,r2,r3) = camera.R.T[:,:]
         p_img_dic[n] = np.matrix(np.hstack((p,1)))
-        p_obj_dic[n] = H*p_img_dic[n].T
+        ### method 1 doesn't work cause not everything in one plane
+        #H = camera.C* np.hstack((r1.T,r2.T,camera.t))
+        #H = H/camera.t[2]
+        #p_obj_dic[n] = H*p_img_dic[n].T
         ### method 2
-        A = np.hstack(([p_img_dic[n].T,-cam_mat_dic[n]*r1.T,-cam_mat_dic[n]*r2.T]))
-        b = cam_mat_dic[n]*(r3.T*r_height+t_dic[n])
-        p_obj_dic[n] = A.I*b
-        control=(cam_mat_dic[n]*rmat_dic[n]).I*(p_img_dic[n].T*p_obj_dic[n][0]
-                                                -cam_mat_dic[n]*t_dic[n])
-        t_dic[n]= np.matrix(tvec)
+        A[n] = np.hstack(([p_img_dic[n].T,-camera.C*r1.T,-camera.C*r2.T]))
+        b[n] = camera.C*(r3.T*r_height+camera.t)
+        p_obj_dic[n] = A[n].I*b[n]
+        control=(camera.C*camera.R).I*(p_img_dic[n].T*p_obj_dic[n][0]-camera.C*camera.t)
+        print("robot position ",camera.n,"\n",control[0:2].T)
+    # lest squares for two cameras
+    A_aug = np.vstack((A[139],A[141]))
+    b_aug = np.vstack((b[139],b[141]))
+    p_obj = (A_aug.T*A_aug).I*A_aug.T*b_aug
+    c139 = camera_dic[139]
+    c141 = camera_dic[141]
+    print("robot position lq\n",p_obj[1:3].T)
+    # triangulate reference points
+    opts_test = cv2.triangulatePoints(c139.Proj, c141.Proj,np.array(ipts_dic[139].T),
+                                      np.array(ipts_dic[141].T))
+    opts_norm1 = opts_test/opts_test[2]
+    opts_norm2 = opts_test/opts_test[3]
+    opts_norm2 = opts_norm2.T[:,:3]
+    opts_theo = opts_dic[139]
+    print("triang: ref point match\n",((opts_theo-opts_norm2)/opts_norm2))
+
+    # triangulate robot point
+    p_test = cv2.triangulatePoints(c139.Proj, c141.Proj,p_img_dic[139][0,:2].T,
+                                   p_img_dic[141][0,:2].T)
+    p_norm2 = p_test/p_test[3]
+    p_norm2 = p_norm2.T[:,:3]
+    print("triang: robot position\n",p_norm2)
+
