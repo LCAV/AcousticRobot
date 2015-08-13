@@ -67,7 +67,7 @@ def read_camera():
     rvecs = []
     tvecs = []
     with open(save_dir+"/results"+str(n)+".txt","r") as f:
-        print("reading...")
+        print("reading",n,"...")
         c = csv.reader(f,delimiter='\t')
         count = sum(1 for _ in c) # number of lines in file
         dim = int((count-5)/2) #number of images in folder
@@ -214,6 +214,19 @@ def get_intrinsic():
             print("program terminated by user")
             sys.exit(1)
 
+class Camera:
+    def __init__(self,n,C,dist,r,t):
+        # “raw parameters"
+        self.n = n
+        self.C = np.matrix(C)
+        self.dist = np.matrix(dist)
+        self.r = np.matrix(r)
+        self.t = np.matrix(t)
+        # "combined parameters"
+        R,__ = cv2.Rodrigues(self.r)
+        self.R = np.matrix(R)
+        self.Proj = self.C*np.hstack((self.R,self.t))
+
 
 if __name__ == '__main__':
     import sys
@@ -232,7 +245,7 @@ if __name__ == '__main__':
     # save_camera(rms,cam,dist,rv,tv)
 
     # load calibration
-    __,cam,dist,rv,tv = read_camera()
+    #__,cam,dist,rv,tv = read_camera()
 
     #-------------------------- Undo Fisheye --------------------------#
 
@@ -246,20 +259,24 @@ if __name__ == '__main__':
 
     # parameters
     px_size = 1.4*10**-3 # mm per pixel
-    x0 = np.matrix([1000,500,0])
-    xc = dict()
+    x0 = np.matrix([10000,5000,0])
     n_cameras = [139,141]
+
+    xc = dict()
+    xc_norm = dict()
     ipts_dic = dict()
     opts_dic = dict()
     cam_mat_dic = dict()
     rmat_dic = dict()
     t_dic = dict()
-    H_dic = dict()
-    p_2D_dic = dict()
-    p_3D_dic = dict()
+    p_img_dic = dict()
+    p_obj_dic = dict()
+    r_height = 1000 # robot height in mm
+    r_height_px = r_height/px_size # robot height in pixels
 
     for n in n_cameras:
         __,cam,dist,rv,tv = read_camera()
+        camera = Camera(n,cam,dist,rv.T,tv.T)
         # use newest file from this camera
         f_newest = '0000000000'
         for f in os.listdir('pos/'):
@@ -268,22 +285,51 @@ if __name__ == '__main__':
                     f_newest = f
         fname = 'pos/'+f_newest
         opts,ipts,p = read_positions(fname)
-        cam = cam*px_size #camera matrix in mm
-        ipts_dic[n] = px_size*ipts #img points in mm
+        #cam = cam*px_size # camera matrix in mm
+        #ipts = px_size*ipts # img points in mm
+        ipts_dic[n] = ipts
         opts_dic[n] = opts*10 #object points in mm
         __,rvec,tvec = cv2.solvePnP(opts_dic[n],ipts_dic[n],cam,dist[0],rv,tv,0,cv2.CV_ITERATIVE)
 
-        #--------------------------- Get Robot 3D -------------------------#
+        #-------------------------- Check transform -----------------------#
         rmat, j = cv2.Rodrigues(rvec)
         rmat_dic[n] = np.matrix(rmat)
         cam_mat_dic[n] = np.matrix(cam)
-        r1 = rmat_dic[n][:,0]
-        r2 = rmat_dic[n][:,1]
         t_dic[n]= np.matrix(tvec)
-        H = cam_mat_dic[n] * np.hstack((r1,r2,t_dic[n]))
-        # normalization
-        H_dic[n] = H/t_dic[n][2]
-        p_2D_dic[n] = np.matrix(np.hstack((p,0)))
-        p_3D_dic[n] = H*p_2D_dic[n].T
 
-        xc[n] = rmat_dic[n]*x0.T+t_dic[n]
+        # check with robot position
+        c = cam_mat_dic[n][:,2]
+        fx = cam_mat_dic[n][0,0]
+        fy = cam_mat_dic[n][1,1]
+        ### method 1
+        # xc[n] = rmat_dic[n]*x0.T+t_dic[n]
+        # xc_norm[n] = xc[n]/xc[n][2] # x', y'
+        # xc_norm[n] = np.diag(np.matrix([fx,fy]).T*xc_norm[n][:2].T)+c[:2].T # u, v
+        ### method 2
+        # xc_norm[n],__ = cv2.projectPoints(np.array(x0,dtype=np.float32),rvec,tvec,cam,dist[0])
+        ### best method
+        xc[n] = cam_mat_dic[n]*np.hstack((rmat_dic[n],t_dic[n]))*np.vstack((x0.T,1))
+        s = xc[n][2]
+        xc_norm[n] = xc[n]/s
+        print("robot, test:",np.array(xc_norm[n])[0:2].T[0],"real: check image")
+        # check with reference point
+        p1 = opts_dic[n][1]
+        #xc_norm[n],__ = cv2.projectPoints(np.array([p1]),rvec,tvec,cam,dist[0])
+        xc[n] = cam_mat_dic[n]*np.hstack((rmat_dic[n],t_dic[n]))*np.matrix(np.hstack((p1,1))).T
+        xc_norm[n] = xc[n]/xc[n][2]
+        print("reference, test:",np.array(xc_norm[n])[0:2].T[0],"real:",ipts_dic[n][1])
+
+        #--------------------------- Get Robot 3D -------------------------#
+        (r1,r2,r3) = rmat_dic[n].T[:,:]
+        ### method 1 doesn't work cause not everything in one plane
+        H = cam_mat_dic[n] * np.hstack((r1.T,r2.T,t_dic[n]))
+        H = H/t_dic[n][2]
+        p_img_dic[n] = np.matrix(np.hstack((p,1)))
+        p_obj_dic[n] = H*p_img_dic[n].T
+        ### method 2
+        A = np.hstack(([p_img_dic[n].T,-cam_mat_dic[n]*r1.T,-cam_mat_dic[n]*r2.T]))
+        b = cam_mat_dic[n]*(r3.T*r_height+t_dic[n])
+        p_obj_dic[n] = A.I*b
+        control=(cam_mat_dic[n]*rmat_dic[n]).I*(p_img_dic[n].T*p_obj_dic[n][0]
+                                                -cam_mat_dic[n]*t_dic[n])
+        t_dic[n]= np.matrix(tvec)
