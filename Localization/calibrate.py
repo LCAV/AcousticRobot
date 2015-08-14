@@ -12,17 +12,17 @@ import csv
 import os
 
 USAGE = '''
-USAGE: calib.py [--save <output path>] [--square_size <square size>] [--n <camera_number>]]
+USAGE: calib.py [-o <output path>] [-s <square size in mm>] [-n <camera_number>]]
 '''
 
 global save_dir
 global n
-
+global square_size
 def get_param():
     ''' returns parameters from command line '''
     global USAGE
     save_dir = ''
-    square_size = 150
+    square_size = 50 #in mm
     n = 141
     try:
         opts,args = getopt.getopt(sys.argv[1:],"o:s:n:",
@@ -40,7 +40,6 @@ def get_param():
     return save_dir, square_size,n
 
 def save_camera(rms,cam,dist,rvecs,tvecs):
-    global save_dir, n
     ''' save camera parameters in file '''
     with open(save_dir+"/results"+str(n)+".txt","w") as f:
         f.write(str(rms)+'\n')
@@ -89,6 +88,17 @@ def read_camera():
             i+=1
     return rms,cam,[np.array(dist)],np.array(rvecs),np.array(tvecs)
 
+def get_rvguess(rv,tv,i=2):
+    global n
+    ''' get guess for rv, tv from specific object points '''
+    if n == 139: # vertical image of chessboard
+        i = 2  # for test_friday only
+    elif n == 141:
+        i = 9 # for test_friday only
+    rv = rv[i-1]
+    tv = np.mean(tv[:8,2])
+    return rv, tv
+
 def read_positions(fname):
     ''' get reference point and robot positions from file '''
     i = 0
@@ -120,14 +130,17 @@ def get_calibpoints(img,pattern_size, counter):
     for camera calibration
     '''
     global save_dir,n,square_size
-
+    #print("square size:",square_size)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     pattern_points = np.zeros( (np.prod(pattern_size), 3), np.float32 )
     pattern_points[:,:2] = np.indices(pattern_size).T.reshape(-1, 2)
     pattern_points *= square_size
 
     h, w = 0, 0
-    found, corners = cv2.findChessboardCorners(gray, pattern_size)
+    try:
+        found, corners = cv2.findChessboardCorners(gray, pattern_size)
+    except KeyboardInterrupt:
+        sys.exit(1)
     fig,ax=plt.subplots()
     if found:
         print(str(counter)+": chessboard found")
@@ -244,19 +257,17 @@ if __name__ == '__main__':
     from glob import glob
     import get_image
 
-    save_dir = ''
-    n = 139
+    px_size = 1.4*10**-3 # mm per pixel
     #------------------------- Get parameters -------------------------#
 
     save_dir,square_size,n = get_param()
-
+    square_size = square_size/px_size # †his doesn't matter for camera calibration!!
     #------------------------ Calibrate Camera ------------------------#
 
     # make new calibration
-    img_points,obj_points,size = get_intrinsic()
-    rms,cam,dist,rv,tv = cv2.calibrateCamera(obj_points,img_points,size, None, None)
-    save_camera(rms,cam,dist,rv,tv)
-
+    #img_points,obj_points,size = get_intrinsic()
+    #rms,cam,dist,rv,tv = cv2.calibrateCamera(obj_points,img_points,size, None, None)
+    #save_camera(rms,cam,dist,rv,tv)
 
     #-------------------------- Undo Fisheye --------------------------#
 
@@ -271,7 +282,6 @@ if __name__ == '__main__':
     #------------------------- Locate Cameras -------------------------#
 
     # parameters
-    px_size = 1.4*10**-3 # mm per pixel
     x0 = np.matrix([10000,5000,0]) # real position of robot in mm
     n_cameras = [139,141]
 
@@ -283,18 +293,21 @@ if __name__ == '__main__':
     p_obj_dic = dict()
     A = dict()
     b = dict()
-    r_height = 1390 # robot height in mm
+
+    #r_height = 1390 # robot height in mm
+    r_height = 200
+
     r_height_px = r_height/px_size # robot height in pixels
 
     camera_dic = dict()
-    t_guess = {139:np.array([8000,-8000,3000]),
-               141:np.array([12000,12000,3000])}
-    t_guess = {139:np.array([-3000,4000,4700]),
-               141:np.array([3000,-1000,20000])}
+    r_guess = dict()
+    t_guess = dict()
+    #t_guess = {139:np.array([8000,-8000,3000]),
+    #           141:np.array([12000,12000,3000])}
     for i in n_cameras:
         n = i
         __,cam,dist,rv,tv = read_camera()
-        tv = np.array([t_guess[n]],dtype=np.float32)
+        r_guess[n],t_guess[n] = get_rvguess(rv,tv)
         camera_dic[n] = Camera(n,cam,dist,rv.T,tv.T)
 
     for (count,camera) in iteritems(camera_dic):
@@ -303,7 +316,7 @@ if __name__ == '__main__':
         f_newest = '0000000000'
         for f in os.listdir('pos/'):
             if f.startswith("pos_"+str(n)):
-                if int(f[-10:]) > int(f_newest[-10:]):
+                if int(f[-14:-4]) > int(f_newest[-14:-4]):
                     f_newest = f
         fname = 'pos/'+f_newest
         opts,ipts,p = read_positions(fname)
@@ -327,7 +340,6 @@ if __name__ == '__main__':
         # xc_norm[n] = np.diag(np.matrix([fx,fy]).T*xc_norm[n][:2].T)+c[:2].T # u, v
         ### method 2
         # xc_norm[n],__ = cv2.projectPoints(np.array(x0,dtype=np.float32),rvec,tvec,cam,dist[0])
-
         ### best method
         # check with reference point
         p1 = opts_dic[n][1]
