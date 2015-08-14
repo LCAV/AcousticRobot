@@ -9,11 +9,16 @@ class MarkerSet:
 
     def __init__(self, m=4, diameter=0.04, dim=2, X=None):
 
-        self.m = m
-        self.dim = dim
         self.diameter = diameter
+
         if X is None:
+            self.m = m
+            self.dim = dim
             self.X = np.zeros((self.dim, self.m))
+        else:
+            self.m = X.shape[1]
+            self.dim = X.shape[0]
+            self.X = X
 
     def fromEDM(self, D, dim=2, method='mds'):
         ''' Compute the position of markers from their Euclidean Distance Matrix
@@ -130,12 +135,17 @@ if __name__ == '__main__':
 
     marker_diameter = 0.040 # 4 cm
 
+    M_orig = MarkerSet(X=np.array([[0.,0.],[0.7,0.],[0.7,0.7],[0.,0.7]]).T)
+    D = np.sqrt(M_orig.EDM())
+
+    """
     D[0,1] = D[1,0] = 4.126 + marker_diameter
     D[0,2] = D[2,0] = 6.878 + marker_diameter
     D[0,3] = D[3,0] = 4.508 + marker_diameter
     D[1,2] = D[2,1] = 4.401 + marker_diameter
     D[1,3] = D[3,1] = 7.113 + marker_diameter
     D[3,2] = D[2,3] = 7.002 + marker_diameter
+    """
 
     M1 = MarkerSet(m=m, dim=dim, diameter=marker_diameter)
     M1.fromEDM(D**2)
