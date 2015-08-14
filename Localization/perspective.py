@@ -167,9 +167,9 @@ def get_circles_count(img,contours,t,w,r):
         around = img[mask==1]
         inside = img[mask==2]
         col_around = around.cumsum()[-1]/around.shape[0] #average color of aroud
-        print("Count: Average color around circle:",col_around)
+        #print("Count: Average color around circle:",col_around)
         col_inside = inside.cumsum()[-1]/inside.shape[0]
-        print("Count: Average color inside circle:",col_inside)
+        #print("Count: Average color inside circle:",col_inside)
 
         if  col_around >= t and col_inside < t:
             centers.append([cx,cy])
@@ -232,7 +232,7 @@ def extract_color(img,range_min,range_max):
 
     # Find contour with maximum area
     tmp=255*np.ones(img.shape,dtype=np.uint8)
-    '''
+
     for cnt in contours:
         # Check if new best contour
         area = cv2.contourArea(cnt)
@@ -244,12 +244,11 @@ def extract_color(img,range_min,range_max):
         cv2.drawContours(img,[cnt],-1,(0,255,0),3)# Green
         cv2.drawContours(tmp,[cnt],-1,(0,255,0),3)# Green
         i+=1
-    # Convert colors for correct display in Matplotlib:
-    '''
     try:
         cy,cx = get_centroid(best_cnt)
         cv2.circle(img,(cx,cy),20,(0,255,255),2)
         #print("Extract: Contours found")
+
     except:
         cx,cy = 0
         #print("Extract: No contours found")
