@@ -9,11 +9,10 @@ import matplotlib.pyplot as plt
 import marker_calibration as mark
 import time
 import get_image as get
-
 '''--------------  Basics ------------------ '''
 def gray_conversion(img):
     ''' Create 1-channel CV_8U image '''
-    if img.dtype != 'uint8' or img.shape[2] != 1:
+    if img.dtype != 'uint8' or len(img.shape) != 2:
         img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     return img
 def rgb_conversion(img):
@@ -32,7 +31,7 @@ def visualization(imgs,nexti,colorbar=0,switch=0):
     i = nexti
     for (tit,im) in imgs.items():
         #plt.subplot(n,1,i),plt.imshow(im)
-        plt.close(i),plt.figure(i)
+        plt.close(tit),plt.figure(tit)
         if switch == 0:
             plt.imshow(im)
         else:
@@ -167,11 +166,13 @@ def get_circles_count(img,contours,t,w,r):
         around = img[mask==1]
         inside = img[mask==2]
         col_around = around.cumsum()[-1]/around.shape[0] #average color of aroud
-        #print("Count: Average color around circle:",col_around)
+        print("Count: Average color around circle:",col_around)
         col_inside = inside.cumsum()[-1]/inside.shape[0]
-        #print("Count: Average color inside circle:",col_inside)
+        print("Count: Average color inside circle:",col_inside)
 
-        if  col_around >= t and col_inside < t:
+        #if  col_around >= t and col_inside < t:
+        if col_around <= t and col_inside > t:
+            #print("Count: Circle found: ",int(cx),int(cy))
             centers.append([cx,cy])
 
     # Remove duplicates
@@ -181,7 +182,7 @@ def get_circles_count(img,contours,t,w,r):
         diff = abs(np.subtract(centers[i],centers[i+1]))
         mean = np.mean([centers[i],centers[i+1]],axis = 0)
         if np.array([diff<t_pixels]).all():
-            print("Count: duplicate found: ",centers[i],centers[i+1])
+            #print("Count: duplicate found: ",centers[i],centers[i+1])
             centers[i+1] = mean
             rmv.append(i)
 
@@ -195,13 +196,14 @@ def get_circles_count(img,contours,t,w,r):
     cimg = img.copy()
     cimg = cv2.cvtColor(cimg,cv2.COLOR_GRAY2BGR)
     for i in range(len(centers[0])):
-        cv2.circle(cimg,(centers[0][i][1],centers[0][i][0]),20,(0,255,0),1,cv2.CV_AA)
-        cv2.circle(cimg,(centers[0][i][1],centers[0][i][0]),2,(0,0,0),1,cv2.CV_AA)
+        cv2.circle(cimg,(centers[0][i][1],centers[0][i][0]),r,(0,255,0),2,cv2.CV_AA)
+        cv2.circle(cimg,(centers[0][i][1],centers[0][i][0]),2,(0,0,0),2,cv2.CV_AA)
     return cimg, centers
 def extract_color(img,range_min,range_max):
     ''' Color contours extraction '''
     i=0
     max_area=0
+    min_area = 100
     best_cnt = 1
     cx = cy = 0
 
@@ -209,15 +211,6 @@ def extract_color(img,range_min,range_max):
     img = rgb_conversion(img)
 
     # Returns all pixels that lie in specified range
-    '''if range_min[1] > range_max[1]:
-        range_int = np.array([range_max[0],255,range_max[2]],dtype=np.uint8)
-        img_diff1 = cv2.inRange(img_hsv,range_min,range_int)
-        range_int = np.array([range_min[0],0,range_min[2]],dtype=np.uint8)
-        img_diff2 = cv2.inRange(img_hsv,range_int,range_max)
-        img_diff = cv2.add(img_diff1,img_diff2)
-    else:
-        img_diff = cv2.inRange(img_hsv,range_min,range_max)
-    '''
     if range_min[0] > range_max[0]:
         range_int = np.array([180,range_max[1],range_max[2]],dtype=np.uint8)
         img_diff1 = cv2.inRange(img_hsv,range_min,range_int)
@@ -230,19 +223,19 @@ def extract_color(img,range_min,range_max):
     img_cont=img_diff.copy() #BECAUSE findContours changes input picture!
     contours, hierarchy=cv2.findContours(img_cont,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
 
+    contours_big = []
     # Find contour with maximum area
-    tmp=255*np.ones(img.shape,dtype=np.uint8)
-
     for cnt in contours:
         # Check if new best contour
         area = cv2.contourArea(cnt)
+        print("Extract: area:",area)
         if area > max_area:
             #print("new area: ",area)
             max_area = area
             best_cnt = cnt
-
-        cv2.drawContours(img,[cnt],-1,(0,255,0),3)# Green
-        cv2.drawContours(tmp,[cnt],-1,(0,255,0),3)# Green
+        if area > min_area:
+            contours_big.append(cnt)
+            cv2.drawContours(img,[cnt],-1,(0,255,0),3)# Green
         i+=1
     try:
         cy,cx = get_centroid(best_cnt)
@@ -252,7 +245,7 @@ def extract_color(img,range_min,range_max):
     except:
         cx,cy = 0
         #print("Extract: No contours found")
-    return img,tmp,contours,(cx,cy),img_diff
+    return img,contours_big,(cx,cy),img_diff
 def manual_calibration(img,n,R):
     ''' Determine shade of red '''
     #Get point of interest
@@ -328,10 +321,11 @@ def get_histograms(img,img_mask,n):
     plt.legend('s')
     plt.show(block=False)
     return hist_h,hist_s
-def calib_loop(img,w,r,n,H_MAX,H_MIN,H_DIFF,t):
+def calib_loop(img,w,r,n,H_MAX,H_MIN,S_MAX,S_MIN,H_DIFF,t):
     ''' Calibration loop '''
     h_min = H_MIN
-    h_max = np.mod(h_min+H_DIFF,180)
+    #h_max = np.mod(h_min+H_DIFF,180)
+    h_max = H_MAX
     #h_max = np.mod(h_min+H_DIFF,256)
     not_found = 1
     counter = 1
@@ -348,20 +342,19 @@ def calib_loop(img,w,r,n,H_MAX,H_MIN,H_DIFF,t):
     while not_found:
         thresh_diff = 30
         col_diff = 1
-        col_min = np.array([h_min,128,0],dtype=np.uint8)
-        col_max = np.array([h_max,255,255],dtype=np.uint8)
-        #col_min = np.array([0,h_min,0],dtype=np.uint8)
-        #col_max = np.array([179,h_max,255],dtype=np.uint8)
+        col_min = np.array([h_min,S_MIN,0],dtype=np.uint8)
+        col_max = np.array([h_max,S_MAX,255],dtype=np.uint8)
+
         # color
-        img_color,img_temp,cont_color,pos,th = extract_color(img_reduced
-                                                             ,col_min,col_max)
+        img_color,cont_color,pos,th = extract_color(img_reduced,col_min,col_max)
         #plt.close(1),plt.figure(1),plt.imshow(th)
         #print(col_min,col_max)
         #plt.show(block=False)
         #test_pause = raw_input("pause, enter to continue")
+
         # circles
         #print(len(cont_color))
-        circ_color,pos_color = get_circles_count(img_temp,cont_color,
+        circ_color,pos_color = get_circles_count(th,cont_color,
                                                 t,w,r)
         if pos_color.shape[1] == n:
             print("Loop: working range found:",col_min,col_max)
@@ -373,17 +366,17 @@ def calib_loop(img,w,r,n,H_MAX,H_MIN,H_DIFF,t):
         colors[10*(counter-1):10*counter,0:100,:]=col_min
         colors[10*(counter-1):10*counter,101:200,:]=col_max
         counter += 1
-        h_min += 1
-        #h_min = np.mod(h_min,256)
-        h_min = np.mod(h_min,180)
-        h_max += 1
-        #h_max = np.mod(h_max,256)
-        h_max = np.mod(h_max,180)
-        if h_max == H_MAX:
-            print("Loop: Nothing found after going through all possibilites")
-            break
+        #h_min += 1
+        #h_min = np.mod(h_min,180)
+        #h_max += 1
+        #h_max = np.mod(h_max,180)
+        #if h_max == H_MAX:
+            #print("Loop: Nothing found after going through all possibilites")
+            #break
+        not_found = 0
     col = colors[0:10*counter,:,:]#Keep only non-zero colors
     col = cv2.cvtColor(col,cv2.COLOR_HSV2RGB)
+
     # restore points in order of clicking
     # print(pos_color)
     pos_color = restore_order(points,pos_color,img.shape[1]/10)
@@ -426,11 +419,9 @@ def restore_order(original,moved,min_dist):
     else:
         pts = moved
     return pts
-def format_points(pts_real):
+def format_points(pts_real,margin):
     # move points to positive range
     pts_real = pts_real - np.amin(pts_real,axis=0)
-    # margin
-    margin = [40,46] #200
     # stretch image
     pts_real = pts_real.astype(np.float32)
     pts_real = pts_real + margin
@@ -441,7 +432,6 @@ def format_points(pts_real):
     for pt in pts_real:
         cv2.circle(img_test,(int(pt[0]),int(pt[1])),10,(255),3,cv2.CV_AA)
 
-    pts_real = np.vstack(([pts_real[:,1]],[pts_real[:,0]])).T
     return img_test,pts_real,(int(size[0]),int(size[1]))
 
 ''' ----------------   Main  --------------- '''
@@ -451,18 +441,17 @@ while True:
         if choice == "y":
             plt.close('all')
             nexti = 1
-
+            img = ''
             # Read image
-            inputfile,outputfile,calibfile,n_cam = get_parameters()
+            inputfile,outputpath,calibfile,n_cam = get_parameters()
             if inputfile == '':
                 img = get.get_image(n_cam)
             else:
                 img = cv2.imread(inputfile,cv2.IMREAD_COLOR)
 
-            if outputfile != '':
-                img = get.get_image(n_cam)
+            if outputpath != '':
+                outputfile = outputpath+"img"+str(n_cam)+".jpg"
                 cv2.imwrite(outputfile,img)
-                sys.exit(1)
 
             if calibfile == '':
                calibfile = "pics/calibration.jpg"
@@ -480,9 +469,11 @@ while True:
             n = 4
             H_MIN = 175
             H_MAX = 20
-            t = 254
-            img_org,circ_org,pos_org,th_org = calib_loop(img,w,r,n,
-                                                         H_MAX,H_MIN,H_DIFF,t)
+            S_MIN = 100
+            S_MAX=250
+            t = 100 # 254
+            img_org,circ_org,pos_org,th_org = calib_loop(img,w,r,n,H_MAX,H_MIN,
+                                                         S_MAX,S_MIN,H_DIFF,t)
             if pos_org.shape[1] == 0:
                 print("No reference points found. Try again!")
                 break
@@ -492,26 +483,29 @@ while True:
             choice = raw_input("Find robot position?(y/n)")
             if choice == "y":
                 w = 200
-                r = 20
+                r = 40
                 n = 1
                 H_MIN = 150
                 H_MAX = 20
                 H_DIFF = 20
-                t = 200
-                img_red,circ_red,pos_red,th_red = calib_loop(img,w,r,n,
-                                                            H_MAX,H_MIN,H_DIFF,t)
+                t = 100 #200
+                img_red,circ_red,pos_red,th_red = calib_loop(img,w,r,n,H_MAX,H_MIN,
+                                                             S_MAX,S_MIN,H_DIFF,t)
 
                 if pos_red.shape[1] ==  0:
                     print("Robot could not be detected. Try again!")
             else:
                 pos_red = np.array([np.zeros((1,2))])
+                img_red = np.zeros(img.shape)
+                th_red = np.zeros(img.shape)
+                circ_red = np.zeros(img.shape)
             #-------------- Project image to 2D -----------#
             # position of real points in cm, pt = (x,y)
 
             # Get real positions
             m = 4 # number of markers
             dim = 2
-            marker_diameter = 0.040 # in m
+            marker_diameter = 0#0.040 # in m
             # distances in m
             D = np.zeros((m,m))
             D[0,1] = D[1,0] = 0.7 + marker_diameter
@@ -522,18 +516,19 @@ while True:
             D[3,2] = D[2,3] = 0.7 + marker_diameter
 
             M1 = mark.MarkerSet(m=m,dim=dim,diameter=marker_diameter)
-            M1.fromEDM(D**D)
+            M1.fromEDM(D**2)
             M1.normalize()
-            pts_real = M1.X.T*100
+            pts_real = M1.X.T*100 # pts in cm.
 
-            pts_real=np.array([[0,0],[70,0],[70,70],[0,70]],dtype=np.float32)
-            img_test,pts_real,size = format_points(pts_real)
+            pts_real_test=np.array([[0,0],[70,0],[70,70],[0,70]],dtype=np.float32)
+            # margin
+            margin = [40,46] #200 # left-most and down-most points respectively, in cm
+            img_test,pts_real,size = format_points(pts_real,margin)
 
-            pts_img = pos_org.astype(np.float32)
             # ƒor some reason, the points have to be flipped for the transformation
-            pts_img = np.vstack(([pts_img[:,1],pts_img[:,0]])).T
-            pts_real = np.vstack(([pts_real[:,1],pts_real[:,0]])).T
+            pts_img = pos_org.astype(np.float32)
             pts_real = pts_real.astype(np.float32)
+            pts_img = np.vstack(([pts_img[:,1],pts_img[:,0]])).T
             img_flat,M = geometric_transformation(img,pts_real,(size[0],size[1]),pts_img)
 
             #-------------------- Test ---------------------#
@@ -551,16 +546,6 @@ while True:
             pt_img = np.matrix(pt_img3)
             test_pt = M*pt_img.T
             test_pt = (test_pt/test_pt[2]).T
-
-            w = 200
-            r = 100
-            n = 1
-            H_MIN = 150
-            H_MAX = 20
-            t = 254
-            img_red2,circ_red2,pos_red2 = calib_loop(img_flat,w,r,n,H_MAX,H_MIN,H_DIFF,t)
-            if pos_red2.shape[1] ==  0:
-                print("Robot could not be detected. Try again!")
             '''
             ##------------------ Summary ------------------#
             img_summary = img_flat.copy()
@@ -568,14 +553,19 @@ while True:
             # refernce positions abs
             i = 0
             for pts in pts_real:
-                cv2.circle(img_summary,(pts[0],pts[1]),10,(255,0,0),3,cv2.CV_AA)
+                cv2.circle(img_summary,(pts[0],pts[1]),3,(255,0,0),1,cv2.CV_AA)
                 i+=1
             # absolute robot position
             px = pos_red[0][0][1]
             py = pos_red[0][0][0]
             p = np.array([px,py])
-
+            p3D = np.matrix([px,py,1])
             M = np.matrix(M)
+            test_p = M*p3D.T
+            test_p = test_p/test_p[2]
+            if not p.all() == 0:
+                cv2.circle(img_summary,(test_p[0],test_p[1]),5,(255,255,0),1,cv2.CV_AA)
+
             # write results into file
             name='pos/pos_' +str(n_cam)+'_'+str(int(time.mktime(time.gmtime())))
             with open(name+str(".txt"),"w") as f:
@@ -590,22 +580,21 @@ while True:
                     f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
             #---------------  Visualization    ------------#
             h,s,v = cv2.split(cv2.cvtColor(img,cv2.COLOR_BGR2HSV))
-            imgs = {'original h component':h,
-                    'original s component':s}
+            imgs = {'img_h':h,
+                    'img_s':s}
             nexti=visualization(imgs,nexti,1)
-            imgs = {'extracted orange':img_org,
-                    'circles orange':circ_org}
+            imgs = {'img_org':img_org,
+                    'circ_org':circ_org}
             nexti=visualization(imgs,nexti)
-            #imgs = {'extracted red':img_red,
-            #        'circles red':circ_red}
-            #nexti=visualization(imgs,nexti)
-            imgs = {'reference points':img_test,
-                    'projected image':rgb_conversion(img_flat)}
-            #nexti=visualization(imgs,nexti,0,1)
+            imgs = {'img_red':img_red,
+                    'circ_red':circ_red}
+            nexti=visualization(imgs,nexti)
             imgs = {'summary':img_summary}
             nexti=visualization(imgs,nexti,0,1)
-
-
+            if outputpath != '':
+                for i in plt.get_figlabels():
+                    plt.figure(i)
+                    plt.savefig(outputpath+str(i)+str(n_cam)+'.png')
         elif choice == "n":
             sys.exit(1)
         choice = raw_input("Do you want to perform another localisation? (y/n)")
