@@ -99,7 +99,14 @@ def get_rvguess(rv,tv,i=2):
     tv = np.mean(tv[:8,2])
     return rv, tv
 
-def read_positions(fname):
+def read_positions(newest,dirname='pos3D/',fname=''):
+    if newest:
+        f_newest = '0000000000'
+        for f in os.listdir(dirname):
+            if f.startswith("pos_"+str(n)):
+                if int(f[-14:-4]) > int(f_newest[-14:-4]):
+                    f_newest = f
+        fname = dirname+f_newest
     ''' get reference point and robot positions from file '''
     i = 0
     pts_img = np.zeros((4,2))
@@ -118,6 +125,7 @@ def read_positions(fname):
                 pts_obj[i-8,:] = line
             i+=1
     obj_points = np.hstack((pts_obj,np.ones((4,1))))
+    #obj_points = np.hstack((pts_obj,np.matrix([13.5,0,23.0,0]).T))#in cm
     img_points = pts_img
 
     obj_points = obj_points.astype(np.float32)
@@ -241,8 +249,21 @@ class Camera:
         self.R = np.matrix(R)
         self.Proj = self.C*np.hstack((self.R,self.t))
     def reposition(self,opts,ipts,guess,flag):
+        '''
+        Redefines the position vectors r and t of the camera given a set of
+        corresponding image and object points
+        '''
+        global px_size
         if flag == cv2.CV_P3P or flag == cv2.CV_EPNP:
             ipts = np.ascontiguousarray(ipts[:,:2]).reshape((4,1,2))
+        if guess:
+            tguess = {139:np.array([650,120]),
+                       141:np.array([450,50])}
+            r_guess,h_guess = get_rvguess(self.r,self.t*px_size)
+            t_guess=np.hstack([tguess[self.n],h_guess])
+            self.t = np.matrix(t_guess)
+            self.r = np.matrix(r_guess)
+        #rvec,tvec,__ = cv2.solvePnPRansac(opts,ipts,self.C,self.dist)
         __,rvec,tvec = cv2.solvePnP(opts,ipts,self.C,self.dist,
                                     self.r,self.t,guess,flag)
         self.r = rvec
@@ -250,6 +271,50 @@ class Camera:
         R,__ = cv2.Rodrigues(self.r)
         self.R = np.matrix(R)
         self.Proj = self.C*np.hstack((self.R,self.t))
+    def get_position(self,p_img,r_height):
+        '''
+        Returns the estimated position of the robot based on its
+        image coordinates p_img and its fixed height r_height
+        '''
+        (r1,r2,r3) = self.R.T[:,:]
+        A[n] = np.hstack(([p_img.T,-self.C*r1.T,-self.C*r2.T]))
+        b[n] = camera.C*(r3.T*r_height+self.t)
+        x = A[n].I*b[n]
+        p_obj=(self.C*camera.R).I*(p_img.T*x[0]-self.C*self.t)
+        return p_obj.T
+    def check_points(self,p_obj,p_img):
+        '''
+        Returns images of reference points (known) and the relative error matrix
+        '''
+        dim = p_obj.shape[0]
+        test_img = self.Proj*np.matrix(np.hstack((p_obj,np.ones((dim,1))))).T
+        #print("\n",test_img)
+        test_img = test_img/test_img[2,:]
+        #print("\n",test_img)
+        test_img=test_img[:2,:].T
+        match_matrix=(p_img-test_img)/test_img
+        return match_matrix, test_img
+
+def get_leastsquares(cam1,cam2,p1,p2):
+    '''
+    Returns real position of robot based on observation with cam1 and cam2
+    '''
+    u1 = p1.T
+    u2 = p2.T
+    U = np.array([u1,np.zeros((3,1)),np.zeros((3,1)),u2])
+    U = U.reshape((2,6,1))
+    U = U[:,:,0].T
+    (r1,r2,r3) = cam1.R.T[:,:]
+    A1 = np.hstack(([-cam1.C*r1.T,-cam1.C*r2.T]))
+    b1 = cam1.C*(r3.T*r_height+cam1.t)
+    (r1,r2,r3) = cam2.R.T[:,:]
+    A2 = np.hstack(([-cam2.C*r1.T,-cam2.C*r2.T]))
+    b2 = cam2.C*(r3.T*r_height+cam2.t)
+    A_aug = np.hstack((U,np.vstack((A1,A2))))
+    b_aug = np.vstack((b1,b2))
+    x_hat = (A_aug.T*A_aug).I*A_aug.T*b_aug
+    return x_hat[2:4],x_hat[0],x_hat[1]
+global px_size
 
 if __name__ == '__main__':
     import sys
@@ -282,53 +347,43 @@ if __name__ == '__main__':
     #------------------------- Locate Cameras -------------------------#
 
     # parameters
-    x0 = np.matrix([10000,5000,0]) # real position of robot in mm
+    #x0 = np.matrix([10000,5000,1390]) # real position of robot in mm
+    x0 = np.matrix([650,940,190])
+
     n_cameras = [139,141]
 
     xc = dict()
     xc_norm = dict()
     ipts_dic = dict()
-    opts_dic = dict()
-    p_img_dic = dict()
-    p_obj_dic = dict()
+    r_img_dic = dict()
+    r_obj_dic = dict()
     A = dict()
     b = dict()
 
-    #r_height = 1390 # robot height in mm
-    r_height = 200
+    r_height = x0[0,2]
 
     r_height_px = r_height/px_size # robot height in pixels
 
     camera_dic = dict()
-    r_guess = dict()
-    t_guess = dict()
-    #t_guess = {139:np.array([8000,-8000,3000]),
-    #           141:np.array([12000,12000,3000])}
     for i in n_cameras:
         n = i
         __,cam,dist,rv,tv = read_camera()
-        r_guess[n],t_guess[n] = get_rvguess(rv,tv)
         camera_dic[n] = Camera(n,cam,dist,rv.T,tv.T)
 
     for (count,camera) in iteritems(camera_dic):
         n = camera.n
         # use newest file from this camera
-        f_newest = '0000000000'
-        for f in os.listdir('pos/'):
-            if f.startswith("pos_"+str(n)):
-                if int(f[-14:-4]) > int(f_newest[-14:-4]):
-                    f_newest = f
-        fname = 'pos/'+f_newest
-        opts,ipts,p = read_positions(fname)
-        #cam = cam*px_size # camera matrix in mm
-        #ipts = px_size*ipts # img points in mm
-        ipts_dic[n] = ipts
-        opts_dic[n] = opts*10 #object points in mm
-        #flag = cv2.CV_P3P
-        flag = cv2.CV_ITERATIVE
-        use_guess = 0
+        newest = 1
+        opts,ipts,p = read_positions(newest,'pos/')
+        opts = opts*10
+        opts = opts.astype(np.float32) #object points in mm
+        ipts_dic[n] = np.matrix(ipts)
+        r_img_dic[n]=np.matrix(np.hstack((p,1)))
+        flag = cv2.CV_P3P
+        #flag = cv2.CV_ITERATIVE
         #flag = cv2.CV_EPNP
-        camera.reposition(opts_dic[n],ipts_dic[n],use_guess,flag)
+        use_guess = 0
+        camera.reposition(opts,ipts_dic[n],use_guess,flag)
         #-------------------------- Check transform -----------------------#
         # check with robot position
         ### method 1
@@ -341,41 +396,33 @@ if __name__ == '__main__':
         ### method 2
         # xc_norm[n],__ = cv2.projectPoints(np.array(x0,dtype=np.float32),rvec,tvec,cam,dist[0])
         ### best method
-        # check with reference point
-        p1 = opts_dic[n][1]
-        #xc_norm[n],__ = cv2.projectPoints(np.array([p1]),rvec,tvec,cam,dist[0])
-        xc[n] = camera.Proj*np.matrix(np.hstack((p1,1))).T
-        xc_norm[n] = xc[n]/xc[n][2]
-        print("reference, test:",np.array(xc_norm[n])[0:2].T[0],"real:",ipts_dic[n][1])
+        match_matrix, xc_norm[n] = camera.check_points(opts,ipts_dic[n])
+        print("ind: ref point match",camera.n,"\n",match_matrix)
 
         #--------------------------- Get Robot 3D -------------------------#
-        (r1,r2,r3) = camera.R.T[:,:]
-        p_img_dic[n] = np.matrix(np.hstack((p,1)))
-        A[n] = np.hstack(([p_img_dic[n].T,-camera.C*r1.T,-camera.C*r2.T]))
-        b[n] = camera.C*(r3.T*r_height+camera.t)
-        p_obj_dic[n] = A[n].I*b[n]
-        control=(camera.C*camera.R).I*(p_img_dic[n].T*p_obj_dic[n][0]-camera.C*camera.t)
-        print("robot position ",camera.n,"\n",control[0:2].T)
+        r_obj_dic[n] = camera.get_position(r_img_dic[n],r_height)
+        print("ind: robot position",r_obj_dic[n])
+
     # lest squares for two cameras
-    A_aug = np.vstack((A[139],A[141]))
-    b_aug = np.vstack((b[139],b[141]))
-    p_obj = (A_aug.T*A_aug).I*A_aug.T*b_aug
+
+
     c139 = camera_dic[139]
     c141 = camera_dic[141]
-    print("robot position lq\n",p_obj[1:3].T)
+
+    p_obj,s139,s141 = get_leastsquares(c139,c141,r_img_dic[139],r_img_dic[141])
+    print("lq: robot position ",p_obj)
+
     # triangulate reference points
-    opts_test = cv2.triangulatePoints(c139.Proj, c141.Proj,np.array(ipts_dic[139].T),
-                                      np.array(ipts_dic[141].T))
-    opts_norm1 = opts_test/opts_test[2]
-    opts_norm2 = opts_test/opts_test[3]
-    opts_norm2 = opts_norm2.T[:,:3]
-    opts_theo = opts_dic[139]
-    print("triang: ref point match\n",((opts_theo-opts_norm2)/opts_norm2))
+    opts_test = cv2.triangulatePoints(c139.Proj, c141.Proj,np.array(ipts_dic[139]).T,np.array(ipts_dic[141]).T)
+    opts_norm = opts_test/opts_test[3]
+    opts_norm = opts_norm.T[:,:3]
+    opts_theo = opts #same for both cameras
+    print("triang: ref point match\n",((opts_theo-opts_norm)/opts_norm))
 
     # triangulate robot point
-    p_test = cv2.triangulatePoints(c139.Proj, c141.Proj,p_img_dic[139][0,:2].T,
-                                   p_img_dic[141][0,:2].T)
+    p_test = cv2.triangulatePoints(c139.Proj, c141.Proj,r_img_dic[139][0,:2].T,
+                                   r_img_dic[141][0,:2].T)
     p_norm2 = p_test/p_test[3]
     p_norm2 = p_norm2.T[:,:3]
-    print("triang: robot position\n",p_norm2)
-
+    print("triang: robot position",p_norm2)
+    print("\n real robot position:",x0)
