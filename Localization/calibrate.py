@@ -37,34 +37,9 @@ def get_param():
             pos_dir = str(arg)
         if opt in ('--n',"-n"):
             n = int(arg)
+    if save_dir[-1]!="/":
+        save_dir = save_dir+"/"
     return save_dir,pos_dir,n
-def save_camera(rms,cam,dist,rvecs,tvecs):
-    ''' save camera parameters in file '''
-    with open(save_dir+"/results"+str(n)+".txt","w") as f:
-        f.write(str(rms)+'\n')
-        for e in cam:
-            f.write("{0:10.4f}\t{1:10.4f}\t{2:10.4f}\n".format(e[0],e[1],e[2]))
-        for e in dist[0]:
-            f.write("{:10.4f}\t".format(e))
-        f.write("\n")
-        for j in range(len(rvecs)):
-            for i in range(3):
-                f.write("{:10.4f}\t".format(rvecs[j][i][0]))
-            f.write("\n")
-        for j in range(len(tvecs)):
-            for i in range(3):
-                f.write("{:10.4f}\t".format(tvecs[j][i][0]))
-            f.write("\n")
-def get_rvguess(rv,tv,i=2):
-    global n
-    ''' get guess for rv, tv from specific object points '''
-    if n == 139: # vertical image of chessboard
-        i = 2  # for test_friday only
-    elif n == 141:
-        i = 9 # for test_friday only
-    rv = rv[i-1]
-    tv = np.mean(tv[:8,2])
-    return rv, tv
 def get_calibpoints(img,pattern_size, counter):
     '''
     returns pairs of object- and image points (chess board corners)
@@ -105,44 +80,10 @@ def get_calibpoints(img,pattern_size, counter):
             ax.imshow(img),plt.show(block=False)
             print(str(counter)+': chessboard not found')
         return [],[]
-def undo_fisheye(img,cam,dist):
-    # intrinsic parameters
-    fx = cam[0,0]
-    fy = cam[1,1]
-    cx = cam[0,2]
-    cy = cam[1,2]
-    # radial distortion coefficients
-    k1,k2 = dist[0][0:2]
-    # †angential distortion coefficients
-    p1,p2 = dist[0][2:4]
-    intrinsics = cv.CreateMat(3, 3, cv.CV_64FC1)
-    cv.Zero(intrinsics)
-    intrinsics[0, 0] = float(fx)
-    intrinsics[1, 1] = float(fy)
-    intrinsics[2, 2] = 1.0
-    intrinsics[0, 2] = float(cx)
-    intrinsics[1, 2] = float(cy)
-
-    dist_coeffs = cv.CreateMat(1, 4, cv.CV_64FC1)
-    cv.Zero(dist_coeffs)
-    dist_coeffs[0, 0] = float(k1)
-    dist_coeffs[0, 1] = float(k2)
-    dist_coeffs[0, 2] = float(p1)
-    dist_coeffs[0, 3] = float(p2)
-
-    #src = cv.LoadImage(src)
-    src = cv.fromarray(img)
-    dst = img.copy()
-    dst = cv.fromarray(dst)
-    #dst = cv.CreateImage(cv.GetSize(src), src.type, src.channels)
-    mapx = cv.CreateImage(cv.GetSize(src), cv.IPL_DEPTH_32F, 1)
-    mapy = cv.CreateImage(cv.GetSize(src), cv.IPL_DEPTH_32F, 1)
-    cv.InitUndistortMap(intrinsics, dist_coeffs, mapx, mapy)
-    cv.Remap(src, dst, mapx, mapy, cv.CV_INTER_LINEAR + cv.CV_WARP_FILL_OUTLIERS,  cv.ScalarAll(0))
-    # cv.Undistort2(src,dst, intrinsics, dist_coeffs)
-    return np.array(dst)
-def get_intrinsic():
-    ''' intrinsic (and extrinsic) camera  calibration using checkboard '''
+def get_checkpoints():
+    '''
+    gets checkboard points for the intrinsic camera  calibration.
+    '''
     choice = "y"
     counter = 1
     obj_points = []
@@ -183,6 +124,16 @@ def get_leastsquares(cam1,cam2,p1,p2):
     b_aug = np.vstack((b1,b2))
     x_hat = (A_aug.T*A_aug).I*A_aug.T*b_aug
     return x_hat[2:4],x_hat[0],x_hat[1]
+def get_rvguess(rv,tv,i=2):
+    global n
+    ''' get guess for rv, tv from specific object points '''
+    if n == 139: # vertical image of chessboard
+        i = 2  # for test_friday only
+    elif n == 141:
+        i = 9 # for test_friday only
+    rv = rv[i-1]
+    tv = np.mean(tv[:8,2])
+    return rv, tv
 
 class Camera:
     def __init__(self,n,C=0,dist=0,r=0,t=0):
@@ -193,13 +144,13 @@ class Camera:
         self.r = np.matrix(r)
         self.t = np.matrix(t)
     def update(self):
-        # "combined parameters"
+        ''' Update R and Proj '''
         R,__ = cv2.Rodrigues(self.r)
         self.R = np.matrix(R)
         self.Proj = self.C*np.hstack((self.R,self.t))
     def read(self):
         ''' get camera parameters from file '''
-        global save_dir, n
+        global save_dir
         import numpy as np
         i=0
         rms = 0.0
@@ -207,8 +158,8 @@ class Camera:
         dist = np.zeros((1,5))
         rvecs = []
         tvecs = []
-        with open(save_dir+"/results"+str(n)+".txt","r") as f:
-            print("reading",n,"...")
+        with open(save_dir+"results"+str(self.n)+".txt","r") as f:
+            print("reading",self.n,"...")
             c = csv.reader(f,delimiter='\t')
             count = sum(1 for _ in c) # number of lines in file
             dim = int((count-5)/2) #number of images in folder
@@ -230,6 +181,30 @@ class Camera:
         self.dist = np.array(dist)
         self.r = np.matrix(rvecs)
         self.t = np.matrix(tvecs)
+    def save(self,rms):
+        ''' save camera parameters in file '''
+        with open(save_dir+"results2"+str(n)+".txt","w") as f:
+            f.write(str(rms)+'\n')
+            for e in self.C:
+                f.write("{0:10.4f}\t{1:10.4f}\t{2:10.4f}\n".format(e[0,0],e[0,1],e[0,2]))
+            for e in self.dist[0]:
+                f.write("{0:10.4f}\t".format(e))
+            f.write("\n")
+            for j in range(len(self.r.T)):
+                for i in range(3):
+                    f.write("{0:10.4f}\t".format(self.r.T[j,i]))
+                f.write("\n")
+            for j in range(len(self.t.T)):
+                for i in range(3):
+                    f.write("{0:10.4f}\t".format(self.t.T[j,i]))
+                f.write("\n")
+    def calibrate(self,obj_points,img_points,size):
+        rms,C,dist,r,t = cv2.calibrateCamera(obj_points,img_points,size, None, None)
+        self.C = np.matrix(C)
+        self.dist = np.array(dist)
+        self.r = np.matrix(r[0])
+        self.t = np.matrix(t[0])
+        return rms
     def reposition(self,opts,ipts,guess,flag):
         '''
         Redefines the position vectors r and t of the camera given a set of
@@ -266,6 +241,16 @@ class Camera:
         '''
         Returns images of reference points (known) and the relative error matrix
         '''
+        ### method 1
+        #c = cam.C[:,2]
+        #fx = cam.C[0,0]
+        #fy = cam.C[1,1]
+        # xc[n] = rmat_dic[n]*x0.T+t_dic[n]
+        # xc_norm[n] = xc[n]/xc[n][2] # x', y'
+        # xc_norm[n] = np.diag(np.matrix([fx,fy]).T*xc_norm[n][:2].T)+c[:2].T # u, v
+        ### method 2
+        # xc_norm[n],__ = cv2.projectPoints(np.array(x0,dtype=np.float32),rvec,tvec,cam,dist[0])
+        ### best method
         dim = p_obj.shape[0]
         test_img = self.Proj*np.matrix(np.hstack((p_obj,np.ones((dim,1))))).T
         #print("\n",test_img)
@@ -273,15 +258,55 @@ class Camera:
         #print("\n",test_img)
         test_img=test_img[:2,:].T
         match_matrix=(p_img-test_img)/test_img
-        return match_matrix, test_img
+        ref = test_img
+        print("self.ref:",ref)
+        return match_matrix,ref
+    def undo_fisheye(self,img):
+        # intrinsic parameters
+        fx = self.C[0,0]
+        fy = self.C[1,1]
+        cx = self.C[0,2]
+        cy = self.C[1,2]
+        # radial distortion coefficients
+        k1,k2 = self.dist[0:2]
+        # †angential distortion coefficients
+        p1,p2 = self.dist[2:4]
+        intrinsics = cv.CreateMat(3, 3, cv.CV_64FC1)
+        cv.Zero(intrinsics)
+        intrinsics[0, 0] = float(fx)
+        intrinsics[1, 1] = float(fy)
+        intrinsics[2, 2] = 1.0
+        intrinsics[0, 2] = float(cx)
+        intrinsics[1, 2] = float(cy)
+
+        dist_coeffs = cv.CreateMat(1, 4, cv.CV_64FC1)
+        cv.Zero(dist_coeffs)
+        dist_coeffs[0, 0] = float(k1)
+        dist_coeffs[0, 1] = float(k2)
+        dist_coeffs[0, 2] = float(p1)
+        dist_coeffs[0, 3] = float(p2)
+
+        #src = cv.LoadImage(src)
+        src = cv.fromarray(img)
+        dst = img.copy()
+        dst = cv.fromarray(dst)
+        #dst = cv.CreateImage(cv.GetSize(src), src.type, src.channels)
+        mapx = cv.CreateImage(cv.GetSize(src), cv.IPL_DEPTH_32F, 1)
+        mapy = cv.CreateImage(cv.GetSize(src), cv.IPL_DEPTH_32F, 1)
+        cv.InitUndistortMap(intrinsics, dist_coeffs, mapx, mapy)
+        cv.Remap(src, dst, mapx, mapy, cv.CV_INTER_LINEAR + cv.CV_WARP_FILL_OUTLIERS,  cv.ScalarAll(0))
+        # cv.Undistort2(src,dst, intrinsics, dist_coeffs)
+        return np.array(dst)
 
 class Image:
-    def __init__(self,n,ref_img=0,ref=0,r_img=0,r=0):
+    def __init__(self,n,ref_truth=0,r_truth=0,ref_img=0,ref=0,r_img=0,r=0):
         self.n = n
         self.ref_img = ref_img
-        self.r = ref
+        self.ref = ref
         self.r_img = r_img
         self.r = r
+        self.r_truth = r_truth
+        self.ref_truth = ref_truth
     def read_positions(self,newest,dirname='pos/',fname=''):
         '''
         Option 1:
@@ -316,7 +341,7 @@ class Image:
         img_points = pts_img.astype(np.float32)
         obj_points = pts_obj.astype(np.float32)
         self.ref_img = np.matrix(img_points)
-        self.ref = np.matrix(obj_points)
+        self.ref_truth = np.matrix(obj_points)
         self.r_img = np.array(p,dtype=np.float32)
     def augment(self,pt,z = ''):
         ''' Add third dimension to points (ones if not specified) '''
@@ -346,19 +371,23 @@ if __name__ == '__main__':
     #------------------------ Calibrate Camera ------------------------#
 
     # make new calibration
-    #img_points,obj_points,size = get_intrinsic()
-    #rms,cam,dist,rv,tv = cv2.calibrateCamera(obj_points,img_points,size, None, None)
-    #save_camera(rms,cam,dist,rv,tv)
+    img_points,obj_points,size = get_checkpoints()
+    camera = Camera(n)
+    rms = camera.calibrate(obj_points,img_points,size)
+    camera.save(rms)
 
     #-------------------------- Undo Fisheye --------------------------#
 
     # load calibration
-    #__,cam,dist,rv,tv = read_camera()
-    #for f in os.lsitdir(save_dir):
-    #    if f.startswith("input"):
-    #        img_in=cv2.imread(save_dir+"/"+f,cv2.IMREAD_COLOR)
-    #        undone = undo_fisheye(img_in,cam,dist)
-    #        cv2.imwrite(save_dir+"/"+f.replace("input","undone"),undone)
+    camera2 = Camera(n)
+    camera2.read()
+    for f in os.listdir(save_dir):
+        #if f.startswith("input"):
+        if f.startswith("img"+str(camera2.n)):
+            img_in=cv2.imread(save_dir+f,cv2.IMREAD_COLOR)
+            undone = camera2.undo_fisheye(img_in)
+            #cv2.imwrite(save_dir+f.replace("img","undone"),undone)
+            #cv2.imwrite(save_dir+f.replace("input","undone"),undone)
 
     #------------------------- Locate Cameras -------------------------#
 
@@ -369,53 +398,42 @@ if __name__ == '__main__':
     n_cameras = [139,141]
 
     img_dic = dict()
-    ref_img_control = dict()
-    A = dict()
-    b = dict()
+    cam_dic = dict()
 
     r_height = x0[0,2]
-
     r_height_px = r_height/px_size # robot height in pixels
 
-    cam_dic = dict()
     for n in n_cameras:
         cam = Camera(n)
         cam.read()
-        cam_dic[n] = cam
         # use newest file from this camera
         img=Image(n)
+        img.read_positions(1,pos_dir)
 
-        newest = 1
-        img.read_positions(newest,pos_dir)
+        # add z component to true reference points position
+        img.ref_truth = img.ref_truth*10
+        if pos_dir == 'pos/':
+            img.ref_truth = img.augment(img.ref_truth)
+        else:
+            z_ref = np.matrix([135,0,230,0]).T #in mm
+            img.ref_truth = img.augment(img.ref_truth,z_ref)
 
-        z_ref = np.matrix([13.5,0,23.0,0]).T #in cm
-        img.ref = img.augment(img.ref,z_ref)
-        opts = img.ref*10
         flag = cv2.CV_P3P
         #flag = cv2.CV_ITERATIVE
         #flag = cv2.CV_EPNP
+
         use_guess = 0
-        cam.reposition(opts,img.ref_img,use_guess,flag)
+        cam.reposition(img.ref_truth,img.ref_img,use_guess,flag)
         #-------------------------- Check transform -----------------------#
         # check with robot position
-        ### method 1
-        #c = cam.C[:,2]
-        #fx = cam.C[0,0]
-        #fy = cam.C[1,1]
-        # xc[n] = rmat_dic[n]*x0.T+t_dic[n]
-        # xc_norm[n] = xc[n]/xc[n][2] # x', y'
-        # xc_norm[n] = np.diag(np.matrix([fx,fy]).T*xc_norm[n][:2].T)+c[:2].T # u, v
-        ### method 2
-        # xc_norm[n],__ = cv2.projectPoints(np.array(x0,dtype=np.float32),rvec,tvec,cam,dist[0])
-        ### best method
-        match_matrix, ref_img_control[n] = cam.check_points(opts,img.ref_img)
+        match_matrix,img.ref = cam.check_points(img.ref_truth,img.ref_img)
         print("ind: ref point match",cam.n,"\n",match_matrix)
-
         #--------------------------- Get Robot 3D -------------------------#
         img.r = cam.get_position(img.augment(img.r_img),r_height)
         print("ind: robot position",img.r)
 
         img_dic[n] = img
+        cam_dic[n] = cam
     # lest squares for two cameras
 
 
@@ -425,13 +443,13 @@ if __name__ == '__main__':
     i141 = img_dic[141]
 
     p_obj,s139,s141 = get_leastsquares(c139,c141,i139.augment(i139.r_img),i139.augment(i141.r_img))
-    print("lq: robot position ",p_obj)
+    print("lq: robot position ",p_obj.T)
 
     # triangulate reference points
     opts_test = cv2.triangulatePoints(c139.Proj, c141.Proj,i139.ref_img.T,i141.ref_img.T)
     opts_norm = opts_test/opts_test[3]
     opts_norm = opts_norm.T[:,:3]
-    opts_theo = opts #same for both cameras
+    opts_theo = img.ref_truth #same for both cameras
     print("triang: ref point match\n",((opts_theo-opts_norm)/opts_norm))
 
     # triangulate robot point
