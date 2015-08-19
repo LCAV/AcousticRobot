@@ -69,7 +69,7 @@ class InteractivePlot:
             self.x1 = event.ydata
             print('1: {0:5.2f},{1:5.2f}'.format(self.x1,self.y1))
             range_hsv = self.hsv[self.x1][self.y1]
-            print('HSV:',range_hsv)
+            #print('HSV:',range_hsv)
             if self.number!=4:
                 plt.close()
         elif self.x2==0.0 and self.y2 == 0.0:
@@ -77,19 +77,19 @@ class InteractivePlot:
             self.x2 = event.ydata
             print('2: {0:5.2f},{1:5.2f}'.format(self.x2,self.y2))
             range_hsv = self.hsv[self.x2][self.y2]
-            print('HSV:',range_hsv)
+            #print('HSV:',range_hsv)
         elif self.x3==0.0 and self.y3 == 0.0:
             self.y3 = event.xdata
             self.x3 = event.ydata
             print('3: {0:5.2f},{1:5.2f}'.format(self.x3,self.y3))
             range_hsv = self.hsv[self.x3][self.y3]
-            print('HSV:',range_hsv)
+            #print('HSV:',range_hsv)
         elif self.x4==0.0 and self.y4 == 0.0:
             self.y4 = event.xdata
             self.x4 = event.ydata
             print('4: {0:5.2f},{1:5.2f}'.format(self.x4,self.y4))
             range_hsv = self.hsv[self.x4][self.y4]
-            print('HSV:',range_hsv)
+            #print('HSV:',range_hsv)
             plt.close()
     def getpoints(self):
         if self.number == 4:
@@ -248,7 +248,7 @@ def extract_color(img,range_min,range_max):
     for cnt in contours:
         # Check if new best contour
         area = cv2.contourArea(cnt)
-        print("Extract: area:",area)
+        #print("Extract: area:",area)
         if area > max_area:
             #print("new area: ",area)
             max_area = area
@@ -367,7 +367,9 @@ def imagepoints(img,r,n,t,col_min,col_max):
     circ_color,pos_color = get_circles_count(th,cont_color,
                                             t,w,r)
     if pos_color.shape[1] == n:
-        print("imagepoints succeeded")
+        print("Image points found")
+    else:
+        print("Did not find image points")
 
     colors[10*(counter-1):10*counter,0:100,:]=col_min
     colors[10*(counter-1):10*counter,101:200,:]=col_max
@@ -379,8 +381,16 @@ def imagepoints(img,r,n,t,col_min,col_max):
     #plt.show(block=False)
     #test_pause = raw_input("pause, enter to continue")
 
-    # restore points in order of clicking
     pos_color = restore_order(points,pos_color,img.shape[1]/10)
+
+    # Order of found points has to be reversed.
+    if n == 1:
+        px = pos_color[0][0][1]
+        py = pos_color[0][0][0]
+        pos_color = np.array([px,py])
+    else:
+        pos_color = np.vstack(([pos_color[:,1],pos_color[:,0]])).T
+
     return img_color,circ_color,pos_color,th
 
 ''' --------------  Geometry ---------------'''
@@ -409,21 +419,11 @@ def geometric_transformation(img,pts_obj,pts_img,size):
     # ƒor some reason, the points have to be flipped for the transformation
     pts_obj = pts_obj.astype(np.float32)
     pts_img = pts_img.astype(np.float32)
-    pts_img = np.vstack(([pts_img[:,1],pts_img[:,0]])).T
-
-    if pts_img == []:
-        pts_img = get_img_points(img)
     M = cv2.getPerspectiveTransform(pts_img,pts_obj)
     img_flat = cv2.warpPerspective(img,M,size)
-    return img_flat, M
-def get_img_points(img):
-    # Get indicator points
-    img_i = InteractivePlot(plt.figure(),img,4)
-    img_i.setpoints()
-    img_i.draw()
-    x1,y1,x2,y2,x3,y3,x4,y4 = img_i.getpoints()
-    return  np.float32([x1,y1],[x2,y2],[x3,y3],[x4,y4])
-def order_points(pts):
+    return img_flat, np.matrix(M)
+def create_order(pts):
+    ''' reorganizes points in order top to bottom, left to right '''
     pts_3D_top=pts[0][:2]
     pts_3D_bot=pts[0][-2:]
     pt1,pt2=sorted(pts_3D_top,key=operator.itemgetter(1))
@@ -432,6 +432,7 @@ def order_points(pts):
     pts = np.array(pts)
     return np.array(pts)
 def restore_order(original,moved,min_dist):
+    ''' reorganize points in order of clicking '''
     if moved.shape[1] == 4:
         i = 0
         original = np.array(original)
@@ -490,13 +491,12 @@ if __name__ == "__main__":
                 r=30
                 n=4
                 t=100
-                img_org,circ_org,pos_org,th_org = imagepoints(img,r,n,t,
+                img_org,circ_org,pts_img,th_org = imagepoints(img,r,n,t,
                                                               col_min,col_max)
-                if pos_org.shape[1] == 0:
+                if pts_img.shape[1] == 0:
                     print("No reference points found. Try again!")
                     break
 
-                pts_img = pos_org
                 #-------------- Find robot position  ----------#
                 choice = "n"
                 choice = raw_input("Find robot position?(y/n)")
@@ -506,13 +506,11 @@ if __name__ == "__main__":
                     r = 40
                     n = 1
                     t = 100
-                    img_red,circ_red,pos_red,th_red = imagepoints(img,r,n,t,
+                    img_red,circ_red,p,th_red = imagepoints(img,r,n,t,
                                                                     col_min,col_max)
 
-                    if pos_red.shape[1] ==  0:
-                        print("Robot could not be detected. Try again!")
                 else:
-                    pos_red = np.array([np.zeros((1,2))])
+                    p = np.array([np.zeros((1,2))])
                     img_red = np.zeros(img.shape)
                     th_red = np.zeros(img.shape)
                     circ_red = np.zeros(img.shape)
@@ -524,27 +522,20 @@ if __name__ == "__main__":
                 pts_obj_test=np.array([[0,0],[70,0],[70,70],[0,70]],dtype=np.float32)
                 pts_obj_test = pts_obj_test+margin
 
-
                 img_test,pts_obj,size = format_points(pts_obj,margin)
-
                 img_flat,M = geometric_transformation(img,pts_obj,pts_img,(size[0],size[1]))
 
                 ##------------------ Summary ------------------#
                 img_summary = img_flat.copy()
                 img_summary = rgb_conversion(img_summary)
-                # refernce positions abs
+                # create summary image
                 i = 0
                 for pts in pts_obj:
                     cv2.circle(img_summary,(int(pts[0]),int(pts[1])),3,
                                (255,0,0),1,cv2.CV_AA)
                     i+=1
-                # absolute robot position
-                px = pos_red[0][0][1]
-                py = pos_red[0][0][0]
-                p = np.array([px,py])
                 if not p.all() == 0:
-                    p3D = np.matrix([px,py,1])
-                    M = np.matrix(M)
+                    p3D = np.matrix([p[0],p[1],1])
                     test_p = M*p3D.T
                     test_p = test_p/test_p[2]
                     cv2.circle(img_summary,(int(test_p[0]),int(test_p[1])),5,
@@ -555,7 +546,7 @@ if __name__ == "__main__":
                     current_time = str(int(time.mktime(time.gmtime())))
                     name='ref_' +str(n_cam)+'_'+current_time+str('.txt')
                     write_ref(outputpath,name,pts_img,M,pts_obj)
-                    name='positions.txt'
+                    name='pos_img'+str(n_cam)+'.txt'
                     write_pos(outputpath,name,p)
                 #---------------  Visualization    ------------#
                 h,s,v = cv2.split(cv2.cvtColor(img,cv2.COLOR_BGR2HSV))

@@ -8,43 +8,40 @@ import cv2
 import cv2.cv as cv
 import matplotlib.pyplot as plt
 import csv
-# built-in modules
+import get_image as get
 import os
+import sys
 
 USAGE = '''
-USAGE: calib.py [-o <output path>] [-p <pos path>] [-n <camera_number>]]
+USAGE: calib.py [-o <output path>] [-c <camera path>] [-n <camera_number>]]
 '''
 
-global save_dir
-global n
-global square_size
 def get_param():
     ''' returns parameters from command line '''
     global USAGE
-    save_dir = ''
-    pos_dir = ''
+    out_dir = ''
+    cam_dir = ''
     n = 141
     try:
-        opts,args = getopt.getopt(sys.argv[1:],"o:p:n:",
-                                  ['save=', 'pos=','n='])
+        opts,args = getopt.getopt(sys.argv[1:],"o:c:n:",
+                                  ['save=', 'cam=','n='])
     except getopt.GetoptError:
         print(USAGE)
         sys.exit(2)
     for opt, arg in opts:
         if opt in ('--save',"-o"):
-            save_dir = str(arg)
-        if opt in ("--pos", "-p"):
-            pos_dir = str(arg)
+            out_dir = str(arg)
+        if opt in ("--cam", "-c"):
+            cam_dir = str(arg)
         if opt in ('--n',"-n"):
             n = int(arg)
-    if save_dir[-1]!="/":
-        save_dir = save_dir+"/"
-    return save_dir,pos_dir,n
-def get_calibpoints(img,pattern_size, counter):
+    if out_dir[-1]!="/":
+        out_dir = save_dir+"/"
+    return out_dir,cam_dir,n
+def get_calibpoints(img,pattern_size,counter,out_dir,n):
     '''
     returns pairs of object- and image points (chess board corners)
     for camera calibration'''
-    global save_dir,n
     square_size = 47 # in mm
     square_size = square_size/px_size # †his doesn't matter for camera calibration!!
     #print("square size:",square_size)
@@ -63,13 +60,13 @@ def get_calibpoints(img,pattern_size, counter):
         print(str(counter)+": chessboard found")
         term = ( cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, 30, 0.1 )
         cv2.cornerSubPix(gray, corners, (5, 5), (-1, -1), term)
-        if save_dir:
+        if out_dir:
             print("saving...")
             out = img.copy()
             cv2.drawChessboardCorners(out, pattern_size, corners, found)
             ax.imshow(out),plt.show(block=False)
-            cv2.imwrite('{0}/input{1}_{2}.jpg'.format(save_dir,n,counter),img)
-            cv2.imwrite('{0}/output{1}_{2}.jpg'.format(save_dir,n,counter), out)
+            cv2.imwrite('{0}/input{1}_{2}.jpg'.format(out_dir,n,counter),img)
+            cv2.imwrite('{0}/output{1}_{2}.jpg'.format(out_dir,n,counter), out)
         return corners.reshape(-1, 2), pattern_points
     elif not found:
         if not corners == None:
@@ -108,7 +105,12 @@ def get_rvguess(rv,tv,i=2):
     rv = rv[i-1]
     tv = np.mean(tv[:8,2])
     return rv, tv
-
+    p_norm2 = p_norm2.T[:,:3]
+def triangulate(P1,P2,i1,i2):
+    p_test = cv2.triangulatePoints(P1,P2,i1,i2)
+    p_norm = p_test/p_test[3]
+    p_norm = p_norm.T[:,:3]
+    return p_norm
 
 class Camera:
     def __init__(self,n,rms=0,C=0,dist=0,r=0,t=0):
@@ -124,9 +126,8 @@ class Camera:
         R,__ = cv2.Rodrigues(self.r)
         self.R = np.matrix(R)
         self.Proj = self.C*np.hstack((self.R,self.t))
-    def read(self):
+    def read(self,cam_dir):
         ''' get camera parameters from file '''
-        global save_dir
         import numpy as np
         i=0
         rms = 0.0
@@ -134,8 +135,7 @@ class Camera:
         dist = np.zeros((1,5))
         rvecs = []
         tvecs = []
-        with open(save_dir+"results"+str(self.n)+".txt","r") as f:
-            print("reading",self.n,"...")
+        with open(cam_dir+"results"+str(self.n)+".txt","r") as f:
             c = csv.reader(f,delimiter='\t')
             count = sum(1 for _ in c) # number of lines in file
             dim = int((count-5)/2) #number of images in folder
@@ -158,9 +158,9 @@ class Camera:
         self.dist = np.array(dist)
         self.r = np.matrix(rvecs)
         self.t = np.matrix(tvecs)
-    def save(self,save_dir):
+    def save(self,cam_dir):
         ''' save camera parameters in file '''
-        with open(save_dir+"results"+str(n)+".txt","w") as f:
+        with open(cam_dir+"results"+str(self.n)+".txt","w") as f:
             f.write(str(self.rms)+'\n')
             for e in self.C:
                 f.write("{0:10.4f}\t{1:10.4f}\t{2:10.4f}\n".format(e[0,0],e[0,1],e[0,2]))
@@ -175,7 +175,7 @@ class Camera:
                 for i in range(3):
                     f.write("{0:10.4f}\t".format(self.t.T[j,i]))
                 f.write("\n")
-    def get_checkpoints(self):
+    def get_checkpoints(self,out_dir):
         '''
         gets checkboard points for the intrinsic camera  calibration.
         '''
@@ -188,17 +188,19 @@ class Camera:
             try:
                 # Collect Data
                 if choice == "y":
-                    img = get_image.get_image(self.n)
+                    img = get.get_image(self.n)
                     h, w = img.shape[:2]
-                    img_pt, obj_pt = get_calibpoints(img,pattern_size,counter)
+                    img_pt, obj_pt = get_calibpoints(img,pattern_size,
+                                                     counter,out_dir,self.n)
                     if not img_pt == None:
                         img_points.append(img_pt)
                         obj_points.append(obj_pt)
                     counter += 1
                     choice = raw_input("Do you want to take another image? (y/n)")
                 elif choice == "n":
-                # Calibrate Camera
                     return img_points, obj_points, (w,h)
+                else:
+                    choice = raw_input("Enter valid choice (y/n)")
             except KeyboardInterrupt:
                 print("program terminated by user")
                 sys.exit(1)
@@ -230,6 +232,7 @@ class Camera:
         self.r = np.matrix(rvec)
         self.t = np.matrix(tvec)
         self.update()
+        print("Extrinsic calibration succeeded")
     def get_position(self,p_img,r_height):
         '''
         Returns the estimated position of the robot based on its
@@ -310,21 +313,21 @@ class Image:
         self.r = r
         self.r_truth = r_truth
         self.ref_truth = ref_truth
-    def read_positions(self,newest,dirname='pos/',fname=''):
+    def get_newest(self,dirname,fname):
+        ''' Get newest file name '''
+        f_newest = '0000000000'
+        for f in os.listdir(dirname):
+            if f.startswith(fname+str(self.n)):
+                if int(f[-14:-4]) > int(f_newest[-14:-4]):
+                    f_newest = f
+        return dirname+f_newest
+    def read_ref(self,dirname,fname):
         '''
-        Option 1:
         get reference point and robot img positions from newest file in directory
         'dirname'
-        Option 2:
-        get reference poitn and robot img positions from file dirname+fname
         '''
-        if newest:
-            f_newest = '0000000000'
-            for f in os.listdir(dirname):
-                if f.startswith("pos_"+str(n)):
-                    if int(f[-14:-4]) > int(f_newest[-14:-4]):
-                        f_newest = f
-            fname = dirname+f_newest
+        fname = self.get_newest(dirname,fname)
+        #print("reading",fname)
         i = 0
         pts_img = np.zeros((4,2))
         M = np.zeros((3,3))
@@ -332,19 +335,25 @@ class Image:
         with open(fname,"r") as f:
             c = csv.reader(f,delimiter = '\t')
             for line in c:
-                if i == 0:
-                    p = [float(x) for x in line if x!='']
-                elif i > 0 and i <=4:
-                    pts_img[i-1,:] = line
-                elif i > 4 and i <= 7:
-                    M[i-5,:] = line
-                elif i > 7 and i<= 11:
-                    pts_obj[i-8,:] = line
+                if i >= 0 and i <4:
+                    pts_img[i,:] = line
+                elif i >= 4 and i < 7:
+                    M[i-4,:] = line
+                elif i >= 7 and i< 11:
+                    pts_obj[i-7,:] = line
                 i+=1
         img_points = pts_img.astype(np.float32)
         obj_points = pts_obj.astype(np.float32)
         self.ref_img = np.matrix(img_points)
         self.ref_truth = np.matrix(obj_points)
+    def read_pos(self,dirname,fname):
+        #fname = self.get_newest(dirname,fname)
+        fname=dirname+fname+str(self.n)+".txt"
+        with open(fname,"r") as f:
+            c = csv.reader(f,delimiter = '\t')
+            for line in c:
+                p = [float(x) for x in line if x!='']
+        # last value of p corresponds to last line
         self.r_img = np.array(p,dtype=np.float32)
     def augment(self,pt,z = ''):
         ''' Add third dimension to points (ones if not specified) '''
@@ -358,38 +367,34 @@ class Image:
             return np.matrix(np.hstack((pt,z.reshape(4,1)))).astype(np.float32)
 
 global px_size
-px _size = 1.4*10**-3 # mm per pixel
+px_size = 1.4*10**-3 # mm per pixel
 
 if __name__ == '__main__':
-    import sys
     import getopt
-    from glob import glob
-    import get_image
 
     #------------------------- Get parameters -------------------------#
-
-    save_dir,pos_dir,n = get_param()
+    out_dir,cam_dir,n = get_param()
     #------------------------ Calibrate Camera ------------------------#
 
     # make new calibration
     #camera = Camera(n)
-    #img_points,obj_points,size = camera.get_checkpoints()
+    #img_points,obj_points,size = camera.get_checkpoints(out_dir)
     #root mean square (RMS) re-projection error (good between 0.1 and 1)
     #camera.calibrate(obj_points,img_points,size)
-    #camera.save(save_dir)
+    #camera.save(out_dir)
 
     #-------------------------- Undistort   ---------------------------#
 
     # load calibration
     #camera2 = Camera(n)
-    #camera2.read()
-    for f in os.listdir(save_dir):
+    #camera2.read(cam_dir)
+    #for f in os.listdir(out_dir):
         #if f.startswith("input"):
         #if f.startswith("img"+str(camera2.n)):
-            #img_in=cv2.imread(save_dir+f,cv2.IMREAD_COLOR)
+            #img_in=cv2.imread(out_dir+f,cv2.IMREAD_COLOR)
             #undone = camera2.undistort(img_in)
-            #cv2.imwrite(save_dir+f.replace("img","undone"),undone)
-            #cv2.imwrite(save_dir+f.replace("input","undone"),undone)
+            #cv2.imwrite(out_dir+f.replace("img","undone"),undone)
+            #cv2.imwrite(out_dir+f.replace("input","undone"),undone)
 
     #------------------------- Locate Cameras -------------------------#
 
@@ -407,18 +412,17 @@ if __name__ == '__main__':
     for n in n_cameras:
         #---------------------------- Initialize --------------------------#
         cam = Camera(n)
-        cam.read()
+        cam.read(cam_dir)
         # use newest file from this camera
         img=Image(n)
-        img.read_positions(1,pos_dir)
+        img.read_ref(out_dir,"ref_")
+        img.read_pos(out_dir,"pos_img")
         img.r_truth = x0
         # add z component to true reference points position
         img.ref_truth = img.ref_truth*10
-        if pos_dir == 'pos/':
-            img.ref_truth = img.augment(img.ref_truth,np.zeros((4,1)))
-        else:
-            z_ref = np.matrix([135,0,230,0]).T #in mm
-            img.ref_truth = img.augment(img.ref_truth,z_ref)
+        #img.ref_truth = img.augment(img.ref_truth,np.zeros((4,1)))
+        z_ref = np.matrix([135,0,230,0]).T #in mm
+        img.ref_truth = img.augment(img.ref_truth,z_ref)
         #------------------------- Calibrate camera -----------------------#
         flag = cv2.CV_P3P
         #flag = cv2.CV_ITERATIVE
@@ -433,7 +437,6 @@ if __name__ == '__main__':
         #--------------------------- Get Robot 3D -------------------------#
         img.r = cam.get_position(img.augment(img.r_img),r_height)
         print("ind: robot position",img.r)
-
         img_dic[n] = img
         cam_dic[n] = cam
 
@@ -445,20 +448,16 @@ if __name__ == '__main__':
 
     #------------------------------ Least squares -------------------------#
     p_obj,s139,s141 = get_leastsquares(c139,c141,i139.augment(i139.r_img),
-                                       i139.augment(i141.r_img),r_height)
+                                       i141.augment(i141.r_img),r_height)
     print("lq: robot position ",p_obj.T)
 
     #------------------------------ Triangulation -------------------------#
     # triangulate reference points
-    opts_test = cv2.triangulatePoints(c139.Proj, c141.Proj,i139.ref_img.T,i141.ref_img.T)
-    opts_norm = opts_test/opts_test[3]
-    opts_norm = opts_norm.T[:,:3]
+    opts_norm = triangulate(c139.Proj, c141.Proj,i139.ref_img.T,i141.ref_img.T)
     opts_theo = img.ref_truth #same for both cameras
     print("triang: ref point match\n",((opts_theo-opts_norm)/opts_norm))
 
     # triangulate robot point
-    p_test = cv2.triangulatePoints(c139.Proj, c141.Proj,i139.r_img,i141.r_img)
-    p_norm2 = p_test/p_test[3]
-    p_norm2 = p_norm2.T[:,:3]
-    print("triang: robot position",p_norm2)
+    p_norm = triangulate(c139.Proj, c141.Proj,i139.r_img,i141.r_img)
+    print("triang: robot position",p_norm)
     print("\n real robot position:",x0)
