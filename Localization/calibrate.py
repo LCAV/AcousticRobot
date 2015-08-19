@@ -43,9 +43,10 @@ def get_param():
 def get_calibpoints(img,pattern_size, counter):
     '''
     returns pairs of object- and image points (chess board corners)
-    for camera calibration
-    '''
-    global save_dir,n,square_size
+    for camera calibration'''
+    global save_dir,n
+    square_size = 47 # in mm
+    square_size = square_size/px_size # †his doesn't matter for camera calibration!!
     #print("square size:",square_size)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     pattern_points = np.zeros( (np.prod(pattern_size), 3), np.float32 )
@@ -80,34 +81,7 @@ def get_calibpoints(img,pattern_size, counter):
             ax.imshow(img),plt.show(block=False)
             print(str(counter)+': chessboard not found')
         return [],[]
-def get_checkpoints():
-    '''
-    gets checkboard points for the intrinsic camera  calibration.
-    '''
-    choice = "y"
-    counter = 1
-    obj_points = []
-    img_points = []
-    pattern_size = (8, 5)
-    while True:
-        try:
-            # Collect Data
-            if choice == "y":
-                img = get_image.get_image(n)
-                h, w = img.shape[:2]
-                img_pt, obj_pt = get_calibpoints(img,pattern_size,counter)
-                if not img_pt == None:
-                    img_points.append(img_pt)
-                    obj_points.append(obj_pt)
-                counter += 1
-                choice = raw_input("Do you want to take another image? (y/n)")
-            elif choice == "n":
-            # Calibrate Camera
-                return img_points, obj_points, (w,h)
-        except KeyboardInterrupt:
-            print("program terminated by user")
-            sys.exit(1)
-def get_leastsquares(cam1,cam2,p1,p2):
+def get_leastsquares(cam1,cam2,p1,p2,r_height):
     '''Returns real position of robot based on observation with cam1 and cam2'''
     u1 = p1.T
     u2 = p2.T
@@ -135,10 +109,12 @@ def get_rvguess(rv,tv,i=2):
     tv = np.mean(tv[:8,2])
     return rv, tv
 
+
 class Camera:
-    def __init__(self,n,C=0,dist=0,r=0,t=0):
+    def __init__(self,n,rms=0,C=0,dist=0,r=0,t=0):
         # “raw parameters"
         self.n = n
+        self.rms=rms
         self.C = np.matrix(C)
         self.dist = np.matrix(dist)
         self.r = np.matrix(r)
@@ -177,14 +153,15 @@ class Camera:
                 elif i>=5+dim and i <5+2*dim:
                     tvecs.append([float(x) for x in line if x!=''])
                 i+=1
+        self.rms = rms
         self.C = np.matrix(cam)
         self.dist = np.array(dist)
         self.r = np.matrix(rvecs)
         self.t = np.matrix(tvecs)
-    def save(self,rms):
+    def save(self,save_dir):
         ''' save camera parameters in file '''
-        with open(save_dir+"results2"+str(n)+".txt","w") as f:
-            f.write(str(rms)+'\n')
+        with open(save_dir+"results"+str(n)+".txt","w") as f:
+            f.write(str(self.rms)+'\n')
             for e in self.C:
                 f.write("{0:10.4f}\t{1:10.4f}\t{2:10.4f}\n".format(e[0,0],e[0,1],e[0,2]))
             for e in self.dist[0]:
@@ -198,14 +175,41 @@ class Camera:
                 for i in range(3):
                     f.write("{0:10.4f}\t".format(self.t.T[j,i]))
                 f.write("\n")
+    def get_checkpoints(self):
+        '''
+        gets checkboard points for the intrinsic camera  calibration.
+        '''
+        choice = "y"
+        counter = 1
+        obj_points = []
+        img_points = []
+        pattern_size = (8, 5)
+        while True:
+            try:
+                # Collect Data
+                if choice == "y":
+                    img = get_image.get_image(self.n)
+                    h, w = img.shape[:2]
+                    img_pt, obj_pt = get_calibpoints(img,pattern_size,counter)
+                    if not img_pt == None:
+                        img_points.append(img_pt)
+                        obj_points.append(obj_pt)
+                    counter += 1
+                    choice = raw_input("Do you want to take another image? (y/n)")
+                elif choice == "n":
+                # Calibrate Camera
+                    return img_points, obj_points, (w,h)
+            except KeyboardInterrupt:
+                print("program terminated by user")
+                sys.exit(1)
     def calibrate(self,obj_points,img_points,size):
         rms,C,dist,r,t = cv2.calibrateCamera(obj_points,img_points,size, None, None)
+        self.rms = rms
         self.C = np.matrix(C)
         self.dist = np.array(dist)
         self.r = np.matrix(r[0])
         self.t = np.matrix(t[0])
-        return rms
-    def reposition(self,opts,ipts,guess,flag):
+    def reposition(self,opts,ipts,guess=0,flag=cv2.CV_P3P):
         '''
         Redefines the position vectors r and t of the camera given a set of
         corresponding image and object points
@@ -259,9 +263,8 @@ class Camera:
         test_img=test_img[:2,:].T
         match_matrix=(p_img-test_img)/test_img
         ref = test_img
-        print("self.ref:",ref)
         return match_matrix,ref
-    def undo_fisheye(self,img):
+    def undistort(self,img):
         # intrinsic parameters
         fx = self.C[0,0]
         fy = self.C[1,1]
@@ -355,6 +358,7 @@ class Image:
             return np.matrix(np.hstack((pt,z.reshape(4,1)))).astype(np.float32)
 
 global px_size
+px _size = 1.4*10**-3 # mm per pixel
 
 if __name__ == '__main__':
     import sys
@@ -362,30 +366,28 @@ if __name__ == '__main__':
     from glob import glob
     import get_image
 
-    px_size = 1.4*10**-3 # mm per pixel
     #------------------------- Get parameters -------------------------#
 
     save_dir,pos_dir,n = get_param()
-    square_size = 47 # in mm
-    square_size = square_size/px_size # †his doesn't matter for camera calibration!!
     #------------------------ Calibrate Camera ------------------------#
 
     # make new calibration
-    img_points,obj_points,size = get_checkpoints()
-    camera = Camera(n)
-    rms = camera.calibrate(obj_points,img_points,size)
-    camera.save(rms)
+    #camera = Camera(n)
+    #img_points,obj_points,size = camera.get_checkpoints()
+    #root mean square (RMS) re-projection error (good between 0.1 and 1)
+    #camera.calibrate(obj_points,img_points,size)
+    #camera.save(save_dir)
 
-    #-------------------------- Undo Fisheye --------------------------#
+    #-------------------------- Undistort   ---------------------------#
 
     # load calibration
-    camera2 = Camera(n)
-    camera2.read()
+    #camera2 = Camera(n)
+    #camera2.read()
     for f in os.listdir(save_dir):
         #if f.startswith("input"):
-        if f.startswith("img"+str(camera2.n)):
-            img_in=cv2.imread(save_dir+f,cv2.IMREAD_COLOR)
-            undone = camera2.undo_fisheye(img_in)
+        #if f.startswith("img"+str(camera2.n)):
+            #img_in=cv2.imread(save_dir+f,cv2.IMREAD_COLOR)
+            #undone = camera2.undistort(img_in)
             #cv2.imwrite(save_dir+f.replace("img","undone"),undone)
             #cv2.imwrite(save_dir+f.replace("input","undone"),undone)
 
@@ -394,7 +396,6 @@ if __name__ == '__main__':
     # parameters
     #x0 = np.matrix([10000,5000,1390]) # real position of robot in mm
     x0 = np.matrix([650,940,190])
-
     n_cameras = [139,141]
 
     img_dic = dict()
@@ -404,28 +405,29 @@ if __name__ == '__main__':
     r_height_px = r_height/px_size # robot height in pixels
 
     for n in n_cameras:
+        #---------------------------- Initialize --------------------------#
         cam = Camera(n)
         cam.read()
         # use newest file from this camera
         img=Image(n)
         img.read_positions(1,pos_dir)
-
+        img.r_truth = x0
         # add z component to true reference points position
         img.ref_truth = img.ref_truth*10
         if pos_dir == 'pos/':
-            img.ref_truth = img.augment(img.ref_truth)
+            img.ref_truth = img.augment(img.ref_truth,np.zeros((4,1)))
         else:
             z_ref = np.matrix([135,0,230,0]).T #in mm
             img.ref_truth = img.augment(img.ref_truth,z_ref)
-
+        #------------------------- Calibrate camera -----------------------#
         flag = cv2.CV_P3P
         #flag = cv2.CV_ITERATIVE
         #flag = cv2.CV_EPNP
-
         use_guess = 0
         cam.reposition(img.ref_truth,img.ref_img,use_guess,flag)
-        #-------------------------- Check transform -----------------------#
-        # check with robot position
+
+        ######################### INDIVIDUAL METHODS #######################
+        #------------------------- Check transform ------------------------#
         match_matrix,img.ref = cam.check_points(img.ref_truth,img.ref_img)
         print("ind: ref point match",cam.n,"\n",match_matrix)
         #--------------------------- Get Robot 3D -------------------------#
@@ -434,17 +436,19 @@ if __name__ == '__main__':
 
         img_dic[n] = img
         cam_dic[n] = cam
-    # lest squares for two cameras
 
-
+    ############################### COMBINED METHODS #######################
     c139 = cam_dic[139]
     c141 = cam_dic[141]
     i139 = img_dic[139]
     i141 = img_dic[141]
 
-    p_obj,s139,s141 = get_leastsquares(c139,c141,i139.augment(i139.r_img),i139.augment(i141.r_img))
+    #------------------------------ Least squares -------------------------#
+    p_obj,s139,s141 = get_leastsquares(c139,c141,i139.augment(i139.r_img),
+                                       i139.augment(i141.r_img),r_height)
     print("lq: robot position ",p_obj.T)
 
+    #------------------------------ Triangulation -------------------------#
     # triangulate reference points
     opts_test = cv2.triangulatePoints(c139.Proj, c141.Proj,i139.ref_img.T,i141.ref_img.T)
     opts_norm = opts_test/opts_test[3]
@@ -453,8 +457,6 @@ if __name__ == '__main__':
     print("triang: ref point match\n",((opts_theo-opts_norm)/opts_norm))
 
     # triangulate robot point
-    #p_test = cv2.triangulatePoints(c139.Proj, c141.Proj,r_img_dic[139][0,:2].T,
-    #                               r_img_dic[141][0,:2].T)
     p_test = cv2.triangulatePoints(c139.Proj, c141.Proj,i139.r_img,i141.r_img)
     p_norm2 = p_test/p_test[3]
     p_norm2 = p_norm2.T[:,:3]
