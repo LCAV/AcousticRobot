@@ -25,10 +25,9 @@ def get_centroid(cnt):
     M = cv2.moments(cnt)
     cy,cx = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
     return cx,cy
-def visualization(imgs,nexti,colorbar=0,switch=0):
+def visualization(imgs,colorbar=0,switch=0):
     ''' Visualize results '''
     n = len(imgs)
-    i = nexti
     for (tit,im) in imgs.items():
         #plt.subplot(n,1,i),plt.imshow(im)
         plt.close(tit),plt.figure(tit)
@@ -39,9 +38,7 @@ def visualization(imgs,nexti,colorbar=0,switch=0):
         if colorbar == 1:
                 plt.colorbar()
         plt.title(tit)
-        i+=1
     plt.show(block=False)
-    return i
 
 '''----------  Program handling ------------ '''
 class InteractivePlot:
@@ -151,19 +148,20 @@ def get_parameters():
                 sys.exit(2)
 
     return inputfile,outputpath,number
-def write(name,p,pts_img,pts_real):
+def write_ref(dirname,name,pts_img,M,pts_obj):
     ''' save positions in file '''
-    with open(name,"w") as f:
-        for pt in p:
-            f.write(str(pt)+'\t')
-        f.write("\n")
+    with open(dirname+name,"w") as f:# overwrite
         for pt in pts_img:
             f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
         for m in M:
             f.write(str(m[0,0])+"\t"+str(m[0,1])+"\t"+str(m[0,2])+"\n")
-        for pt in pts_real:
+        for pt in pts_obj:
             f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
-
+def write_pos(dirname,name,p):
+    with open(dirname+name,"a") as f: # append
+        for pt in p:
+            f.write(str(pt)+'\t')
+        f.write("\n")
 ''' --------   Image Processing ------------ '''
 def get_circles_count(img,contours,t,w,r):
     ''' Circles detection by counting pixels around contour centers '''
@@ -343,7 +341,7 @@ def get_histograms(img,img_mask,n):
     plt.legend('s')
     plt.show(block=False)
     return hist_h,hist_s
-def get_positions(img,r,n,t,col_min,col_max):
+def imagepoints(img,r,n,t,col_min,col_max):
     ''' Get positions of reference points or robot. '''
     w = r*5
     col_diff = 2
@@ -369,7 +367,7 @@ def get_positions(img,r,n,t,col_min,col_max):
     circ_color,pos_color = get_circles_count(th,cont_color,
                                             t,w,r)
     if pos_color.shape[1] == n:
-        print("get_positions succeeded")
+        print("imagepoints succeeded")
 
     colors[10*(counter-1):10*counter,0:100,:]=col_min
     colors[10*(counter-1):10*counter,101:200,:]=col_max
@@ -386,16 +384,36 @@ def get_positions(img,r,n,t,col_min,col_max):
     return img_color,circ_color,pos_color,th
 
 ''' --------------  Geometry ---------------'''
-def geometric_transformation(img,pts_real,size,pts_img=[]):
+def objectpoints():
+    m = 4 # number of markers
+    dim = 2
+    marker_diameter = 0#0.040 # in m
+    # distances in m
+    D = np.zeros((m,m))
+    D[0,1] = D[1,0] = 0.7 + marker_diameter
+    D[0,2] = D[2,0] = (2*0.7*0.7)**0.5 + marker_diameter
+    D[0,3] = D[3,0] = 0.7 + marker_diameter
+    D[1,2] = D[2,1] = 0.7 + marker_diameter
+    D[1,3] = D[3,1] = (2*0.7*0.7)**0.5 + marker_diameter
+    D[3,2] = D[2,3] = 0.7 + marker_diameter
+    M1 = mark.MarkerSet(m=m,dim=dim,diameter=marker_diameter)
+    M1.fromEDM(D**2)
+    M1.normalize()
+    pts_obj = M1.X.T*100 # pts in cm.
+    #left and lower margin respectively, in m
+    margin = np.array([0.4+marker_diameter,0.46+marker_diameter]) #200
+    margin = margin*100 #in cm
+    return pts_obj,margin
+def geometric_transformation(img,pts_obj,pts_img,size):
     ''' Apply geometric transformation to get "view from top"  '''
     # ƒor some reason, the points have to be flipped for the transformation
-    pts_img = pos_org.astype(np.float32)
-    pts_real = pts_real.astype(np.float32)
+    pts_obj = pts_obj.astype(np.float32)
+    pts_img = pts_img.astype(np.float32)
     pts_img = np.vstack(([pts_img[:,1],pts_img[:,0]])).T
 
     if pts_img == []:
         pts_img = get_img_points(img)
-    M = cv2.getPerspectiveTransform(pts_img,pts_real)
+    M = cv2.getPerspectiveTransform(pts_img,pts_obj)
     img_flat = cv2.warpPerspective(img,M,size)
     return img_flat, M
 def get_img_points(img):
@@ -427,20 +445,20 @@ def restore_order(original,moved,min_dist):
     else:
         pts = moved
     return pts
-def format_points(pts_real,margin):
+def format_points(pts_obj,margin):
     # move points to positive range
-    pts_real = pts_real - np.amin(pts_real,axis=0)
+    pts_obj = pts_obj - np.amin(pts_obj,axis=0)
     # stretch image
-    pts_real = pts_real.astype(np.float32)
-    pts_real = pts_real + margin
-    size = np.amax(pts_real,axis=0)+margin
+    pts_obj = pts_obj.astype(np.float32)
+    pts_obj = pts_obj + margin
+    size = np.amax(pts_obj,axis=0)+margin
 
     img_test = np.zeros((size[1],size[0]))
     img_test = img_test.astype(np.uint8)
-    for pt in pts_real:
+    for pt in pts_obj:
         cv2.circle(img_test,(int(pt[0]),int(pt[1])),10,(255),3,cv2.CV_AA)
 
-    return img_test,pts_real,(int(size[0]),int(size[1]))
+    return img_test,pts_obj,(int(size[0]),int(size[1]))
 
 ''' ----------------   Main  --------------- '''
 choice = "y"
@@ -469,22 +487,26 @@ if __name__ == "__main__":
                 # find orange
                 col_min = np.array([175,100,0],dtype=np.uint8)
                 col_max = np.array([20,250,255],dtype=np.uint8)
-                img_org,circ_org,pos_org,th_org = get_positions(img,r=30,n=4,t=100,
-                                                                col_min,col_max)
+                r=30
+                n=4
+                t=100
+                img_org,circ_org,pos_org,th_org = imagepoints(img,r,n,t,
+                                                              col_min,col_max)
                 if pos_org.shape[1] == 0:
                     print("No reference points found. Try again!")
                     break
 
+                pts_img = pos_org
                 #-------------- Find robot position  ----------#
                 choice = "n"
                 choice = raw_input("Find robot position?(y/n)")
                 if choice == "y":
+                    col_min = np.array([150,100,0],dtype=np.uint8)
+                    col_max = np.array([20,250,255],dtype=np.uint8)
                     r = 40
                     n = 1
-                    H_MIN = 150
-                    H_MAX = 20
-                    t = 100 #200
-                    img_red,circ_red,pos_red,th_red = get_positions(img,r,n,t,
+                    t = 100
+                    img_red,circ_red,pos_red,th_red = imagepoints(img,r,n,t,
                                                                     col_min,col_max)
 
                     if pos_red.shape[1] ==  0:
@@ -497,41 +519,24 @@ if __name__ == "__main__":
                 #-------------- Project image to 2D -----------#
 
                 # Get real positions
-                m = 4 # number of markers
-                dim = 2
-                marker_diameter = 0#0.040 # in m
-                # distances in m
-                D = np.zeros((m,m))
-                D[0,1] = D[1,0] = 0.7 + marker_diameter
-                D[0,2] = D[2,0] = (2*0.7*0.7)**0.5 + marker_diameter
-                D[0,3] = D[3,0] = 0.7 + marker_diameter
-                D[1,2] = D[2,1] = 0.7 + marker_diameter
-                D[1,3] = D[3,1] = (2*0.7*0.7)**0.5 + marker_diameter
-                D[3,2] = D[2,3] = 0.7 + marker_diameter
-                #left and lower margin respectively, in m
-                margin = [0.4+marker_diamter,0.46+marker_diameter] #200
-
-                M1 = mark.MarkerSet(m=m,dim=dim,diameter=marker_diameter)
-                M1.fromEDM(D**2)
-                M1.normalize()
-                pts_real = M1.X.T*100 # pts in cm.
-                margin = margin*100 # margin in cm
-
+                pts_obj,margin = objectpoints()
                 # position of real points in cm, pt = (x,y)
-                pts_real_test=np.array([[0,0],[70,0],[70,70],[0,70]],dtype=np.float32)
-                pts_real_test = pts_real_test+margin
+                pts_obj_test=np.array([[0,0],[70,0],[70,70],[0,70]],dtype=np.float32)
+                pts_obj_test = pts_obj_test+margin
 
-                img_test,pts_real,size = format_points(pts_real,margin)
 
-                img_flat,M = geometric_transformation(img,pts_real,(size[0],size[1]),pts_img)
+                img_test,pts_obj,size = format_points(pts_obj,margin)
+
+                img_flat,M = geometric_transformation(img,pts_obj,pts_img,(size[0],size[1]))
 
                 ##------------------ Summary ------------------#
                 img_summary = img_flat.copy()
                 img_summary = rgb_conversion(img_summary)
                 # refernce positions abs
                 i = 0
-                for pts in pts_real:
-                    cv2.circle(img_summary,(pts[0],pts[1]),3,(255,0,0),1,cv2.CV_AA)
+                for pts in pts_obj:
+                    cv2.circle(img_summary,(int(pts[0]),int(pts[1])),3,
+                               (255,0,0),1,cv2.CV_AA)
                     i+=1
                 # absolute robot position
                 px = pos_red[0][0][1]
@@ -542,26 +547,29 @@ if __name__ == "__main__":
                     M = np.matrix(M)
                     test_p = M*p3D.T
                     test_p = test_p/test_p[2]
-                    cv2.circle(img_summary,(test_p[0],test_p[1]),5,(255,255,0),1,cv2.CV_AA)
+                    cv2.circle(img_summary,(int(test_p[0]),int(test_p[1])),5,
+                               (255,255,0),1,cv2.CV_AA)
 
                 # write results into file
                 if outputpath != '':
                     current_time = str(int(time.mktime(time.gmtime())))
-                    name=outputpath+'pos_' +str(n_cam)+'_'+current_time+str('.txt')
-                    write(name,p,pts_img,pts_real)
+                    name='ref_' +str(n_cam)+'_'+current_time+str('.txt')
+                    write_ref(outputpath,name,pts_img,M,pts_obj)
+                    name='positions.txt'
+                    write_pos(outputpath,name,p)
                 #---------------  Visualization    ------------#
                 h,s,v = cv2.split(cv2.cvtColor(img,cv2.COLOR_BGR2HSV))
                 imgs = {'img_h':h,
                         'img_s':s}
-                nexti=visualization(imgs,nexti,1)
+                visualization(imgs,1)
                 imgs = {'img_org':img_org,
                         'circ_org':circ_org}
-                nexti=visualization(imgs,nexti)
+                visualization(imgs)
                 imgs = {'img_red':img_red,
                         'circ_red':circ_red}
-                nexti=visualization(imgs,nexti)
+                visualization(imgs)
                 imgs = {'summary':img_summary}
-                nexti=visualization(imgs,nexti,0,1)
+                visualization(imgs,0,1)
                 if outputpath != '':
                     for i in plt.get_figlabels():
                         plt.figure(i)
