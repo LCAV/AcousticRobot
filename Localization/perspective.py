@@ -57,62 +57,31 @@ def visualization(imgs,colorbar=0,switch=0):
     plt.show(block=False)
 
 '''----------  Program handling ------------ '''
-class InteractivePlot:
-    ''' Plot where 4 reference points can be picked by mouse-click'''
+class InteractivePlotN:
+    ''' Plot where N reference points can be picked by mouse-click'''
     def __init__(self,pict,name,number):
-        self.x1 = 0.0
-        self.y1 = 0.0
-        self.x2 = 0.0
-        self.y2 = 0.0
-        self.x3 = 0.0
-        self.y3 = 0.0
-        self.x4 = 0.0
-        self.y4 = 0.0
+        self.number = number
+        self.pos = []
         self.pict = pict
         self.name = name
         self.hsv = cv2.cvtColor(self.name,cv2.COLOR_RGB2HSV)
         self.number = int(number)
     def setpoints(self):
-        if self.number==4:
-            print("Click on the 4 reference points in order")
-        else:
+        if self.number==1:
             print("Click on the robot head")
-
+        else:
+            print("Click on the {0} reference points in order".format(self.number))
         self.cid = self.pict.canvas.mpl_connect('button_press_event',self.onclick)
     def onclick(self,event):
-        if self.x1==0.0 and self.y1 == 0.0:
-            self.y1 = event.xdata
-            self.x1 = event.ydata
-            print('1: {0:5.2f},{1:5.2f}'.format(self.x1,self.y1))
-            range_hsv = self.hsv[self.x1][self.y1]
-            #print('HSV:',range_hsv)
-            if self.number!=4:
+        x = event.ydata
+        y = event.xdata
+        self.pos.append([x,y])
+        n = len(self.pos)
+        range_hsv = self.hsv[x][y]
+        print('{0}: {1:5.2f},{2:5.2f}'.format(n,x,y))
+        #print('HSV:',range_hsv)
+        if n==self.number:
                 plt.close()
-        elif self.x2==0.0 and self.y2 == 0.0:
-            self.y2 = event.xdata
-            self.x2 = event.ydata
-            print('2: {0:5.2f},{1:5.2f}'.format(self.x2,self.y2))
-            range_hsv = self.hsv[self.x2][self.y2]
-            #print('HSV:',range_hsv)
-        elif self.x3==0.0 and self.y3 == 0.0:
-            self.y3 = event.xdata
-            self.x3 = event.ydata
-            print('3: {0:5.2f},{1:5.2f}'.format(self.x3,self.y3))
-            range_hsv = self.hsv[self.x3][self.y3]
-            #print('HSV:',range_hsv)
-        elif self.x4==0.0 and self.y4 == 0.0:
-            self.y4 = event.xdata
-            self.x4 = event.ydata
-            print('4: {0:5.2f},{1:5.2f}'.format(self.x4,self.y4))
-            range_hsv = self.hsv[self.x4][self.y4]
-            #print('HSV:',range_hsv)
-            plt.close()
-    def getpoints(self):
-        if self.number == 4:
-            return ([self.x1,self.y1],[self.x2,self.y2],
-                    [self.x3,self.y3],[self.x4,self.y4])
-        else:
-            return ([self.x1,self.y1])
     def draw(self):
         plt.imshow(self.name)
         plt.show()
@@ -267,10 +236,10 @@ def manual_calibration(img,n,R):
     img=rgb_conversion(img)
     img_hsv = cv2.cvtColor(img,cv2.COLOR_RGB2HSV)
 
-    img_i = InteractivePlot(plt.figure(),img,n)
+    img_i = InteractivePlotN(plt.figure(),img,n)
     img_i.setpoints()
     img_i.draw()
-    points = img_i.getpoints()
+    points = img_i.pos
 
     img_mask = np.zeros(img.shape)
 
@@ -389,18 +358,25 @@ def imagepoints(img,r,n,t,col_min,col_max):
     return img_color,circ_color,pos_color,th
 
 ''' --------------  Geometry ---------------'''
-def objectpoints():
-    m = 4 # number of markers
+def objectpoints(m):
+    # Initialisation
     dim = 2
     marker_diameter = 0#0.040 # in m
-    # distances in m
     D = np.zeros((m,m))
-    D[0,1] = D[1,0] = 0.7 + marker_diameter
-    D[0,2] = D[2,0] = (2*0.7*0.7)**0.5 + marker_diameter
-    D[0,3] = D[3,0] = 0.7 + marker_diameter
-    D[1,2] = D[2,1] = 0.7 + marker_diameter
-    D[1,3] = D[3,1] = (2*0.7*0.7)**0.5 + marker_diameter
-    D[3,2] = D[2,3] = 0.7 + marker_diameter
+    # Test 5: distances in m
+    s = 0.7 # square side
+    d = (2*s*s)**0.5 # square diagonal
+    D[0,4] = D[4,0] = d/2 + marker_diameter
+    D[1,4] = D[4,1] = d/2 + marker_diameter
+    D[2,4] = D[4,2] = d/2 + marker_diameter
+    # Test 4: distances in m
+    D[0,1] = D[1,0] = s + marker_diameter
+    D[0,2] = D[2,0] = d + marker_diameter
+    D[0,3] = D[3,0] = s + marker_diameter
+    D[1,2] = D[2,1] = s + marker_diameter
+    D[1,3] = D[3,1] = d + marker_diameter
+    D[3,2] = D[2,3] = s + marker_diameter
+    # Get postions
     M1 = mark.MarkerSet(m=m,dim=dim,diameter=marker_diameter)
     M1.fromEDM(D**2)
     M1.normalize()
@@ -410,12 +386,11 @@ def objectpoints():
     margin = margin*100 # margin in cm
     pts_obj = M1.X.T*100 # pts in cm.
     return pts_obj,margin
-def geometric_transformation(img,pts_obj,pts_img,size):
-    ''' Apply geometric transformation to get "view from top"  '''
-    # ƒor some reason, the points have to be flipped for the transformation
+def geometric_transformationN(img,pts_obj,pts_img,size):
+    ''' Find Homography for N points '''
     pts_obj = pts_obj.astype(np.float32)
     pts_img = pts_img.astype(np.float32)
-    M = cv2.getPerspectiveTransform(pts_img,pts_obj)
+    M,__ = cv2.findHomography(pts_img,pts_obj)
     img_flat = cv2.warpPerspective(img,M,size)
     return img_flat, np.matrix(M)
 def create_order(pts):
@@ -429,10 +404,10 @@ def create_order(pts):
     return np.array(pts)
 def restore_order(original,moved,min_dist):
     ''' reorganize points in order of clicking '''
-    if moved.shape[1] == 4:
+    if moved.shape[1] > 1:
         i = 0
         original = np.array(original)
-        pts = np.zeros((4,2),dtype=np.float32)
+        pts = np.zeros(original.shape,dtype=np.float32)
         for pos in original:
             comp = abs(moved-pos)<min_dist
             maxim = np.where(comp[0][:,0]&comp[0][:,1])[0]
@@ -490,9 +465,9 @@ if __name__ == "__main__":
                 col_min = np.array([175,100,0],dtype=np.uint8)
                 col_max = np.array([20,250,255],dtype=np.uint8)
                 r=30
-                n=4
+                m=5
                 t=100
-                img_org,circ_org,pts_img,th_org = imagepoints(img,r,n,t,
+                img_org,circ_org,pts_img,th_org = imagepoints(img,r,m,t,
                                                               col_min,col_max)
                 if pts_img.shape[1] == 0:
                     print("No reference points found. Try again!")
@@ -505,10 +480,10 @@ if __name__ == "__main__":
                     col_min = np.array([150,100,0],dtype=np.uint8)
                     col_max = np.array([20,250,255],dtype=np.uint8)
                     r = 40
-                    n = 1
+                    m = 1
                     t = 100
-                    img_red,circ_red,p,th_red = imagepoints(img,r,n,t,
-                                                                    col_min,col_max)
+                    img_red,circ_red,p,th_red = imagepoints(img,r,m,t,
+                                                            col_min,col_max)
 
                 else:
                     p = np.array([np.zeros((1,2))])
@@ -518,13 +493,13 @@ if __name__ == "__main__":
                 #-------------- Project image to 2D -----------#
 
                 # Get real positions
-                pts_obj,margin = objectpoints()
+                pts_obj,margin = objectpoints(m)
                 # position of real points in cm, pt = (x,y)
                 pts_obj_test=np.array([[0,0],[70,0],[70,70],[0,70]],dtype=np.float32)
                 pts_obj_test = pts_obj_test+margin
 
                 img_test,pts_obj,size = format_points(pts_obj,margin)
-                img_flat,M = geometric_transformation(img,pts_obj,pts_img,size)
+                img_flat,M = geometric_transformationN(img,pts_obj,pts_img,size)
 
                 ##------------------ Summary ------------------#
                 img_summary = img_flat.copy()
