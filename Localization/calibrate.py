@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+-*- coding: utf-8 -*-
 #!/usr/bin/env python
 from __future__ import division
 from __future__ import print_function
@@ -11,6 +11,7 @@ import csv
 import get_image as get
 import os
 import sys
+from scipy.linalg import svd
 
 USAGE = '''
 USAGE: calib.py [-o <output path>] [-c <camera path>] [-n <camera_number>]]
@@ -36,7 +37,9 @@ def get_param():
         if opt in ('--n',"-n"):
             n = int(arg)
     if out_dir[-1]!="/":
-        out_dir = save_dir+"/"
+        out_dir = out_dir+"/"
+    if cam_dir[-1]!="/":
+        cam_dir = cam_dir + "/"
     return out_dir,cam_dir,n
 def get_calibpoints(img,pattern_size,counter,out_dir,n):
     '''
@@ -78,23 +81,74 @@ def get_calibpoints(img,pattern_size,counter,out_dir,n):
             ax.imshow(img),plt.show(block=False)
             print(str(counter)+': chessboard not found')
         return [],[]
-def get_leastsquares(cam1,cam2,p1,p2,r_height):
-    '''Returns real position of robot based on observation with cam1 and cam2'''
-    u1 = p1.T
-    u2 = p2.T
-    U = np.array([u1,np.zeros((3,1)),np.zeros((3,1)),u2])
-    U = U.reshape((2,6,1))
-    U = U[:,:,0].T
-    (r1,r2,r3) = cam1.R.T[:,:]
-    A1 = np.hstack(([-cam1.C*r1.T,-cam1.C*r2.T]))
-    b1 = cam1.C*(r3.T*r_height+cam1.t)
-    (r1,r2,r3) = cam2.R.T[:,:]
-    A2 = np.hstack(([-cam2.C*r1.T,-cam2.C*r2.T]))
-    b2 = cam2.C*(r3.T*r_height+cam2.t)
-    A_aug = np.hstack((U,np.vstack((A1,A2))))
-    b_aug = np.vstack((b1,b2))
-    x_hat = (A_aug.T*A_aug).I*A_aug.T*b_aug
-    return x_hat[2:4],x_hat[0],x_hat[1]
+def get_leastsquares(cam1,cam2,p1,p2,method='hz',r_height=''):
+    '''
+    Solve least squares problem with or without fixed height
+    Returns real position of robot based on observation with cam1 and cam2
+    '''
+    if method == 'hz':
+        '''DLT Method of Hartley Zisserman, chapter 12.2 '''
+        f1 = cam1.Proj[:1]
+        f2 = cam1.Proj[1:2]
+        f3 = cam1.Proj[2:3]
+        g1 = cam2.Proj[:1]
+        g2 = cam2.Proj[1:2]
+        g3 = cam2.Proj[2:3]
+        x1=p1[0,0]
+        y1=p1[0,1]
+        x2=p2[0,0]
+        y2=p2[0,1]
+        A_aug = np.vstack((x1*f3-f1,y1*f3-f2,x2*g3-g1,y2*g3-g2))
+        if r_height:
+            a1 = A_aug.T[:1]
+            a2 = A_aug.T[1:2]
+            a3 = A_aug.T[2:3]
+            a4 = A_aug.T[3:4]
+            A_aug2 = np.vstack((a1,a2)).T
+            b_aug = -a3*r_height-a4
+            x_hat = (A_aug2.T*A_aug2).I*A_aug2.T*b_aug.T
+            control = A_aug*np.vstack((x_hat,r_height,1))
+            return np.vstack((x_hat,r_height)),control,0
+            # Algorithm page 590 if matrix A_aug is singular (not tested!
+            u,w,v = svd(A_aug)
+            b_prime = u.T*b_aug
+            y = np.zeros((v.shape[1],1))
+            for i in range(v.shape[1]):
+                try:
+                    y[i]=b_aug[0,i]/w[i]
+                except:
+                    y[i]=0
+            x_hat = v[0]*y
+        else:
+            u,w,v = svd(A_aug)
+            x_hat = v[-1]
+            x_hat = x_hat/x_hat[3]
+            return x_hat[:3],0,0
+    else:
+        ''' Own Method using algebraic transformations '''
+        if r_height:
+            u1 = p1.T
+            u2 = p2.T
+            U = np.array([u1,np.zeros((3,1)),np.zeros((3,1)),u2])
+            U = U.reshape((2,6,1))
+            U = U[:,:,0].T
+            (r1,r2,r3) = cam1.R.T[:,:]
+            A1 = np.hstack(([-cam1.C*r1.T,-cam1.C*r2.T]))
+            b1 = cam1.C*(r3.T*r_height+cam1.t)
+            (r1,r2,r3) = cam2.R.T[:,:]
+            A2 = np.hstack(([-cam2.C*r1.T,-cam2.C*r2.T]))
+            b2 = cam2.C*(r3.T*r_height+cam2.t)
+            A_aug = np.hstack((U,np.vstack((A1,A2))))
+            b_aug = np.vstack((b1,b2))
+            x_hat = (A_aug.T*A_aug).I*A_aug.T*b_aug
+            return np.vstack((x_hat[2:4],r_height)),x_hat[0],x_hat[1]
+        else:
+            A_aug = np.vstack((cam1.Proj,cam2.Proj))
+            b_aug = np.vstack((p1.T,p2.T))
+            b_aug = b_aug.reshape((6,1))
+            x_hat = (A_aug.T*A_aug).I*A_aug.T*b_aug
+            x_hat = x_hat/x_hat[3]
+            return x_hat[:3],0,0
 def get_rvguess(rv,tv,i=2):
     global n
     ''' get guess for rv, tv from specific object points '''
@@ -192,7 +246,7 @@ class Camera:
                     h, w = img.shape[:2]
                     img_pt, obj_pt = get_calibpoints(img,pattern_size,
                                                      counter,out_dir,self.n)
-                    if not img_pt == None:
+                    if not obj_pt == []:
                         img_points.append(img_pt)
                         obj_points.append(obj_pt)
                     counter += 1
@@ -204,6 +258,51 @@ class Camera:
             except KeyboardInterrupt:
                 print("program terminated by user")
                 sys.exit(1)
+    def save_checkpoints_file(self,out_dir,n_cameras):
+        choice = "y"
+        counter = 1
+        while True:
+            try:
+                if choice == "y":
+                    for n in n_cameras:
+                        img = get.get_image(n)
+                        cv2.imwrite('{0}/input{1}_{2}.jpg'.format(out_dir,n,counter),img)
+                    counter += 1
+                    choice = raw_input("Do you want to take another image? (y/n)")
+                elif choice == "n":
+                    return counter
+                else:
+                    choice = raw_input("Enter valid choice (y/n)")
+
+            except KeyboardInterrupt:
+                print("program terminated by user")
+                sys.exit(1)
+    def get_checkpoints_file(self,out_dir):
+        '''
+        gets checkboard points for the intrinsic camera  calibration. FROM FILES
+        '''
+        choice = "y"
+        counter = 1
+        obj_points = []
+        img_points = []
+        pattern_size = (8, 5)
+        try:
+            # Collect Data
+            for f in os.listdir(out_dir):
+                if f.startswith("input"+str(self.n)):
+                    img = cv2.imread(out_dir+f,cv2.IMREAD_COLOR)
+                    print("reading ",out_dir+f)
+                    h, w = img.shape[:2]
+                    img_pt, obj_pt = get_calibpoints(img,pattern_size,
+                                                    counter,out_dir,self.n)
+                    if not obj_pt == []:
+                        img_points.append(img_pt)
+                        obj_points.append(obj_pt)
+                    counter += 1
+            return img_points, obj_points, (w,h)
+        except KeyboardInterrupt:
+            print("program terminated by user")
+            sys.exit(1)
     def calibrate(self,obj_points,img_points,size):
         rms,C,dist,r,t = cv2.calibrateCamera(obj_points,img_points,size, None, None)
         self.rms = rms
@@ -215,10 +314,12 @@ class Camera:
         '''
         Redefines the position vectors r and t of the camera given a set of
         corresponding image and object points
+        Iterative = 0, EPNP = 1, P3P = 2
         '''
         global px_size
         if flag == cv2.CV_P3P or flag == cv2.CV_EPNP:
-            ipts = np.ascontiguousarray(ipts[:,:2]).reshape((4,1,2))
+            n_points = ipts.shape[0]
+            ipts = np.ascontiguousarray(ipts[:,:2]).reshape((n_points,1,2))
         if guess:
             tguess = {139:np.array([650,120]),
                        141:np.array([450,50])}
@@ -418,8 +519,6 @@ if __name__ == '__main__':
         img.read_ref(out_dir,"ref_")
         img.read_pos(out_dir,"pos_img")
         img.r_truth = x0
-        # add z component to true reference points position
-        img.ref_truth = img.ref_truth*10
         #img.ref_truth = img.augment(img.ref_truth,np.zeros((4,1)))
         z_ref = np.matrix([135,0,230,0]).T #in mm
         img.ref_truth = img.augment(img.ref_truth,z_ref)
@@ -447,10 +546,12 @@ if __name__ == '__main__':
     i141 = img_dic[141]
 
     #------------------------------ Least squares -------------------------#
-    p_obj,s139,s141 = get_leastsquares(c139,c141,i139.augment(i139.r_img),
-                                       i141.augment(i141.r_img),r_height)
-    print("lq: robot position ",p_obj.T)
-
+    p_obj,__,__ = get_leastsquares(c139,c141,i139.augment(i139.r_img),
+                                   i141.augment(i141.r_img),'hz',r_height)
+    p_tst,__,__ = get_leastsquares(c139,c141,i139.augment(i139.r_img),
+                                   i141.augment(i141.r_img),'my',r_height)
+    print("lq fixed height: robot position ",p_obj.T)
+    print("lq free height:: robot position ",p_tst.T)
     #------------------------------ Triangulation -------------------------#
     # triangulate reference points
     opts_norm = triangulate(c139.Proj, c141.Proj,i139.ref_img.T,i141.ref_img.T)
@@ -461,3 +562,15 @@ if __name__ == '__main__':
     p_norm = triangulate(c139.Proj, c141.Proj,i139.r_img,i141.r_img)
     print("triang: robot position",p_norm)
     print("\n real robot position:",x0)
+
+    H,mask  = cv2.findHomography(i1.ref_img,i2.ref_img)
+    __,P,__ = cv2.estimateAffine3D(i1.augment(i1.ref_img),i2.augment(i2.ref_img))
+    opts = cv.fromarray(opts)
+    ipts = cv.fromarray(i1.ref_img)
+    cam_C = cv.fromarray(cam.C)
+    cam_dist = cv.fromarray(np.matrix(cam.dist))
+    cam_r = cv.fromarray(cam.r)
+    cam_t = cv.fromarray(cam.t)
+    cv.FindExtrinsicCameraParams2(opts,ipts, cam_C,cam_dist,cam_r,cam_t)
+    # Doesn't work for some reason:
+    #retval,cam1,dist1,cam2,dist2,R,T,E,F = cv2.stereoCalibrate(opts,i1.ref_img,i2.ref_img,size)

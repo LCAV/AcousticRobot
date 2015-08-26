@@ -9,6 +9,22 @@ import matplotlib.pyplot as plt
 import marker_calibration as mark
 import time
 import get_image as get
+
+USAGE = '''
+usage:
+Option 1:
+file.py -i <inputfile> [-o <outputpath>]
+
+manipulations are done on inputfile (and saved in outputpath with
+cameranumber in name)
+
+Option 2:
+file.py [-o <outputpath>]
+
+manipulations are done on image from stream of indicated camera
+(and saved in outputpath with camera number in name)
+'''
+
 '''--------------  Basics ------------------ '''
 def gray_conversion(img):
     ''' Create 1-channel CV_8U image '''
@@ -105,25 +121,11 @@ def get_parameters():
     ''' Get filename from command line '''
     inputfile = ''
     outputpath = ''
-    number = 0
     try:
-        opts,args = getopt.getopt(sys.argv[1:],"i:o:n:",
-                                  ["ifile=","opath=","number="])
+        opts,args = getopt.getopt(sys.argv[1:],"i:o:",
+                                  ["ifile=","opath="])
     except getopt.GetoptError:
-        print('''
-              usage:
-              Option 1:
-              file.py -i <inputfile> [-o <outputpath> -n <cameranumber>]
-
-              manipulations are done on inputfile (and saved in outputpath with
-              cameranumber in name)
-
-              Option 2:
-              file.py -n <cameranumber> [-o <outputpath>]
-
-              manipulations are done on image from stream of indicated camera
-              (and saved in outputpath with camera number in name)
-              ''')
+        print(USAGE)
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-i","--ifile"):
@@ -136,18 +138,8 @@ def get_parameters():
                         sys.exit(2)
         elif opt in ("-o","--opath"):
             outputpath=arg
-        elif opt in ("-n","--number"):
-            try:
-                number = int(arg)
-            except:
-                print("Enter correct camera number (139 or 141 corresponding to IP")
-                sys.exit(2)
 
-            if number!=139 and number !=141:
-                print("Enter correct camera number (139 or 141 corresponding to IP")
-                sys.exit(2)
-
-    return inputfile,outputpath,number
+    return inputfile,outputpath
 def write_ref(dirname,name,pts_img,M,pts_obj):
     ''' save positions in file '''
     with open(dirname+name,"w") as f:# overwrite
@@ -156,12 +148,15 @@ def write_ref(dirname,name,pts_img,M,pts_obj):
         for m in M:
             f.write(str(m[0,0])+"\t"+str(m[0,1])+"\t"+str(m[0,2])+"\n")
         for pt in pts_obj:
+            pt = pt*10 #points in mm
             f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
 def write_pos(dirname,name,p):
     with open(dirname+name,"a") as f: # append
-        for pt in p:
-            f.write(str(pt)+'\t')
-        f.write("\n")
+        if p.any():
+            for pt in p:
+                f.write(str(pt)+'\t')
+            f.write("\n")
+
 ''' --------   Image Processing ------------ '''
 def get_circles_count(img,contours,t,w,r):
     ''' Circles detection by counting pixels around contour centers '''
@@ -409,10 +404,11 @@ def objectpoints():
     M1 = mark.MarkerSet(m=m,dim=dim,diameter=marker_diameter)
     M1.fromEDM(D**2)
     M1.normalize()
-    pts_obj = M1.X.T*100 # pts in cm.
     #left and lower margin respectively, in m
     margin = np.array([0.4+marker_diameter,0.46+marker_diameter]) #200
-    margin = margin*100 #in cm
+
+    margin = margin*100 # margin in cm
+    pts_obj = M1.X.T*100 # pts in cm.
     return pts_obj,margin
 def geometric_transformation(img,pts_obj,pts_img,size):
     ''' Apply geometric transformation to get "view from top"  '''
@@ -462,16 +458,23 @@ def format_points(pts_obj,margin):
     return img_test,pts_obj,(int(size[0]),int(size[1]))
 
 ''' ----------------   Main  --------------- '''
-choice = "y"
 if __name__ == "__main__":
+    choice = "y"
     while True:
         try:
             if choice == "y":
                 plt.close('all')
-                nexti = 1
                 img = ''
+                n_cam = 'None'
+
+                while True:
+                    try:
+                        n_cam = int(n_cam)
+                        break
+                    except:
+                        n_cam = raw_input("Please enter camera number: ")
                 #---------------- Get parameters --------------#
-                inputfile,outputpath,n_cam = get_parameters()
+                inputfile,outputpath = get_parameters()
                 if inputfile == '':
                     img = get.get_image(n_cam)
                 else:
@@ -481,8 +484,6 @@ if __name__ == "__main__":
                         outputpath = outputpath+"/"
                     outputfile = outputpath+"img"+str(n_cam)+".jpg"
                     cv2.imwrite(outputfile,img)
-                if n_cam == 0:
-                    n_cam = 139
 
                 #----------- Extract reference points----------#
                 # find orange
@@ -523,7 +524,7 @@ if __name__ == "__main__":
                 pts_obj_test = pts_obj_test+margin
 
                 img_test,pts_obj,size = format_points(pts_obj,margin)
-                img_flat,M = geometric_transformation(img,pts_obj,pts_img,(size[0],size[1]))
+                img_flat,M = geometric_transformation(img,pts_obj,pts_img,size)
 
                 ##------------------ Summary ------------------#
                 img_summary = img_flat.copy()
