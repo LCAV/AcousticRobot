@@ -1,4 +1,5 @@
 #-*- coding: utf-8 -*-
+#!/usr/bin/env python
 from __future__ import division
 from __future__ import print_function
 import cv2, sys, getopt, urllib, operator
@@ -10,6 +11,7 @@ import marker_calibration as mark
 import time
 import get_image as get
 
+debug = 1
 USAGE = '''
 usage:
 Option 1:
@@ -129,7 +131,7 @@ def write_pos(dirname,name,p):
 ''' --------   Image Processing ------------ '''
 def get_circles_count(img,contours,t,w,r):
     ''' Circles detection by counting pixels around contour centers '''
-    t_pixels=r*10 #minimum distance between two circle centers
+    t_pixels=r*4 #minimum distance between two circle centers
 
     img = gray_conversion(img)
     x,y = np.ogrid[:img.shape[0],:img.shape[1]]
@@ -150,11 +152,11 @@ def get_circles_count(img,contours,t,w,r):
         around = img[mask==1]
         inside = img[mask==2]
         col_around = around.cumsum()[-1]/around.shape[0] #average color of aroud
-        #print("Count: Average color around circle:",col_around)
         col_inside = inside.cumsum()[-1]/inside.shape[0]
-        #print("Count: Average color inside circle:",col_inside)
+        if debug:
+            print("Count: Average color around circle:",col_around)
+            print("Count: Average color inside circle:",col_inside)
 
-        #if  col_around >= t and col_inside < t:
         if col_around <= t and col_inside > t:
             #print("Count: Circle found: ",int(cx),int(cy))
             centers.append([cx,cy])
@@ -166,7 +168,8 @@ def get_circles_count(img,contours,t,w,r):
         diff = abs(np.subtract(centers[i],centers[i+1]))
         mean = np.mean([centers[i],centers[i+1]],axis = 0)
         if np.array([diff<t_pixels]).all():
-            #print("Count: duplicate found: ",centers[i],centers[i+1])
+            if debug:
+                print("Count: duplicate found: ",centers[i],centers[i+1])
             centers[i+1] = mean
             rmv.append(i)
 
@@ -187,7 +190,7 @@ def extract_color(img,range_min,range_max):
     ''' Color contours extraction '''
     i=0
     max_area=0
-    min_area = 100
+    min_area = 500
     best_cnt = 1
     cx = cy = 0
 
@@ -212,23 +215,21 @@ def extract_color(img,range_min,range_max):
     for cnt in contours:
         # Check if new best contour
         area = cv2.contourArea(cnt)
-        #print("Extract: area:",area)
+        if debug:
+            print("Extract: area:",area)
         if area > max_area:
-            #print("new area: ",area)
+            #print("Extract: new best area: ",area)
             max_area = area
             best_cnt = cnt
         if area > min_area:
             contours_big.append(cnt)
             cv2.drawContours(img,[cnt],-1,(0,255,0),3)# Green
         i+=1
-    try:
+    try: # contours found
         cy,cx = get_centroid(best_cnt)
         cv2.circle(img,(cx,cy),20,(0,255,255),2)
-        #print("Extract: Contours found")
-
-    except:
+    except: # no contours found
         cx,cy = 0
-        #print("Extract: No contours found")
     return img,contours_big,(cx,cy),img_diff
 def manual_calibration(img,n,R):
     ''' Determine shade of red '''
@@ -246,12 +247,9 @@ def manual_calibration(img,n,R):
     # Create mask around contour center
     x,y = np.ogrid[:img.shape[0],:img.shape[1]]
     for i in range(n):
-        if n > 1:
+        if n >= 1:
             cy = points[i][1]
             cx = points[i][0]
-        else:
-            cy = points[1]
-            cx = points[0]
         circle = (x-cx)*(x-cx) + (y-cy)*(y-cy) <= R*R
         circle = circle.astype(np.uint8)
         img_mask[circle==1]=1
@@ -363,19 +361,26 @@ def objectpoints(m):
     dim = 2
     marker_diameter = 0#0.040 # in m
     D = np.zeros((m,m))
-    # Test 5: distances in m
+    # Test distances in m
     s = 0.7 # square side
     d = (2*s*s)**0.5 # square diagonal
-    D[0,4] = D[4,0] = d/2 + marker_diameter
-    D[1,4] = D[4,1] = d/2 + marker_diameter
-    D[2,4] = D[4,2] = d/2 + marker_diameter
-    # Test 4: distances in m
     D[0,1] = D[1,0] = s + marker_diameter
     D[0,2] = D[2,0] = d + marker_diameter
     D[0,3] = D[3,0] = s + marker_diameter
     D[1,2] = D[2,1] = s + marker_diameter
     D[1,3] = D[3,1] = d + marker_diameter
     D[3,2] = D[2,3] = s + marker_diameter
+    if m==5:
+        D[0,4] = D[4,0] = 0.61 + marker_diameter
+        D[1,4] = D[4,1] = 0.40 + marker_diameter
+        D[2,4] = D[4,2] = 0.40 + marker_diameter
+        D[3,4] = D[4,3] = 0.62 + marker_diameter
+    elif m==6:
+        D[0,5] = D[5,0] = 0.94 + marker_diameter
+        D[1,5] = D[5,1] = 1.06 + marker_diameter
+        D[2,5] = D[5,2] = 0.58 + marker_diameter
+        D[3,5] = D[5,3] = 0.29 + marker_diameter
+        D[4,5] = D[5,4] = 0.67 + marker_diameter
     # Get postions
     M1 = mark.MarkerSet(m=m,dim=dim,diameter=marker_diameter)
     M1.fromEDM(D**2)
@@ -432,15 +437,18 @@ def format_points(pts_obj,margin):
 
     return img_test,pts_obj,(int(size[0]),int(size[1]))
 
+
 ''' ----------------   Main  --------------- '''
 if __name__ == "__main__":
     choice = "y"
+    debug = 1
     while True:
         try:
             if choice == "y":
                 plt.close('all')
                 img = ''
                 n_cam = 'None'
+                n_pts = 6 #number of reference points
 
                 while True:
                     try:
@@ -465,9 +473,8 @@ if __name__ == "__main__":
                 col_min = np.array([175,100,0],dtype=np.uint8)
                 col_max = np.array([20,250,255],dtype=np.uint8)
                 r=30
-                m=5
                 t=100
-                img_org,circ_org,pts_img,th_org = imagepoints(img,r,m,t,
+                img_org,circ_org,pts_img,th_org = imagepoints(img,r,n_pts,t,
                                                               col_min,col_max)
                 if pts_img.shape[1] == 0:
                     print("No reference points found. Try again!")
@@ -480,9 +487,8 @@ if __name__ == "__main__":
                     col_min = np.array([150,100,0],dtype=np.uint8)
                     col_max = np.array([20,250,255],dtype=np.uint8)
                     r = 40
-                    m = 1
                     t = 100
-                    img_red,circ_red,p,th_red = imagepoints(img,r,m,t,
+                    img_red,circ_red,p,th_red = imagepoints(img,r,1,t,
                                                             col_min,col_max)
 
                 else:
@@ -491,11 +497,11 @@ if __name__ == "__main__":
                     th_red = np.zeros(img.shape)
                     circ_red = np.zeros(img.shape)
                 #-------------- Project image to 2D -----------#
-
                 # Get real positions
-                pts_obj,margin = objectpoints(m)
+                pts_obj,margin = objectpoints(n_pts)
                 # position of real points in cm, pt = (x,y)
                 pts_obj_test=np.array([[0,0],[70,0],[70,70],[0,70]],dtype=np.float32)
+                pts_obj_test=np.vstack((pts_obj_test,[50,33],[18,92]))
                 pts_obj_test = pts_obj_test+margin
 
                 img_test,pts_obj,size = format_points(pts_obj,margin)
