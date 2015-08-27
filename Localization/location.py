@@ -92,9 +92,9 @@ if __name__ == '__main__':
 #--------------------------- 3.c Calibrate              -----------------------#
         img = calib.Image(n)
         img.read_ref(out_dir,"ref_",n_pts)
-        # add z component to ref_truth
-        img.ref_truth = img.augment(img.ref_truth,ref_z)
-        cam.reposition(img.ref_truth,img.ref_img,0,flag)
+        # add z component to ref_real
+        img.ref_real = img.augment(img.ref_real,ref_z)
+        cam.reposition(img.ref_real,img.ref_img,0,flag)
 #--------------------------- 4. Localization            -----------------------#
 #--------------------------- 4.a Get Image Points       -----------------------#
     choice = raw_input("Do you want to locate the robot? (y/n) ")
@@ -118,17 +118,19 @@ if __name__ == '__main__':
             persp.write_pos(out_dir,name,p)
 
 #--------------------------- 4.b Calculate Object Point -----------------------#
-        for n,i in enumerate(n_cameras):
+        cams = dict()
+        pts = dict()
+        for i,n in enumerate(n_cameras):
             cam = calib.Camera(n)
             cam.read(cam_dir)
             img = calib.Image(n)
             img.read_ref(out_dir,"ref_",n_pts)
             img.read_pos(out_dir,"pos_img")
-            img.ref_truth = img.augment(img.ref_truth,ref_z)
-            cam.reposition(img.ref_truth,img.ref_img,0,flag)
-            img.r,err2,err3 = get_leastsquares([cam],[img.augment(img.r_img)],
-                                               r_height,p_real)
-            img.ref,err_img = c1.check_points(i1.ref_truth,i1.ref_img)
+            img.ref_real = img.augment(img.ref_real,ref_z)
+            cam.reposition(img.ref_real,img.ref_img,0,flag)
+            img.r,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
+                                                     'my',r_height,p_real)
+            img.ref,err_img = cam.check_points(img.ref_real,img.ref_img)
             #print("Ref point match [px]",cam.n,"\n",err_img)
             #TODO: Check if ref match is good enough for this camera!
             cams[i] = cam
@@ -137,10 +139,10 @@ if __name__ == '__main__':
         # For all permutations (when more than 1 camera)
         p_lq,err2,err3 = calib.get_leastsquares(cams.values(),pts.values(),
                                                 'hz',r_height,p_real)
-        print("LQ fixed height [mm]: ",p_lq,"error 2D: ",err2,"/ 3D: ",err3)
+        print("LQ fixed height [mm]: ",p_lq.T,"error 2D: ",err2,"/ 3D: ",err3)
         p_lq2,err2,err3 = calib.get_leastsquares(cams.values(),pts.values(),
                                                  'hz','',p_real)
-        print("LQ free height [mm]:  ",p_lq2,"error 2D: ",err2,"/ 3D: ",err3)
+        print("LQ free height [mm]:  ",p_lq2.T,"error 2D: ",err2,"/ 3D: ",err3)
         print("Real position:        ",p_real)
         choice = raw_input("Do you want to locate the robot? (y/n) ")
 
