@@ -11,15 +11,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 USAGE = '''
-USAGE: locate.py -o <output path> -n <number of points>
+USAGE: locate.py -o <output path> -n <number of points> [-f <fisheye on (0/1)>]
 '''
 def get_param():
     ''' returns parameters from command line '''
     global USAGE
     out_dir = ''
     m = 0
+    fisheye = 0
     try:
-        opts,args = getopt.getopt(sys.argv[1:],"o:m:",['output=','m='])
+        opts,args = getopt.getopt(sys.argv[1:],"o:m:f:",
+                                  ['output=','m=','fisheye='])
     except getopt.GetoptError:
         print(USAGE)
         sys.exit(2)
@@ -28,16 +30,18 @@ def get_param():
             out_dir = str(arg)
         if opt in ('--m',"-m"):
                 m = int(arg)
+        if opt in ('--fisheye',"-f"):
+                fisheye = int(arg)
     if out_dir[-1]!="/":
         out_dir = out_dir+"/"
-    return out_dir,m
+    return out_dir,m,fisheye
 
 if __name__ == '__main__':
     import sys
     import getopt
 #---------------------------       Initialization       -----------------------#
     cam_dir = 'calib/'
-    out_dir,n_pts = get_param() # number of reference points
+    out_dir,n_pts,fisheye = get_param() # number of reference points
     n_cameras = [139,141]
     #p_real = np.matrix([750,790,190])
     p_real = np.matrix([650,940,170])
@@ -52,9 +56,9 @@ if __name__ == '__main__':
     if n!='q':
         n=int(n)
         cam = calib.Camera(n)
-        img_points,obj_points,size = cam.get_checkpoints(out_dir)
+        img_points,obj_points,size = cam.get_checkpoints(out_dir,fisheye)
         cam.calibrate(obj_points,img_points,size)
-        cam.save(cam_dir)
+        cam.save(cam_dir,fisheye)
 #--------------------------- 3. Extrinsic Calibration   -----------------------#
 #--------------------------- 3.a Get Image Points       -----------------------#
     n = ''
@@ -64,7 +68,7 @@ if __name__ == '__main__':
             plt.close('all')
             n = int(n)
             cam = calib.Camera(n)
-            cam.read(cam_dir)
+            cam.read(cam_dir,fisheye)
             img = get.get_image(n)
 
             #-- undistort image --#
@@ -74,7 +78,7 @@ if __name__ == '__main__':
             col_min = np.array([175,100,0],dtype=np.uint8)
             col_max = np.array([20,250,255],dtype=np.uint8)
             r = 30
-            t = 100
+            t = 50
             img_org,circ_org,pts_img,th_org = persp.imagepoints(img,r,n_pts,t,
                                                                 col_min,col_max)
         else:
@@ -94,14 +98,23 @@ if __name__ == '__main__':
         img.read_ref(out_dir,"ref_",n_pts)
         # add z component to ref_real
         img.ref_real = img.augment(img.ref_real,ref_z)
-        cam.reposition(img.ref_real,img.ref_img,0,flag)
+        cam.reposition(img.ref_real,img.ref_img,0,flag,1)
+
+
+        imgs = {'img_org':img_org,'circ_org':circ_org}
+        persp.visualization(imgs)
+        img_summary = persp.create_summary(img_flat,pts_obj)
+        imgs = {'summary':img_summary}
+        persp.visualization(imgs,0,1)
+        persp.save_open_images(out_dir,n)
+
 #--------------------------- 4. Localization            -----------------------#
 #--------------------------- 4.a Get Image Points       -----------------------#
     choice = raw_input("Do you want to locate the robot? (y/n) ")
     while choice == "y":
         for n in n_cameras:
             cam = calib.Camera(n)
-            cam.read(cam_dir)
+            cam.read(cam_dir,fisheye)
             img = get.get_image(n)
 
             #-- undistort image --#
@@ -110,7 +123,7 @@ if __name__ == '__main__':
             col_min = np.array([150,100,0],dtype=np.uint8)
             col_max = np.array([20,250,255],dtype=np.uint8)
             r = 40
-            t = 100
+            t = 50
             img_red,circ_red,p,th_red = persp.imagepoints(img,r,1,t,
                                                           col_min,col_max)
             #-- save resutls --#
@@ -122,7 +135,7 @@ if __name__ == '__main__':
         pts = dict()
         for i,n in enumerate(n_cameras):
             cam = calib.Camera(n)
-            cam.read(cam_dir)
+            cam.read(cam_dir,fisheye)
             img = calib.Image(n)
             img.read_ref(out_dir,"ref_",n_pts)
             img.read_pos(out_dir,"pos_img")

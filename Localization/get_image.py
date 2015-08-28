@@ -11,10 +11,7 @@ def get_image(n):
     counter = 1
     bytes=''
     stream =  ''
-    if n == 139:
-        stream = urllib.urlopen("http://172.16.156.139:8080/?action=stream")
-    elif n == 141:
-        stream = urllib.urlopen("http://172.16.156.141:8080/?action=stream")
+    stream = urllib.urlopen("http://172.16.156."+str(n)+":8080/?action=stream")
     while not_found:
         counter = counter+1
         bytes+=stream.read(1024)

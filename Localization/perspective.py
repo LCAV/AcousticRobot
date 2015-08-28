@@ -11,7 +11,7 @@ import marker_calibration as mark
 import time
 import get_image as get
 
-debug = 1
+DEBUG = 0
 USAGE = '''
 usage:
 Option 1:
@@ -128,6 +128,27 @@ def write_pos(dirname,name,p):
                 f.write(str(pt)+'\t')
             f.write("\n")
 
+def create_summary(img_flat,pts_obj,p=np.zeros(1)):
+    img_summary = rgb_conversion(img_flat)
+    # create summary image
+    i = 0
+    for pts in pts_obj:
+        cv2.circle(img_summary,(int(pts[0]),int(pts[1])),3,
+                    (255,0,0),1,cv2.CV_AA)
+        i+=1
+    if not p.all() == 0:
+        p3D = np.matrix([p[0],p[1],1])
+        test_p = M*p3D.T
+        test_p = test_p/test_p[2]
+        cv2.circle(img_summary,(int(test_p[0]),int(test_p[1])),5,
+                    (255,255,0),1,cv2.CV_AA)
+    return img_summary
+
+def save_open_images(outputpath,n_cam):
+    for i in plt.get_figlabels():
+        plt.figure(i)
+        plt.savefig(outputpath+str(i)+str(n_cam)+'.png')
+
 ''' --------   Image Processing ------------ '''
 def get_circles_count(img,contours,t,w,r):
     ''' Circles detection by counting pixels around contour centers '''
@@ -153,7 +174,7 @@ def get_circles_count(img,contours,t,w,r):
         inside = img[mask==2]
         col_around = around.cumsum()[-1]/around.shape[0] #average color of aroud
         col_inside = inside.cumsum()[-1]/inside.shape[0]
-        if debug:
+        if DEBUG:
             print("Count: Average color around circle:",col_around)
             print("Count: Average color inside circle:",col_inside)
 
@@ -168,7 +189,7 @@ def get_circles_count(img,contours,t,w,r):
         diff = abs(np.subtract(centers[i],centers[i+1]))
         mean = np.mean([centers[i],centers[i+1]],axis = 0)
         if np.array([diff<t_pixels]).all():
-            if debug:
+            if DEBUG:
                 print("Count: duplicate found: ",centers[i],centers[i+1])
             centers[i+1] = mean
             rmv.append(i)
@@ -215,7 +236,7 @@ def extract_color(img,range_min,range_max):
     for cnt in contours:
         # Check if new best contour
         area = cv2.contourArea(cnt)
-        if debug:
+        if DEBUG:
             print("Extract: area:",area)
         if area > max_area:
             #print("Extract: new best area: ",area)
@@ -441,7 +462,7 @@ def format_points(pts_obj,margin):
 ''' ----------------   Main  --------------- '''
 if __name__ == "__main__":
     choice = "y"
-    debug = 1
+    DEBUG = 1
     while True:
         try:
             if choice == "y":
@@ -487,7 +508,7 @@ if __name__ == "__main__":
                     col_min = np.array([150,100,0],dtype=np.uint8)
                     col_max = np.array([20,250,255],dtype=np.uint8)
                     r = 40
-                    t = 100
+                    t = 50
                     img_red,circ_red,p,th_red = imagepoints(img,r,1,t,
                                                             col_min,col_max)
 
@@ -508,20 +529,7 @@ if __name__ == "__main__":
                 img_flat,M = geometric_transformationN(img,pts_obj,pts_img,size)
 
                 ##------------------ Summary ------------------#
-                img_summary = img_flat.copy()
-                img_summary = rgb_conversion(img_summary)
-                # create summary image
-                i = 0
-                for pts in pts_obj:
-                    cv2.circle(img_summary,(int(pts[0]),int(pts[1])),3,
-                               (255,0,0),1,cv2.CV_AA)
-                    i+=1
-                if not p.all() == 0:
-                    p3D = np.matrix([p[0],p[1],1])
-                    test_p = M*p3D.T
-                    test_p = test_p/test_p[2]
-                    cv2.circle(img_summary,(int(test_p[0]),int(test_p[1])),5,
-                               (255,255,0),1,cv2.CV_AA)
+                img_summary = create_summary(img_flat,pts_obj,p)
 
                 # write results into file
                 if outputpath != '':
@@ -544,9 +552,7 @@ if __name__ == "__main__":
                 imgs = {'summary':img_summary}
                 visualization(imgs,0,1)
                 if outputpath != '':
-                    for i in plt.get_figlabels():
-                        plt.figure(i)
-                        plt.savefig(outputpath+str(i)+str(n_cam)+'.png')
+                    save_open_images(outputpath,n_cam)
             elif choice == "n":
                 sys.exit(1)
             choice = raw_input("Do you want to perform another localisation? (y/n)")

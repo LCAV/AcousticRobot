@@ -14,7 +14,8 @@ import sys
 from scipy.linalg import svd
 
 USAGE = '''
-USAGE: calib.py [-o <output path>] [-c <camera path>] [-n <camera_number>]]
+USAGE: calib.py [-o <output path>] [-c <camera path>]
+[-n <camera_number>] [-f <fisheye on (0/1)>]
 '''
 
 def get_param():
@@ -23,9 +24,10 @@ def get_param():
     out_dir = ''
     cam_dir = ''
     n = 141
+    fisheye = 0
     try:
-        opts,args = getopt.getopt(sys.argv[1:],"o:c:n:",
-                                  ['save=', 'cam=','n='])
+        opts,args = getopt.getopt(sys.argv[1:],"o:c:n:f:",
+                                  ['save=', 'cam=','n=','fisheye='])
     except getopt.GetoptError:
         print(USAGE)
         sys.exit(2)
@@ -36,12 +38,14 @@ def get_param():
             cam_dir = str(arg)
         if opt in ('--n',"-n"):
             n = int(arg)
+        if opt in ('--fisheye',"-f"):
+            fisheye = int(arg)
     if out_dir[-1]!="/":
         out_dir = out_dir+"/"
     if cam_dir[-1]!="/":
         cam_dir = cam_dir + "/"
-    return out_dir,cam_dir,n
-def get_calibpoints(img,pattern_size,counter,out_dir,n):
+    return out_dir,cam_dir,n,fisheye
+def get_calibpoints(img,pattern_size,counter,out_dir,n,fisheye):
     '''
     returns pairs of object- and image points (chess board corners)
     for camera calibration'''
@@ -68,8 +72,14 @@ def get_calibpoints(img,pattern_size,counter,out_dir,n):
             out = img.copy()
             cv2.drawChessboardCorners(out, pattern_size, corners, found)
             ax.imshow(out),plt.show(block=False)
-            cv2.imwrite('{0}/input{1}_{2}.jpg'.format(out_dir,n,counter),img)
-            cv2.imwrite('{0}/output{1}_{2}.jpg'.format(out_dir,n,counter), out)
+            fname = "input"
+            if fisheye:
+                fname="input_fish"
+            cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,n,counter),img)
+            fname = "output"
+            if fisheye:
+                fname="output_fish"
+            cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,n,counter), out)
         return corners.reshape(-1, 2), pattern_points
     elif not found:
         if not corners == None:
@@ -194,7 +204,7 @@ class Camera:
         R,__ = cv2.Rodrigues(self.r)
         self.R = np.matrix(R)
         self.Proj = self.C*np.hstack((self.R,self.t))
-    def read(self,cam_dir):
+    def read(self,cam_dir,fisheye):
         ''' get camera parameters from file '''
         import numpy as np
         i=0
@@ -203,7 +213,10 @@ class Camera:
         dist = np.zeros((1,5))
         rvecs = []
         tvecs = []
-        with open(cam_dir+"results"+str(self.n)+".txt","r") as f:
+        fname = "results"
+        if fisheye:
+            fname = "results_fish"
+        with open(cam_dir+fname+str(self.n)+".txt","r") as f:
             c = csv.reader(f,delimiter='\t')
             count = sum(1 for _ in c) # number of lines in file
             dim = int((count-5)/2) #number of images in folder
@@ -226,9 +239,12 @@ class Camera:
         self.dist = np.array(dist)
         self.r = np.matrix(rvecs)
         self.t = np.matrix(tvecs)
-    def save(self,cam_dir):
+    def save(self,cam_dir,fisheye):
         ''' save camera parameters in file '''
-        with open(cam_dir+"results"+str(self.n)+".txt","w") as f:
+        fname = "results"
+        if fisheye:
+            fname = "results_fish"
+        with open(cam_dir+fname+str(self.n)+".txt","w") as f:
             f.write(str(self.rms)+'\n')
             for e in self.C:
                 f.write("{0:10.4f}\t{1:10.4f}\t{2:10.4f}\n".format(e[0,0],e[0,1],e[0,2]))
@@ -243,7 +259,7 @@ class Camera:
                 for i in range(3):
                     f.write("{0:10.4f}\t".format(self.t.T[j,i]))
                 f.write("\n")
-    def get_checkpoints(self,out_dir):
+    def get_checkpoints(self,out_dir,fisheye):
         '''
         gets checkboard points for the intrinsic camera  calibration.
         '''
@@ -259,11 +275,11 @@ class Camera:
                     img = get.get_image(self.n)
                     h, w = img.shape[:2]
                     img_pt, obj_pt = get_calibpoints(img,pattern_size,
-                                                     counter,out_dir,self.n)
+                                                     counter,out_dir,self.n,fisheye)
                     if not obj_pt == []:
                         img_points.append(img_pt)
                         obj_points.append(obj_pt)
-                    counter += 1
+                        counter += 1
                     choice = raw_input("Do you want to take another image? (y/n)")
                 elif choice == "n":
                     return img_points, obj_points, (w,h)
@@ -291,7 +307,7 @@ class Camera:
             except KeyboardInterrupt:
                 print("program terminated by user")
                 sys.exit(1)
-    def get_checkpoints_file(self,out_dir):
+    def get_checkpoints_file(self,out_dir,fisheye):
         '''
         gets checkboard points for the intrinsic camera  calibration. FROM FILES
         '''
@@ -308,7 +324,7 @@ class Camera:
                     print("reading ",out_dir+f)
                     h, w = img.shape[:2]
                     img_pt, obj_pt = get_calibpoints(img,pattern_size,
-                                                    counter,out_dir,self.n)
+                                                    counter,out_dir,self.n,fisheye)
                     if not obj_pt == []:
                         img_points.append(img_pt)
                         obj_points.append(obj_pt)
@@ -324,13 +340,17 @@ class Camera:
         self.dist = np.array(dist)
         self.r = np.matrix(r[0])
         self.t = np.matrix(t[0])
-    def reposition(self,opts,ipts,guess=0,flag=cv2.CV_P3P):
+    def reposition(self,opts,ipts,guess=0,flag=cv2.CV_P3P,ransac=0):
         '''
         Redefines the position vectors r and t of the camera given a set of
         corresponding image and object points
-        Iterative = 0, EPNP = 1, P3P = 2
+        Options:
+            -guess for camera position (using rvguess function)
+            -method: Iterative = 0, EPNP = 1, P3P = 2
+            -ransac method for solvepnp
         '''
-        global px_size
+        rvec = 0
+        tvec = 0
         if flag == cv2.CV_P3P or flag == cv2.CV_EPNP:
             n_points = ipts.shape[0]
             ipts = np.ascontiguousarray(ipts[:,:2]).reshape((n_points,1,2))
@@ -341,9 +361,11 @@ class Camera:
             t_guess=np.hstack([tguess[self.n],h_guess])
             self.t = np.matrix(t_guess)
             self.r = np.matrix(r_guess)
-        #rvec,tvec,__ = cv2.solvePnPRansac(opts,ipts,self.C,self.dist)
-        __,rvec,tvec = cv2.solvePnP(opts,ipts,self.C,self.dist,
-                                    self.r,self.t,guess,flag)
+        if ransac:
+            rvec,tvec,__ = cv2.solvePnPRansac(opts,ipts,self.C,self.dist)
+        else:
+            __,rvec,tvec = cv2.solvePnP(opts,ipts,self.C,self.dist,
+                                        self.r,self.t,guess,flag)
         self.r = np.matrix(rvec)
         self.t = np.matrix(tvec)
         self.update()
@@ -481,12 +503,12 @@ if __name__ == '__main__':
     import getopt
 
     #------------------------- Get parameters -------------------------#
-    out_dir,cam_dir,n = get_param()
+    out_dir,cam_dir,n,fisheye = get_param()
     #------------------------ Calibrate Camera ------------------------#
 
     # make new calibration
     #camera = Camera(n)
-    #img_points,obj_points,size = camera.get_checkpoints(out_dir)
+    #img_points,obj_points,size = camera.get_checkpoints(out_dir,fisheye)
     #root mean square (RMS) re-projection error (good between 0.1 and 1)
     #camera.calibrate(obj_points,img_points,size)
     #camera.save(out_dir)
