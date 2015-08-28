@@ -394,14 +394,14 @@ def objectpoints(m):
     if m==5:
         D[0,4] = D[4,0] = 0.61 + marker_diameter
         D[1,4] = D[4,1] = 0.40 + marker_diameter
-        D[2,4] = D[4,2] = 0.40 + marker_diameter
+        D[2,4] = D[4,2] = 0.42 + marker_diameter
         D[3,4] = D[4,3] = 0.62 + marker_diameter
     elif m==6:
-        D[0,5] = D[5,0] = 0.94 + marker_diameter
+        D[0,5] = D[5,0] = 0.93 + marker_diameter
         D[1,5] = D[5,1] = 1.06 + marker_diameter
         D[2,5] = D[5,2] = 0.58 + marker_diameter
-        D[3,5] = D[5,3] = 0.29 + marker_diameter
-        D[4,5] = D[5,4] = 0.67 + marker_diameter
+        D[3,5] = D[5,3] = 0.28 + marker_diameter
+        D[4,5] = D[5,4] = 0.66 + marker_diameter
     # Get postions
     M1 = mark.MarkerSet(m=m,dim=dim,diameter=marker_diameter)
     M1.fromEDM(D**2)

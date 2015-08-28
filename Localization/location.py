@@ -47,6 +47,7 @@ if __name__ == '__main__':
     p_real = np.matrix([650,940,170])
     r_height = p_real[0,2] #height of robot in mm
 
+    ref_z = np.array([20,20,20,20])
     #ref_z = np.array([135,0,230,0]) #height of reference points in mm
     ref_z = '' #height automatically set to 0
     flag = 0
@@ -98,7 +99,7 @@ if __name__ == '__main__':
         img.read_ref(out_dir,"ref_",n_pts)
         # add z component to ref_real
         img.ref_real = img.augment(img.ref_real,ref_z)
-        cam.reposition(img.ref_real,img.ref_img,0,flag,1)
+        cam.reposition(img.ref_real,img.ref_img,0,flag,0)
 
 
         imgs = {'img_org':img_org,'circ_org':circ_org}
@@ -112,6 +113,7 @@ if __name__ == '__main__':
 #--------------------------- 4.a Get Image Points       -----------------------#
     choice = raw_input("Do you want to locate the robot? (y/n) ")
     while choice == "y":
+        plt.close('all')
         for n in n_cameras:
             cam = calib.Camera(n)
             cam.read(cam_dir,fisheye)
@@ -152,11 +154,23 @@ if __name__ == '__main__':
         # For all permutations (when more than 1 camera)
         p_lq,err2,err3 = calib.get_leastsquares(cams.values(),pts.values(),
                                                 'hz',r_height,p_real)
-        print("LQ fixed height [mm]: ",p_lq.T,"error 2D: ",err2,"/ 3D: ",err3)
-        p_lq2,err2,err3 = calib.get_leastsquares(cams.values(),pts.values(),
+        p_lq2,err22,err32 = calib.get_leastsquares(cams.values(),pts.values(),
                                                  'hz','',p_real)
-        print("LQ free height [mm]:  ",p_lq2.T,"error 2D: ",err2,"/ 3D: ",err3)
-        print("Real position:        ",p_real)
+
+
+        # Results visualization and saving
+        msg1="Fixed height [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(p_lq[0]),float(p_lq[1]),float(p_lq[2]),err2,err3)
+        msg2="Free height [mm]:  [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(p_lq2[0]),float(p_lq2[1]),float(p_lq2[2]),err22,err32)
+        msg3="Real position [mm]:[{0:8.4f} , {1:8.4f} , {2:8.4f}]".format(p_real[0,0],p_real[0,1],p_real[0,2])
+
+        print(msg1)
+        print(msg2)
+        print(msg3)
+        with open(out_dir+"results.txt",'w') as f:
+            f.write(msg1)
+            f.write(msg2)
+            f.write(msg3)
+
         choice = raw_input("Do you want to locate the robot? (y/n) ")
 
 #--------------------------- 4.c Make Robot Move        -----------------------#

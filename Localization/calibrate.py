@@ -369,7 +369,6 @@ class Camera:
         self.r = np.matrix(rvec)
         self.t = np.matrix(tvec)
         self.update()
-        print("Extrinsic calibration succeeded")
     def check_points(self,p_obj,p_img):
         '''
         Returns images of reference points (known) and the relative error matrix
