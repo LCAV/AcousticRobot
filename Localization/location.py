@@ -13,6 +13,12 @@ import time
 USAGE = '''
 USAGE: locate.py -o <output path> -n <number of points> [-f <fisheye on (0/1)>]
 '''
+ROBOT_LOC='''Robot Localization   :
+Enter choice ('n' or 'o' to use new or old measurement, 'q' to quit): '''
+EXTRINSIC='''Extrinsic Calibration:
+Enter camera number or 'q' to skip: '''
+INTRINSIC='''Intrinsic Calibration:
+Enter camera number or 'q' to skip: '''
 def get_param():
     ''' returns parameters from command line '''
     global USAGE
@@ -44,16 +50,20 @@ if __name__ == '__main__':
     out_dir,n_pts,fisheye = get_param() # number of reference points
     n_cameras = [139,141]
     #p_real = np.matrix([750,790,190])
-    p_real = np.matrix([650,940,170])
+    p_real = np.matrix([645,930,180])
+    C139_real = np.matrix([110,670,1750])
+    C141_real = np.matrix([460,40,1320])
     r_height = p_real[0,2] #height of robot in mm
 
-    ref_z = np.array([20,20,20,20])
+    ref_z = 20*np.ones((1,n_pts))
     #ref_z = np.array([135,0,230,0]) #height of reference points in mm
-    ref_z = '' #height automatically set to 0
-    flag = 0
+    #ref_z = '' #height automatically set to 0
+    flag = 0 # alorithm for solvepnp
+    ransac = 1 # use ransac or not
+    repErr_range = range(1,50)# for Ransac algorithm (8 by default)
 #--------------------------- 0. Intrinsic Calibration   -----------------------#
 
-    n = raw_input("Intrinsic Calibration: Enter camera number or 'q' to skip: ")
+    n = raw_input(INTRINSIC)
     if n!='q':
         n=int(n)
         cam = calib.Camera(n)
@@ -64,7 +74,7 @@ if __name__ == '__main__':
 #--------------------------- 3.a Get Image Points       -----------------------#
     n = ''
     while True:
-        n = raw_input("Extrinsic Calibration: Enter camera number or 'q' to skip: ")
+        n = raw_input(EXTRINSIC)
         if n != 'q':
             plt.close('all')
             n = int(n)
@@ -86,22 +96,18 @@ if __name__ == '__main__':
             break
 #--------------------------- 3.b Get Object Points      -----------------------#
         #-- get points --#
-        pts_obj, margin = persp.objectpoints(n_pts)
+        pts_obj, margin,M = persp.objectpoints(6)
         img_test,pts_obj,size = persp.format_points(pts_obj,margin)
         img_flat,M = persp.geometric_transformationN(img,pts_obj,pts_img,size)
 
         #-- save results --#
+        # positions
         current_time = str(int(time.mktime(time.gmtime())))
         name='ref_' +str(n)+'_'+current_time+str('.txt')
         persp.write_ref(out_dir,name,pts_img,M,pts_obj)
-#--------------------------- 3.c Calibrate              -----------------------#
-        img = calib.Image(n)
-        img.read_ref(out_dir,"ref_",n_pts)
-        # add z component to ref_real
-        img.ref_real = img.augment(img.ref_real,ref_z)
-        cam.reposition(img.ref_real,img.ref_img,0,flag,0)
-
-
+        # images
+        imgs = {'img':img}
+        persp.visualization(imgs)
         imgs = {'img_org':img_org,'circ_org':circ_org}
         persp.visualization(imgs)
         img_summary = persp.create_summary(img_flat,pts_obj)
@@ -111,45 +117,72 @@ if __name__ == '__main__':
 
 #--------------------------- 4. Localization            -----------------------#
 #--------------------------- 4.a Get Image Points       -----------------------#
-    choice = raw_input("Do you want to locate the robot? (y/n) ")
-    while choice == "y":
+    choice = raw_input(ROBOT_LOC)
+    while choice != "q":
         plt.close('all')
-        for n in n_cameras:
-            cam = calib.Camera(n)
-            cam.read(cam_dir,fisheye)
-            img = get.get_image(n)
+        # save new position in file
+        if choice == 'n':
+            for n in n_cameras:
+                cam = calib.Camera(n)
+                cam.read(cam_dir,fisheye)
 
-            #-- undistort image --#
-            img = cam.undistort(img)
-            #-- get point --#
-            col_min = np.array([150,100,0],dtype=np.uint8)
-            col_max = np.array([20,250,255],dtype=np.uint8)
-            r = 40
-            t = 50
-            img_red,circ_red,p,th_red = persp.imagepoints(img,r,1,t,
-                                                          col_min,col_max)
-            #-- save resutls --#
-            name='pos_img'+str(n)+'.txt'
-            persp.write_pos(out_dir,name,p)
+                img = get.get_image(n)
+
+                #-- undistort image --#
+                img = cam.undistort(img)
+                #-- get point --#
+                col_min = np.array([150,100,0],dtype=np.uint8)
+                col_max = np.array([20,250,255],dtype=np.uint8)
+                r = 40
+                t = 50
+                img_red,circ_red,p,th_red = persp.imagepoints(img,r,1,t,
+                                                            col_min,col_max)
+                #-- save resutls --#
+                name='pos_img'+str(n)+'.txt'
+                persp.write_pos(out_dir,name,p)
 
 #--------------------------- 4.b Calculate Object Point -----------------------#
         cams = dict()
+        imgs = dict()
         pts = dict()
+        errs = dict()
         for i,n in enumerate(n_cameras):
+            # Load camera
             cam = calib.Camera(n)
             cam.read(cam_dir,fisheye)
             img = calib.Image(n)
             img.read_ref(out_dir,"ref_",n_pts)
             img.read_pos(out_dir,"pos_img")
             img.ref_real = img.augment(img.ref_real,ref_z)
-            cam.reposition(img.ref_real,img.ref_img,0,flag)
-            img.r,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
-                                                     'my',r_height,p_real)
-            img.ref,err_img = cam.check_points(img.ref_real,img.ref_img)
-            #print("Ref point match [px]",cam.n,"\n",err_img)
-            #TODO: Check if ref match is good enough for this camera!
-            cams[i] = cam
-            pts[i] = img.augment(img.r_img)
+
+            sum_max = 1000
+            # Extrinsic calibration
+            for repErr in repErr_range:
+                result = cam.reposition(img.ref_real,img.ref_img,0,flag,ransac,
+                                        repErr)
+                # Check only chosen refpoints by Ransac
+                try:
+                    ref_img = img.ref_img[result].reshape(result.shape[0],2)
+                    ref_real = img.ref_real[result].reshape(result.shape[0],3)
+                # Check all refpoints (no Ransac or no result obtained)
+                except:
+                    ref_img = img.ref_img
+                    ref_real = img.ref_real
+                # Check if the match is new best match
+                ref, err_img = cam.check_points(ref_real,ref_img)
+                sum_current = err_img.sum()/err_img.shape[0]
+                if sum_current <= sum_max:
+                    sum_max = sum_current
+                    errs[i]=err_img
+                    cams[i]=cam
+                    imgs[i]=img
+                    pts[i]=img.augment(img.r_img)
+                    print('best error',sum_max)
+                    if ransac:
+                        print('RANSAC repErr:',repErr,' inliners: ',result.T)
+                #--- Individual Robot position ---#
+                img.r,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
+                                                        'my',r_height,p_real)
 
         # For all permutations (when more than 1 camera)
         p_lq,err2,err3 = calib.get_leastsquares(cams.values(),pts.values(),
@@ -167,10 +200,10 @@ if __name__ == '__main__':
         print(msg2)
         print(msg3)
         with open(out_dir+"results.txt",'w') as f:
-            f.write(msg1)
-            f.write(msg2)
-            f.write(msg3)
+            f.write(msg1+"\n")
+            f.write(msg2+"\n")
+            f.write(msg3+"\n")
 
-        choice = raw_input("Do you want to locate the robot? (y/n) ")
+        choice = raw_input(ROBOT_LOC)
 
 #--------------------------- 4.c Make Robot Move        -----------------------#

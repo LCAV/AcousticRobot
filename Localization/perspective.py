@@ -391,12 +391,12 @@ def objectpoints(m):
     D[1,2] = D[2,1] = s + marker_diameter
     D[1,3] = D[3,1] = d + marker_diameter
     D[3,2] = D[2,3] = s + marker_diameter
-    if m==5:
+    if m>=5:
         D[0,4] = D[4,0] = 0.61 + marker_diameter
         D[1,4] = D[4,1] = 0.40 + marker_diameter
         D[2,4] = D[4,2] = 0.42 + marker_diameter
         D[3,4] = D[4,3] = 0.62 + marker_diameter
-    elif m==6:
+    if m>=6:
         D[0,5] = D[5,0] = 0.93 + marker_diameter
         D[1,5] = D[5,1] = 1.06 + marker_diameter
         D[2,5] = D[5,2] = 0.58 + marker_diameter
@@ -411,7 +411,7 @@ def objectpoints(m):
 
     margin = margin*100 # margin in cm
     pts_obj = M1.X.T*100 # pts in cm.
-    return pts_obj,margin
+    return pts_obj,margin,M1
 def geometric_transformationN(img,pts_obj,pts_img,size):
     ''' Find Homography for N points '''
     pts_obj = pts_obj.astype(np.float32)
@@ -443,13 +443,20 @@ def restore_order(original,moved,min_dist):
     else:
         pts = moved
     return pts
-def format_points(pts_obj,margin):
+def format_points(pts_obj,margin,mask = 'all'):
     # move points to positive range
     pts_obj = pts_obj - np.amin(pts_obj,axis=0)
+
     # stretch image
     pts_obj = pts_obj.astype(np.float32)
     pts_obj = pts_obj + margin
     size = np.amax(pts_obj,axis=0)+margin
+
+    # choose only certain points if specified
+    if mask != 'all':
+        mask = mask*np.ones((2,len(mask)))
+        pts_obj=pts_obj[mask.T==1]
+        pts_obj = pts_obj.reshape((len(pts_obj)/2,2))
 
     img_test = np.zeros((size[1],size[0]))
     img_test = img_test.astype(np.uint8)
@@ -462,15 +469,15 @@ def format_points(pts_obj,margin):
 ''' ----------------   Main  --------------- '''
 if __name__ == "__main__":
     choice = "y"
-    DEBUG = 1
+    #DEBUG = 1
     while True:
         try:
             if choice == "y":
                 plt.close('all')
                 img = ''
                 n_cam = 'None'
-                n_pts = 6 #number of reference points
-
+                n_pts = 4 #number of reference points
+                mask = [0,0,1,1,1,1] #choice of reference points
                 while True:
                     try:
                         n_cam = int(n_cam)
@@ -519,13 +526,15 @@ if __name__ == "__main__":
                     circ_red = np.zeros(img.shape)
                 #-------------- Project image to 2D -----------#
                 # Get real positions
-                pts_obj,margin = objectpoints(n_pts)
+                #TODO only for testing
+                pts_obj2,margin,M = objectpoints(6)
                 # position of real points in cm, pt = (x,y)
                 pts_obj_test=np.array([[0,0],[70,0],[70,70],[0,70]],dtype=np.float32)
-                pts_obj_test=np.vstack((pts_obj_test,[50,33],[18,92]))
+                pts_obj_test=np.vstack((pts_obj_test,[50,33],[16,90]))
                 pts_obj_test = pts_obj_test+margin
+                # Ony choose certain object points
 
-                img_test,pts_obj,size = format_points(pts_obj,margin)
+                img_test,pts_obj,size = format_points(pts_obj2,margin,mask)
                 img_flat,M = geometric_transformationN(img,pts_obj,pts_img,size)
 
                 ##------------------ Summary ------------------#

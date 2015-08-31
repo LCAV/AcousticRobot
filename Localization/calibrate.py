@@ -200,10 +200,11 @@ class Camera:
         self.r = np.matrix(r)
         self.t = np.matrix(t)
     def update(self):
-        ''' Update R and Proj '''
+        ''' Update R,Proj and Center'''
         R,__ = cv2.Rodrigues(self.r)
         self.R = np.matrix(R)
         self.Proj = self.C*np.hstack((self.R,self.t))
+        self.Center = -self.R.I*self.t
     def read(self,cam_dir,fisheye):
         ''' get camera parameters from file '''
         import numpy as np
@@ -340,7 +341,7 @@ class Camera:
         self.dist = np.array(dist)
         self.r = np.matrix(r[0])
         self.t = np.matrix(t[0])
-    def reposition(self,opts,ipts,guess=0,flag=cv2.CV_P3P,ransac=0):
+    def reposition(self,opts,ipts,guess=0,flag=cv2.CV_P3P,ransac=0,err=8):
         '''
         Redefines the position vectors r and t of the camera given a set of
         corresponding image and object points
@@ -362,13 +363,15 @@ class Camera:
             self.t = np.matrix(t_guess)
             self.r = np.matrix(r_guess)
         if ransac:
-            rvec,tvec,__ = cv2.solvePnPRansac(opts,ipts,self.C,self.dist)
+            rvec,tvec,result = cv2.solvePnPRansac(opts,ipts,self.C,self.dist,
+                                                  flags=flag,reprojectionError=err)
         else:
-            __,rvec,tvec = cv2.solvePnP(opts,ipts,self.C,self.dist,
+            result,rvec,tvec = cv2.solvePnP(opts,ipts,self.C,self.dist,
                                         self.r,self.t,guess,flag)
         self.r = np.matrix(rvec)
         self.t = np.matrix(tvec)
         self.update()
+        return result
     def check_points(self,p_obj,p_img):
         '''
         Returns images of reference points (known) and the relative error matrix
@@ -385,9 +388,7 @@ class Camera:
         ### best method
         dim = p_obj.shape[0]
         test_img = self.Proj*np.matrix(np.hstack((p_obj,np.ones((dim,1))))).T
-        #print("\n",test_img)
         test_img = test_img/test_img[2,:]
-        #print("\n",test_img)
         test_img=test_img[:2,:].T
         #match_matrix=(p_img-test_img)/test_img
         err_img=np.sqrt(np.sum(np.power(test_img[:,:2]-p_img[:,:2],2),axis=1))
@@ -428,7 +429,11 @@ class Camera:
         cv.Remap(src, dst, mapx, mapy, cv.CV_INTER_LINEAR + cv.CV_WARP_FILL_OUTLIERS,  cv.ScalarAll(0))
         # cv.Undistort2(src,dst, intrinsics, dist_coeffs)
         return np.array(dst)
-
+    def get_theta(self):
+        __,__,__,x,y,z,__ =cv2.decomposeProjectionMatrix(self.Proj)
+        self.yaw = np.arccos(x[1,1])*180/np.pi #yaw
+        self.pitch = np.arccos(y[0,0])*180/np.pi #pitch
+        self.roll = np.arccos(z[0,0])*180/np.pi #roll
 class Image:
     def __init__(self,n,ref_real=0,r_truth=0,ref_img=0,ref=0,r_img=0,r=0):
         self.n = n
@@ -486,14 +491,14 @@ class Image:
         self.r_img = np.array(p,dtype=np.float32)
     def augment(self,pt,z = ''):
         ''' Add third dimension to points (ones if not specified) '''
+        dim = pt.shape[0]
         if z=='':
             try:
                 return np.matrix(np.hstack((pt,1)))
             except:
-                dim = pt.shape[0]
                 return np.matrix(np.hstack((pt,np.ones((dim,1))))).astype(np.float32)
         else:
-            return np.matrix(np.hstack((pt,z.reshape(4,1)))).astype(np.float32)
+            return np.matrix(np.hstack((pt,z.reshape(dim,1)))).astype(np.float32)
 
 global px_size
 px_size = 1.4*10**-3 # mm per pixel
