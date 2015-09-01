@@ -48,7 +48,7 @@ if __name__ == '__main__':
 #---------------------------       Initialization       -----------------------#
     cam_dir = 'calib/'
     out_dir,n_pts,fisheye = get_param() # number of reference points
-    n_cameras = [139,141]
+    n_cameras = [139,141,145]
     #p_real = np.matrix([750,790,190])
     p_real = np.matrix([645,930,180])
     C139_real = np.matrix([110,670,1750])
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     #ref_z = np.array([135,0,230,0]) #height of reference points in mm
     #ref_z = '' #height automatically set to 0
     flag = 0 # alorithm for solvepnp
-    ransac = 1 # use ransac or not
+    ransac = 0 # use ransac or not
     repErr_range = range(1,50)# for Ransac algorithm (8 by default)
 #--------------------------- 0. Intrinsic Calibration   -----------------------#
 
@@ -155,34 +155,21 @@ if __name__ == '__main__':
             img.read_pos(out_dir,"pos_img")
             img.ref_real = img.augment(img.ref_real,ref_z)
 
-            sum_max = 1000
-            # Extrinsic calibration
-            for repErr in repErr_range:
-                result = cam.reposition(img.ref_real,img.ref_img,0,flag,ransac,
-                                        repErr)
-                # Check only chosen refpoints by Ransac
-                try:
-                    ref_img = img.ref_img[result].reshape(result.shape[0],2)
-                    ref_real = img.ref_real[result].reshape(result.shape[0],3)
-                # Check all refpoints (no Ransac or no result obtained)
-                except:
-                    ref_img = img.ref_img
-                    ref_real = img.ref_real
-                # Check if the match is new best match
-                ref, err_img = cam.check_points(ref_real,ref_img)
-                sum_current = err_img.sum()/err_img.shape[0]
-                if sum_current <= sum_max:
-                    sum_max = sum_current
-                    errs[i]=err_img
-                    cams[i]=cam
-                    imgs[i]=img
-                    pts[i]=img.augment(img.r_img)
-                    print('best error',sum_max)
-                    if ransac:
-                        print('RANSAC repErr:',repErr,' inliners: ',result.T)
-                #--- Individual Robot position ---#
-                img.r,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
-                                                        'my',r_height,p_real)
+            #--- Extrinsic calibration ---#
+            err_img = 0
+            if ransac:
+                err_img = cam.ransac_loop(img,flag,repErr_range)
+            else:
+                cam.reposition(img.ref_real,img.ref_img,0,flag,ransac)
+                ref, err_img = cam.check_imagepoints(img.augment(img.ref_real),
+                                                     img.ref_img)
+
+            #--- Individual Robot position ---#
+            img.r,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
+                                                    'my',r_height,p_real)
+            imgs[i]=img
+            cams[i]=cam
+            pts[i]=img.augment(img.r_img)
 
         # For all permutations (when more than 1 camera)
         p_lq,err2,err3 = calib.get_leastsquares(cams.values(),pts.values(),

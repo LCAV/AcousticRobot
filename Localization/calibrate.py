@@ -169,7 +169,6 @@ def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
         err2 = np.sqrt(np.sum(np.power(p_real[:2]-x[:2],2)))
     return x,err2,err3
 
-
 def get_rvguess(rv,tv,i=2):
     global n
     ''' get guess for rv, tv from specific object points '''
@@ -310,7 +309,7 @@ class Camera:
                 sys.exit(1)
     def get_checkpoints_file(self,out_dir,fisheye):
         '''
-        gets checkboard points for the intrinsic camera  calibration. FROM FILES
+        gets checkboard points for the intrinsic camera  calibration. elf.Proj.T*self.Proj).I*self.Proj.TROM FILES
         '''
         choice = "y"
         counter = 1
@@ -372,27 +371,65 @@ class Camera:
         self.t = np.matrix(tvec)
         self.update()
         return result
-    def check_points(self,p_obj,p_img):
+    def check_imagepoints(self,p_obj,p_img):
         '''
         Returns images of reference points (known) and the relative error matrix
         '''
-        ### method 1
-        #c = cam.C[:,2]
-        #fx = cam.C[0,0]
-        #fy = cam.C[1,1]
-        # xc[n] = rmat_dic[n]*x0.T+t_dic[n]
-        # xc_norm[n] = xc[n]/xc[n][2] # x', y'
-        # xc_norm[n] = np.diag(np.matrix([fx,fy]).T*xc_norm[n][:2].T)+c[:2].T # u, v
-        ### method 2
-        # xc_norm[n],__ = cv2.projectPoints(np.array(x0,dtype=np.float32),rvec,tvec,cam,dist[0])
-        ### best method
-        dim = p_obj.shape[0]
-        test_img = self.Proj*np.matrix(np.hstack((p_obj,np.ones((dim,1))))).T
+        test_img = self.Proj*p_obj.T
         test_img = test_img/test_img[2,:]
         test_img=test_img[:2,:].T
         #match_matrix=(p_img-test_img)/test_img
         err_img=np.sqrt(np.sum(np.power(test_img[:,:2]-p_img[:,:2],2),axis=1))
         return test_img,err_img
+    def check_objectpoints(self,p_obj,p_img):
+        # From least squares
+        A =(self.Proj.T*self.Proj).I*self.Proj.T
+        test_obj =A*cam.C.I*p_img.T
+        test_obj2 = self.Proj.I*self.C.I*p_img.T
+        # eliminate last column that seems to screw everything up
+        test_obj3 = A[:,:2]*(cam.C.I*p_img.T)[:2,:]
+        # From algebraic solving
+        test_obj = test_obj/test_obj[3,:]
+        test_obj2 = test_obj2/test_obj2[3,:]
+
+        err_obj=np.sqrt(np.sum(np.power(test_obj[:,:3]-p_obj[:,:3],2),axis=1))
+        return test_obj, err_obj
+    def get_theta(self):
+        __,__,__,x,y,z,__ =cv2.decomposeProjectionMatrix(self.Proj)
+        self.yaw = np.arccos(x[1,1])*180/np.pi #yaw
+        self.pitch = np.arccos(y[0,0])*180/np.pi #pitch
+        self.roll = np.arccos(z[0,0])*180/np.pi #roll
+    def ransac_loop(self,img,flag,repErr_range):
+        ''' Loops through values for reprojection Error tolerance (from repErr_range)
+        and finds best fit based on error of reprojected reference points.
+        '''
+        #TODO: find best fit based on error of reference points Z-Match?
+        err_best = 0
+        repErr_best = 0
+
+        sum_max = 1000
+        for repErr in repErr_range:
+            result = self.reposition(img.ref_real,img.ref_img,0,flag,1,repErr)
+            # Check only chosen refpoints by Ransac
+            ref_img = ref_real = 0
+            try:
+                ref_img = img.ref_img[result].reshape(result.shape[0],2)
+                ref_real = img.ref_real[result].reshape(result.shape[0],3)
+                # Check if the match is new best match
+                ref, err_img = self.check_imagepoints(img.augment(ref_real),ref_img)
+                sum_current = err_img.sum()/err_img.shape[0]
+                if sum_current < sum_max:
+                    sum_max = sum_current
+                    repErr_best = repErr
+                    err_best=err_img
+                    print('best error',sum_max)
+                    print('RANSAC repErr:',repErr,' inliners: ',result.T)
+            except:
+                print(repErr,': no result obtained')
+                next
+        # Use best found repErr to reposition camera
+        self.reposition(img.ref_real,img.ref_img,0,flag,1,repErr_best)
+        return err_best
     def undistort(self,img):
         # intrinsic parameters
         fx = self.C[0,0]
@@ -429,11 +466,9 @@ class Camera:
         cv.Remap(src, dst, mapx, mapy, cv.CV_INTER_LINEAR + cv.CV_WARP_FILL_OUTLIERS,  cv.ScalarAll(0))
         # cv.Undistort2(src,dst, intrinsics, dist_coeffs)
         return np.array(dst)
-    def get_theta(self):
-        __,__,__,x,y,z,__ =cv2.decomposeProjectionMatrix(self.Proj)
-        self.yaw = np.arccos(x[1,1])*180/np.pi #yaw
-        self.pitch = np.arccos(y[0,0])*180/np.pi #pitch
-        self.roll = np.arccos(z[0,0])*180/np.pi #roll
+
+
+
 class Image:
     def __init__(self,n,ref_real=0,r_truth=0,ref_img=0,ref=0,r_img=0,r=0):
         self.n = n
@@ -506,7 +541,7 @@ px_size = 1.4*10**-3 # mm per pixel
 if __name__ == '__main__':
     import getopt
 
-    #------------------------- Get parameters -------------------------#
+   #------------------------- Get parameters -------------------------#
     out_dir,cam_dir,n,fisheye = get_param()
     #------------------------ Calibrate Camera ------------------------#
 
@@ -519,8 +554,6 @@ if __name__ == '__main__':
 
     #-------------------------- Undistort   ---------------------------#
 
-    # load calibration
-    #camera2 = Camera(n)
     #camera2.read(cam_dir)
     #for f in os.listdir(out_dir):
         #if f.startswith("input"):
@@ -564,7 +597,7 @@ if __name__ == '__main__':
 
         ######################### INDIVIDUAL METHODS #######################
         #------------------------- Check transform ------------------------#
-        img.ref,err_img = cam.check_points(img.ref_real,img.ref_img)
+        img.ref,err_img = cam.check_imagepoints(img.augment(img.ref_real),img.ref_img)
         print("ind: ref point img match [px]",cam.n,"\n",err_img)
         #--------------------------- Get Robot 3D -------------------------#
         img.r,err2,err3 = get_leastsquares([cam],[img.augment(img.r_img)],
