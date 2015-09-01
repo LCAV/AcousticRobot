@@ -324,19 +324,35 @@ def get_histograms(img,img_mask,n):
     plt.legend('s')
     plt.show(block=False)
     return hist_h,hist_s
-def imagepoints(img,r,n,t,col_min,col_max):
+
+def imagepoints_auto(img,r1,n,t,col_min,col_max,points,r2):
+    ''' Get positions of robot automatically (ignoring reference poitns)'''
+    x,y = np.ogrid[:img.shape[0],:img.shape[1]]
+    img_reduced=img.copy()
+    r2 = r2*5
+    for c in points:
+        # Create mask around contour center
+        cx = c[0,1]
+        cy = c[0,0]
+        circle = (x-cx)*(x-cx) + (y-cy)*(y-cy) <= r2*r2
+        circle = circle.astype(np.uint8)
+        img_reduced[circle==1] = [255,255,255]
+    return imagepoints(img_reduced,r1,n,t,col_min,col_max,1)
+
+def imagepoints(img,r,n,t,col_min,col_max,reduced=0):
     ''' Get positions of reference points or robot. '''
+    img_reduced = img.copy()
     w = r*5
     col_diff = 2
     counter = 1
     colors= np.zeros((2550,200,3))
     colors = colors.astype(np.uint8)
-
-    # Get regions of interest
-    img_mask,points = manual_calibration(img,n,r*5)
-    img_reduced = img.copy()
-    img_reduced[img_mask==0] = 255
-    img_reduced = img_reduced.astype(np.uint8)
+    points=0
+    if not reduced:
+        # Get regions of interest
+        img_mask,points = manual_calibration(img,n,r*5)
+        img_reduced[img_mask==0] = 255
+        img_reduced = img_reduced.astype(np.uint8)
 
     # refine color range
     col_min,col_max,col_clean = automatic_calibration(img_reduced,col_min,

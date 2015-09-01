@@ -48,7 +48,8 @@ if __name__ == '__main__':
 #---------------------------       Initialization       -----------------------#
     cam_dir = 'calib/'
     out_dir,n_pts,fisheye = get_param() # number of reference points
-    n_cameras = [139,141,145]
+    n_cameras = [141]
+    #n_cameras = [139,141,145]
     #p_real = np.matrix([750,790,190])
     p_real = np.matrix([645,930,180])
     C139_real = np.matrix([110,670,1750])
@@ -131,12 +132,17 @@ if __name__ == '__main__':
                 #-- undistort image --#
                 img = cam.undistort(img)
                 #-- get point --#
+                #-- get last reference points --#
+                img_ref = calib.Image(n)
+                img_ref.read_ref(out_dir,"ref_",n_pts)
                 col_min = np.array([150,100,0],dtype=np.uint8)
                 col_max = np.array([20,250,255],dtype=np.uint8)
-                r = 40
+                r_rob = 40
+                r_ref = 30
                 t = 50
-                img_red,circ_red,p,th_red = persp.imagepoints(img,r,1,t,
-                                                            col_min,col_max)
+                img_red,circ_red,p,th_red = persp.imagepoints_auto(img,r_rob,1,t,
+                                                              col_min,col_max,
+                                                              img_ref.ref_img,r_ref)
                 #-- save resutls --#
                 name='pos_img'+str(n)+'.txt'
                 persp.write_pos(out_dir,name,p)
