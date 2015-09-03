@@ -12,11 +12,28 @@ import get_image as get
 import os
 import sys
 from scipy.linalg import svd
-
+import itertools
 USAGE = '''
 USAGE: calib.py [-o <output path>] [-c <camera path>]
 [-n <camera_number>] [-f <fisheye on (0/1)>]
 '''
+
+import numpy as np
+
+def combinations(array,number):
+    ''' returns vector with combinations of "number" elements out of "array" '''
+    arr = np.matrix(array[:number])
+    for val in itertools.product(array, repeat=number):
+        val = np.array(val)
+        # check if combination has no duplicates in itself
+        if len(val)==len(set(val)):
+            val.sort()
+            # check if this is not yet in the vectors
+            if arr.shape[0]==1 and not np.all(arr==val):
+                arr = np.vstack((arr,val))
+            elif not np.all(arr==val,axis=1).any():
+                arr = np.vstack((arr,val))
+    return arr
 
 def get_param():
     ''' returns parameters from command line '''
@@ -139,7 +156,7 @@ def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
             x=x_hat[:3]
     else:
         ''' Own Method using algebraic transformations '''
-        # Not quite right because scaling factor not taken into account!
+        # Not quite right because scaling factor not taken into account!_part[i] = np.vstack((x*f3-f1,y*f3-f2))
         if type(r_height)!=str:
             n = len(pt)
             U = np.zeros((3*n,n))
@@ -169,6 +186,28 @@ def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
         err3 = np.sqrt(np.sum(np.power(p_real-x,2)))
         err2 = np.sqrt(np.sum(np.power(p_real[:2]-x[:2],2)))
     return x,err2,err3
+
+def get_bestcameras(n_cameras,cam,pt,number,method='hz',r_height='',p_real=''):
+    array=combinations(n_cameras,3)
+    cams = dict()
+    pts_ref = dict()
+    errs = dict()
+    err2_best = 100
+    err3_best = 100
+    p_best = 0
+    arr_best = 0
+
+    for i,arr in enumerate(array):
+        cams = [x for x in cam if x.n in arr]
+        pts_ref = [x for i,x in enumerate(pt) if i*2+139 in arr]
+        p,err2,err3 = get_leastsquares(cams,pts_ref,method,r_height,p_real)
+        errs[arr] = err3
+        if err3 < err3_best:
+            err3_best = err3
+            err2_best = err2
+            p_best = p
+            arr_best = arr
+    return p_best,err2_best,err3_best,arr_best,errs
 
 def get_rvguess(rv,tv,i=2):
     global n
@@ -372,6 +411,28 @@ class Camera:
         self.t = np.matrix(tvec)
         self.update()
         return result
+    def reposition_homography(self,opts,ipts):
+        '''
+        calculate Proj matrix following instructions of
+        'A Flexible New Technique for Camera
+        Calibration' of Zhang, 2000.
+        '''
+        opts = np.array(opts[:2,:])
+        ipts = np.array(ipts)
+        [h1,h2,h3],__ = cv2.findHomography(opts,ipts,0)
+        [h1,h2,h3] = np.matrix([h1,h2,h3])
+        lamda1 = 1/np.linalg.norm(self.C.I*h1.T)
+        lamda2 = 1/np.linalg.norm(self.C.I*h2.T)
+        lamda = np.mean([lamda1,lamda2])
+        r1 = lamda*self.C.T*h1.T
+        r2 = lamda*self.C.T*h2.T
+        r3 = np.cross(r1.T,r2.T)
+        r3 = r3.T
+        t = lamda*self.C.T*h3.T
+        proj = np.hstack((r1,r2,r3,t))
+
+
+
     def check_imagepoints(self,p_obj,p_img):
         '''
         Returns images of reference points (known) and the relative error matrix

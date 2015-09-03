@@ -48,9 +48,7 @@ if __name__ == '__main__':
 #---------------------------       Initialization       -----------------------#
     cam_dir = 'calib/'
     out_dir,n_pts,fisheye = get_param() # number of reference points
-    #n_cameras = [141]
-    n_cameras = [139,141,143]
-    #n_cameras = [139,141]
+    n_cameras = [139,141,143,145]
     p_real = np.matrix([1822,1516,182])
     C139_real = np.matrix([110,670,1750])
     C141_real = np.matrix([460,40,1320])
@@ -154,6 +152,7 @@ if __name__ == '__main__':
         cams = dict()
         imgs = dict()
         pts = dict()
+        pts_ref = dict()
         errs = dict()
         for i,n in enumerate(n_cameras):
             # Load camera
@@ -176,23 +175,30 @@ if __name__ == '__main__':
             #--- Individual Robot position ---#
             img.r,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
                                                     'hz',r_height,p_real)
-            msg00="fixed [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(img.r[0]),float(img.r[1]),float(img.r[2]),err2,err3)
-            img.r,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
-                                                    'hz','',p_real)
-            msg01="free [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(img.r[0]),float(img.r[1]),float(img.r[2]),err2,err3)
-            print("{0}: {1}".format(n,msg00))
-            print("{0}: {1}".format(n,msg01))
+            #msg00="fixed [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(img.r[0]),float(img.r[1]),float(img.r[2]),err2,err3)
+            #img.r,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
+            #                                        'hz','',p_real)
+            #msg01="free [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(img.r[0]),float(img.r[1]),float(img.r[2]),err2,err3)
+            #print("{0}: {1}".format(n,msg00))
+            #print("{0}: {1}".format(n,msg01))
             imgs[i]=img
             cams[i]=cam
             pts[i]=img.augment(img.r_img)
+            pts_ref[i]=img.augment(img.ref_img)[0,:]
             errs[i]=err_img
-
+        # choose best combination
+        p1,e21,e31,arr1,es1 = calib.get_bestcameras(n_cameras,cams.values(),
+                                                    pts_ref.values(),3,'hz','',
+                                                    img.ref_real[0,:])
+        p2,e22,e32,arr2,es2 = calib.get_bestcameras(n_cameras,cams.values(),
+                                                    pts.values(),3,'hz','',p_real)
         # For all permutations (when more than 1 camera)
         p_lq,err2,err3 = calib.get_leastsquares(cams.values(),pts.values(),
                                                 'hz',r_height,p_real)
         p_lq2,err22,err32 = calib.get_leastsquares(cams.values(),pts.values(),
                                                  'hz','',p_real)
-
+        p_lq3,err23,err33 = calib.get_leastsquares(cams.values(),pts_ref.values(),
+                                                   'hz','',img.ref_real[0,:])
         errors = np.matrix([round(np.sum(x)/len(x),4) for x in errs.values()])
         # Results visualization and saving
 
