@@ -11,7 +11,7 @@ import marker_calibration as mark
 import time
 import get_image as get
 
-DEBUG = 0
+DEBUG = 1
 USAGE = '''
 usage:
 Option 1:
@@ -211,7 +211,7 @@ def extract_color(img,range_min,range_max):
     ''' Color contours extraction '''
     i=0
     max_area=0
-    min_area = 500
+    min_area = 60
     best_cnt = 1
     cx = cy = 0
 
@@ -407,17 +407,24 @@ def objectpoints(m):
     D[1,2] = D[2,1] = s + marker_diameter
     D[1,3] = D[3,1] = d + marker_diameter
     D[3,2] = D[2,3] = s + marker_diameter
+
+    D[0,1] = D[1,0] = 1.602 + marker_diameter
+    D[0,2] = D[2,0] = 3.202 + marker_diameter
+    D[0,3] = D[3,0] = 2.644 + marker_diameter
+    D[1,2] = D[2,1] = 2.050 + marker_diameter
+    D[1,3] = D[3,1] = 2.325 + marker_diameter
+    D[2,3] = D[3,2] = 1.459 + marker_diameter
     if m>=5:
-        D[0,4] = D[4,0] = 0.61 + marker_diameter
-        D[1,4] = D[4,1] = 0.40 + marker_diameter
-        D[2,4] = D[4,2] = 0.42 + marker_diameter
-        D[3,4] = D[4,3] = 0.62 + marker_diameter
+        D[0,4] = D[4,0] = 1.734 + marker_diameter
+        D[1,4] = D[4,1] = 2.412 + marker_diameter
+        D[2,4] = D[4,2] = 2.713 + marker_diameter
+        D[3,4] = D[4,3] = 1.447 + marker_diameter
     if m>=6:
-        D[0,5] = D[5,0] = 0.93 + marker_diameter
-        D[1,5] = D[5,1] = 1.06 + marker_diameter
-        D[2,5] = D[5,2] = 0.58 + marker_diameter
-        D[3,5] = D[5,3] = 0.28 + marker_diameter
-        D[4,5] = D[5,4] = 0.66 + marker_diameter
+        D[0,5] = D[5,0] = 1.735 + marker_diameter/2
+        D[1,5] = D[5,1] = 1.096 + marker_diameter/2
+        D[2,5] = D[5,2] = 1.489 + marker_diameter/2
+        D[3,5] = D[5,3] = 1.257 + marker_diameter/2
+        D[4,5] = D[5,4] = 1.588 + marker_diameter/2
     # Get postions
     M1 = mark.MarkerSet(m=m,dim=dim,diameter=marker_diameter)
     M1.fromEDM(D**2)
@@ -543,7 +550,7 @@ if __name__ == "__main__":
                 #-------------- Project image to 2D -----------#
                 # Get real positions
                 #TODO only for testing
-                pts_obj2,margin,M = objectpoints(6)
+                pts_obj2,margin,M = objectpoints(m)
                 # position of real points in cm, pt = (x,y)
                 pts_obj_test=np.array([[0,0],[70,0],[70,70],[0,70]],dtype=np.float32)
                 pts_obj_test=np.vstack((pts_obj_test,[50,33],[16,90]))

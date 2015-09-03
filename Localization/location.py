@@ -48,10 +48,10 @@ if __name__ == '__main__':
 #---------------------------       Initialization       -----------------------#
     cam_dir = 'calib/'
     out_dir,n_pts,fisheye = get_param() # number of reference points
-    n_cameras = [141]
-    #n_cameras = [139,141,145]
-    #p_real = np.matrix([750,790,190])
-    p_real = np.matrix([645,930,180])
+    #n_cameras = [141]
+    n_cameras = [139,141,143]
+    #n_cameras = [139,141]
+    p_real = np.matrix([1822,1516,182])
     C139_real = np.matrix([110,670,1750])
     C141_real = np.matrix([460,40,1320])
     r_height = p_real[0,2] #height of robot in mm
@@ -89,7 +89,7 @@ if __name__ == '__main__':
             #-- get points --#
             col_min = np.array([175,100,0],dtype=np.uint8)
             col_max = np.array([20,250,255],dtype=np.uint8)
-            r = 30
+            r = 10
             t = 50
             img_org,circ_org,pts_img,th_org = persp.imagepoints(img,r,n_pts,t,
                                                                 col_min,col_max)
@@ -97,7 +97,7 @@ if __name__ == '__main__':
             break
 #--------------------------- 3.b Get Object Points      -----------------------#
         #-- get points --#
-        pts_obj, margin,M = persp.objectpoints(6)
+        pts_obj, margin,M = persp.objectpoints(n_pts)
         img_test,pts_obj,size = persp.format_points(pts_obj,margin)
         img_flat,M = persp.geometric_transformationN(img,pts_obj,pts_img,size)
 
@@ -137,12 +137,15 @@ if __name__ == '__main__':
                 img_ref.read_ref(out_dir,"ref_",n_pts)
                 col_min = np.array([150,100,0],dtype=np.uint8)
                 col_max = np.array([20,250,255],dtype=np.uint8)
-                r_rob = 40
-                r_ref = 30
+                #r_rob = 40
+                #r_ref = 30
+                #t = 50
+                #img_red,circ_red,p,th_red = persp.imagepoints_auto(img,r_rob,1,t,
+                #                                              col_min,col_max,
+                #                                              img_ref.ref_img,r_ref)
+                r = 10
                 t = 50
-                img_red,circ_red,p,th_red = persp.imagepoints_auto(img,r_rob,1,t,
-                                                              col_min,col_max,
-                                                              img_ref.ref_img,r_ref)
+                img_red,circ_red,p,th_red = persp.imagepoints(img,r,1,t,col_min,col_max)
                 #-- save resutls --#
                 name='pos_img'+str(n)+'.txt'
                 persp.write_pos(out_dir,name,p)
@@ -167,15 +170,22 @@ if __name__ == '__main__':
                 err_img = cam.ransac_loop(img,flag,repErr_range)
             else:
                 cam.reposition(img.ref_real,img.ref_img,0,flag,ransac)
-                ref, err_img = cam.check_imagepoints(img.augment(img.ref_real),
+                ref, err_img,lamda = cam.check_imagepoints(img.augment(img.ref_real),
                                                      img.ref_img)
-
+                ref_obj, err_obj = cam.check_objectpoints(img.augment(img.ref_real),img.augment(img.ref_img))
             #--- Individual Robot position ---#
             img.r,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
-                                                    'my',r_height,p_real)
+                                                    'hz',r_height,p_real)
+            msg00="fixed [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(img.r[0]),float(img.r[1]),float(img.r[2]),err2,err3)
+            img.r,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
+                                                    'hz','',p_real)
+            msg01="free [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(img.r[0]),float(img.r[1]),float(img.r[2]),err2,err3)
+            print("{0}: {1}".format(n,msg00))
+            print("{0}: {1}".format(n,msg01))
             imgs[i]=img
             cams[i]=cam
             pts[i]=img.augment(img.r_img)
+            errs[i]=err_img
 
         # For all permutations (when more than 1 camera)
         p_lq,err2,err3 = calib.get_leastsquares(cams.values(),pts.values(),
@@ -183,19 +193,25 @@ if __name__ == '__main__':
         p_lq2,err22,err32 = calib.get_leastsquares(cams.values(),pts.values(),
                                                  'hz','',p_real)
 
-
+        errors = np.matrix([round(np.sum(x)/len(x),4) for x in errs.values()])
         # Results visualization and saving
+
         msg1="Fixed height [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(p_lq[0]),float(p_lq[1]),float(p_lq[2]),err2,err3)
         msg2="Free height [mm]:  [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(p_lq2[0]),float(p_lq2[1]),float(p_lq2[2]),err22,err32)
         msg3="Real position [mm]:[{0:8.4f} , {1:8.4f} , {2:8.4f}]".format(p_real[0,0],p_real[0,1],p_real[0,2])
-
+        msg4="Error reference poitns [px]: {0} ".format(errors)
         print(msg1)
         print(msg2)
         print(msg3)
+        print(msg4)
+
         with open(out_dir+"results.txt",'w') as f:
             f.write(msg1+"\n")
             f.write(msg2+"\n")
             f.write(msg3+"\n")
+            f.write(msg4+"\n")
+
+
 
         choice = raw_input(ROBOT_LOC)
 

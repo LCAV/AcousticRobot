@@ -100,7 +100,14 @@ def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
     b_part = dict()
     x=err2=err3=0
     if method == 'hz':
-        '''DLT Method of Hartley Zisserman, chapter 12.2 '''
+        '''
+        DLT Method of Hartley Zisserman, chapter 12.2
+        if height specified: least squares algorithm can be applied.
+        if not: use singular value decomposition to find vector corresponding
+        to smallest singular value.
+        '''
+
+        # construct A as in p.312
         for i,c in enumerate(cam):
             f1 = c.Proj[:1]
             f2 = c.Proj[1:2]
@@ -110,7 +117,10 @@ def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
             y = p[0,1]
             A_part[i] = np.vstack((x*f3-f1,y*f3-f2))
 
+        # Stack A matrices of each camera together.
         A_aug = np.vstack(A_part.values())
+
+        # r_height specified:
         if type(r_height)!=str:
             a1 = A_aug.T[:1]
             a2 = A_aug.T[1:2]
@@ -121,16 +131,7 @@ def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
             x_hat = (A_aug2.T*A_aug2).I*A_aug2.T*b_aug.T
             control = A_aug*np.vstack((x_hat,r_height,1))
             x =  np.vstack((x_hat,r_height))#control,0
-            # Algorithm page 590 if matrix A_aug is singular (not tested!
-            #u,w,v = svd(A_aug)
-            #b_prime = u.T*b_aug
-            #y = np.zeros((v.shape[1],1))
-            #for i in range(v.shape[1]):
-            #    try:
-            #        y[i]=b_aug[0,i]/w[i]
-            #    except:
-            #        y[i]=0
-            #x_hat = v[0]*y
+        # r_height not specified:
         else:
             u,w,v = svd(A_aug)
             x_hat = v[-1]
@@ -376,23 +377,25 @@ class Camera:
         Returns images of reference points (known) and the relative error matrix
         '''
         test_img = self.Proj*p_obj.T
-        test_img = test_img/test_img[2,:]
+        lamda = test_img[2,:]
+        test_img = test_img/lamda
         test_img=test_img[:2,:].T
         #match_matrix=(p_img-test_img)/test_img
         err_img=np.sqrt(np.sum(np.power(test_img[:,:2]-p_img[:,:2],2),axis=1))
-        return test_img,err_img
+        return test_img,err_img,lamda
     def check_objectpoints(self,p_obj,p_img):
         # From least squares
         A =(self.Proj.T*self.Proj).I*self.Proj.T
-        test_obj =A*cam.C.I*p_img.T
-        test_obj2 = self.Proj.I*self.C.I*p_img.T
-        # eliminate last column that seems to screw everything up
-        test_obj3 = A[:,:2]*(cam.C.I*p_img.T)[:2,:]
-        # From algebraic solving
-        test_obj = test_obj/test_obj[3,:]
-        test_obj2 = test_obj2/test_obj2[3,:]
+        x_tilde = self.C.I*p_img.T
+        test_obj =A*x_tilde
 
-        err_obj=np.sqrt(np.sum(np.power(test_obj[:,:3]-p_obj[:,:3],2),axis=1))
+        #test_obj2 = self.Proj.I*self.C.I*p_img.T
+
+        # eliminate last column that seems to screw everything up
+        #test_obj3 = A[:,:2]*(cam.C.I*p_img.T)[:2,:]
+
+        test_obj = test_obj/test_obj[3,:]
+        err_obj=np.sqrt(np.sum(np.power(test_obj.T[:,:3]-p_obj[:,:3],2),axis=1))
         return test_obj, err_obj
     def get_theta(self):
         __,__,__,x,y,z,__ =cv2.decomposeProjectionMatrix(self.Proj)
@@ -416,7 +419,7 @@ class Camera:
                 ref_img = img.ref_img[result].reshape(result.shape[0],2)
                 ref_real = img.ref_real[result].reshape(result.shape[0],3)
                 # Check if the match is new best match
-                ref, err_img = self.check_imagepoints(img.augment(ref_real),ref_img)
+                ref, err_img,__ = self.check_imagepoints(img.augment(ref_real),ref_img)
                 sum_current = err_img.sum()/err_img.shape[0]
                 if sum_current < sum_max:
                     sum_max = sum_current
@@ -466,7 +469,6 @@ class Camera:
         cv.Remap(src, dst, mapx, mapy, cv.CV_INTER_LINEAR + cv.CV_WARP_FILL_OUTLIERS,  cv.ScalarAll(0))
         # cv.Undistort2(src,dst, intrinsics, dist_coeffs)
         return np.array(dst)
-
 
 
 class Image:
@@ -597,7 +599,7 @@ if __name__ == '__main__':
 
         ######################### INDIVIDUAL METHODS #######################
         #------------------------- Check transform ------------------------#
-        img.ref,err_img = cam.check_imagepoints(img.augment(img.ref_real),img.ref_img)
+        img.ref,err_img,__ = cam.check_imagepoints(img.augment(img.ref_real),img.ref_img)
         print("ind: ref point img match [px]",cam.n,"\n",err_img)
         #--------------------------- Get Robot 3D -------------------------#
         img.r,err2,err3 = get_leastsquares([cam],[img.augment(img.r_img)],
