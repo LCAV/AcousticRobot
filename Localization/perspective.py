@@ -43,7 +43,7 @@ def get_centroid(cnt):
     M = cv2.moments(cnt)
     cy,cx = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
     return cx,cy
-def visualization(imgs,colorbar=0,switch=0):
+def visualization(imgs,n_cam,colorbar=0,switch=0):
     ''' Visualize results '''
     n = len(imgs)
     for (tit,im) in imgs.items():
@@ -55,7 +55,7 @@ def visualization(imgs,colorbar=0,switch=0):
             plt.imshow(im, origin = 'lower')
         if colorbar == 1:
                 plt.colorbar()
-        plt.title(tit)
+        plt.title(tit+str(n_cam))
     plt.show(block=False)
 
 '''----------  Program handling ------------ '''
@@ -147,7 +147,7 @@ def create_summary(img_flat,pts_obj,p=np.zeros(1)):
 def save_open_images(outputpath,n_cam):
     for i in plt.get_figlabels():
         plt.figure(i)
-        plt.savefig(outputpath+str(i)+str(n_cam)+'.png')
+        plt.savefig(outputpath+str(i)+'.png')
 
 ''' --------   Image Processing ------------ '''
 def get_circles_count(img,contours,t,w,r):
@@ -207,11 +207,12 @@ def get_circles_count(img,contours,t,w,r):
         cv2.circle(cimg,(centers[0][i][1],centers[0][i][0]),r,(0,255,0),2,cv2.CV_AA)
         cv2.circle(cimg,(centers[0][i][1],centers[0][i][0]),2,(0,0,0),2,cv2.CV_AA)
     return cimg, centers
-def extract_color(img,range_min,range_max):
+def extract_color(img,range_min,range_max,r):
     ''' Color contours extraction '''
     i=0
     max_area=0
-    min_area = 60
+    min_area = r**2*np.pi/5
+    #min_area = 50
     best_cnt = 1
     cx = cy = 0
 
@@ -360,7 +361,7 @@ def imagepoints(img,r,n,t,col_min,col_max,reduced=0):
     #hist_h, hist_s = get_histograms(img,img_mask,n*10)
 
     # color
-    img_color,cont_color,pos,th = extract_color(img_reduced,col_min,col_max)
+    img_color,cont_color,pos,th = extract_color(img_reduced,col_min,col_max,r)
 
     # circles
     circ_color,pos_color = get_circles_count(th,cont_color,
@@ -574,15 +575,15 @@ if __name__ == "__main__":
                 h,s,v = cv2.split(cv2.cvtColor(img,cv2.COLOR_BGR2HSV))
                 imgs = {'img_h':h,
                         'img_s':s}
-                visualization(imgs,1)
+                visualization(imgs,n_cam,1)
                 imgs = {'img_org':img_org,
                         'circ_org':circ_org}
-                visualization(imgs)
+                visualization(imgs,n_cam,)
                 imgs = {'img_red':img_red,
                         'circ_red':circ_red}
-                visualization(imgs)
+                visualization(imgs,n_cam)
                 imgs = {'summary':img_summary}
-                visualization(imgs,0,1)
+                visualization(imgs,n_cam,0,1)
                 if outputpath != '':
                     save_open_images(outputpath,n_cam)
             elif choice == "n":

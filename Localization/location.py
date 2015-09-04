@@ -46,20 +46,29 @@ if __name__ == '__main__':
     import sys
     import getopt
 #---------------------------       Initialization       -----------------------#
+    # General
     cam_dir = 'calib/'
     out_dir,n_pts,fisheye = get_param() # number of reference points
-    n_cameras = [139,141,143,145]
-    p_real = np.matrix([1822,1516,182])
-    C139_real = np.matrix([110,670,1750])
-    C141_real = np.matrix([460,40,1320])
-    r_height = p_real[0,2] #height of robot in mm
-
-    ref_z = 20*np.ones((1,n_pts))
-    #ref_z = np.array([135,0,230,0]) #height of reference points in mm
-    #ref_z = '' #height automatically set to 0
     flag = 0 # alorithm for solvepnp
     ransac = 0 # use ransac or not
     repErr_range = range(1,50)# for Ransac algorithm (8 by default)
+
+    # Setup Cameras
+    n_cameras = [139,141,143,145]
+    numbers=range(2,5) # number of cameras to loop through
+    C139_real = np.matrix([110,670,1750])
+    C141_real = np.matrix([460,40,1320])
+
+    # Setup Objects
+    r_ref = 10 # radius of referencepoints (in pixels)
+    r_rob = 10 # radius of robot point (in pixels)
+    t = 50 # empiric threshold for circle detection
+    r_real = np.matrix([1822,1516,182])
+    r_height = r_real[0,2] #height of robot in mm
+    choice_ref = 4 #chosen reference point
+    ref_z = 20*np.ones((1,n_pts))
+    #ref_z = np.array([135,0,230,0]) #height of reference points in mm
+    #ref_z = '' #height automatically set to 0
 #--------------------------- 0. Intrinsic Calibration   -----------------------#
 
     n = raw_input(INTRINSIC)
@@ -87,9 +96,7 @@ if __name__ == '__main__':
             #-- get points --#
             col_min = np.array([175,100,0],dtype=np.uint8)
             col_max = np.array([20,250,255],dtype=np.uint8)
-            r = 10
-            t = 50
-            img_org,circ_org,pts_img,th_org = persp.imagepoints(img,r,n_pts,t,
+            img_org,circ_org,pts_img,th_org = persp.imagepoints(img,r_ref,n_pts,t,
                                                                 col_min,col_max)
         else:
             break
@@ -135,15 +142,10 @@ if __name__ == '__main__':
                 img_ref.read_ref(out_dir,"ref_",n_pts)
                 col_min = np.array([150,100,0],dtype=np.uint8)
                 col_max = np.array([20,250,255],dtype=np.uint8)
-                #r_rob = 40
-                #r_ref = 30
-                #t = 50
                 #img_red,circ_red,p,th_red = persp.imagepoints_auto(img,r_rob,1,t,
                 #                                              col_min,col_max,
                 #                                              img_ref.ref_img,r_ref)
-                r = 10
-                t = 50
-                img_red,circ_red,p,th_red = persp.imagepoints(img,r,1,t,col_min,col_max)
+                img_red,circ_red,p,th_red = persp.imagepoints(img,r_rob,1,t,col_min,col_max)
                 #-- save resutls --#
                 name='pos_img'+str(n)+'.txt'
                 persp.write_pos(out_dir,name,p)
@@ -168,50 +170,58 @@ if __name__ == '__main__':
             if ransac:
                 err_img = cam.ransac_loop(img,flag,repErr_range)
             else:
-                cam.reposition(img.ref_real,img.ref_img,0,flag,ransac)
+                cam.reposition(img.ref_real,img.ref_img,flag,ransac)
                 ref, err_img,lamda = cam.check_imagepoints(img.augment(img.ref_real),
                                                      img.ref_img)
                 ref_obj, err_obj = cam.check_objectpoints(img.augment(img.ref_real),img.augment(img.ref_img))
             #--- Individual Robot position ---#
             img.r,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
-                                                    'hz',r_height,p_real)
-            #msg00="fixed [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(img.r[0]),float(img.r[1]),float(img.r[2]),err2,err3)
-            #img.r,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
-            #                                        'hz','',p_real)
-            #msg01="free [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(img.r[0]),float(img.r[1]),float(img.r[2]),err2,err3)
-            #print("{0}: {1}".format(n,msg00))
-            #print("{0}: {1}".format(n,msg01))
+                                                    'hz',r_height,r_real)
             imgs[i]=img
             cams[i]=cam
             pts[i]=img.augment(img.r_img)
-            pts_ref[i]=img.augment(img.ref_img)[0,:]
+            pts_ref[i]=img.augment(img.ref_img)[choice_ref,:]
             errs[i]=err_img
-        # choose best combination
-        p1,e21,e31,arr1,es1 = calib.get_bestcameras(n_cameras,cams.values(),
-                                                    pts_ref.values(),3,'hz','',
-                                                    img.ref_real[0,:])
-        p2,e22,e32,arr2,es2 = calib.get_bestcameras(n_cameras,cams.values(),
-                                                    pts.values(),3,'hz','',p_real)
+
+        ref_real = img.ref_real[choice_ref,:] # real position of reference points
+        p1,e21,e31,arr1 = calib.get_leastsquares_combinations(n_cameras,numbers,cams.values(),
+                                           pts_ref.values(),'hz',ref_real[0,2],ref_real)
+        calib.save_combinations(out_dir,"combi_ref_fixed"+str(choice_ref),arr1,p1,(e21,e31),fisheye)
+        p2,e22,e32,arr2 = calib.get_leastsquares_combinations(n_cameras,numbers,cams.values(),
+                                           pts_ref.values(),'hz','',ref_real)
+        calib.save_combinations(out_dir,"combi_ref_free"+str(choice_ref),arr2,p2,(e22,e32),fisheye)
+        p3,e23,e33,arr3 = calib.get_leastsquares_combinations(n_cameras,numbers,cams.values(),
+                                           pts.values(),'hz',r_height,r_real)
+        calib.save_combinations(out_dir,"combi_rob_fixed"+str(choice_ref),arr3,p3,(e23,e33),fisheye)
+        p4,e24,e34,arr4 = calib.get_leastsquares_combinations(n_cameras,numbers,cams.values(),
+                                           pts.values(),'hz','',r_real)
+        calib.save_combinations(out_dir,"combi_rob_free"+str(choice_ref),arr4,p4,(e24,e34),fisheye)
+        calib.save_combinations(out_dir,"combi_all"+str(choice_ref),arr4,p2,(e21,e22,e32,
+                                                             e23,e24,e34),fisheye)
+        # Best combination (with fixed height)
+        index2,err2 = calib.get_best_combination(e32)
+
         # For all permutations (when more than 1 camera)
-        p_lq,err2,err3 = calib.get_leastsquares(cams.values(),pts.values(),
-                                                'hz',r_height,p_real)
-        p_lq2,err22,err32 = calib.get_leastsquares(cams.values(),pts.values(),
-                                                 'hz','',p_real)
-        p_lq3,err23,err33 = calib.get_leastsquares(cams.values(),pts_ref.values(),
-                                                   'hz','',img.ref_real[0,:])
+        p_lq1 = p3[index2]
+        err21 = e23[index2]
+        err31 = e33[index2]
+        p_lq2 = p4[index2]
+        err22 = e24[index2]
+        err32 = e34[index2]
         errors = np.matrix([round(np.sum(x)/len(x),4) for x in errs.values()])
         # Results visualization and saving
-
-        msg1="Fixed height [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(p_lq[0]),float(p_lq[1]),float(p_lq[2]),err2,err3)
+        msg0="Best combination (based on best 3D error with free height):{0},error: {1:6.4f}".format(arr2[index2],err2)
+        msg1="Fixed height [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(p_lq1[0]),float(p_lq1[1]),float(p_lq1[2]),err21,err31)
         msg2="Free height [mm]:  [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(p_lq2[0]),float(p_lq2[1]),float(p_lq2[2]),err22,err32)
-        msg3="Real position [mm]:[{0:8.4f} , {1:8.4f} , {2:8.4f}]".format(p_real[0,0],p_real[0,1],p_real[0,2])
+        msg3="Real position [mm]:[{0:8.4f} , {1:8.4f} , {2:8.4f}]".format(r_real[0,0],r_real[0,1],r_real[0,2])
         msg4="Error reference poitns [px]: {0} ".format(errors)
+        print(msg0)
         print(msg1)
         print(msg2)
         print(msg3)
         print(msg4)
-
-        with open(out_dir+"results.txt",'w') as f:
+        with open(out_dir+"results"+str(choice_ref)+".txt",'w') as f:
+            f.write(msg0+"\n")
             f.write(msg1+"\n")
             f.write(msg2+"\n")
             f.write(msg3+"\n")

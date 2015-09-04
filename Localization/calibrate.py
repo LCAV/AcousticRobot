@@ -34,7 +34,6 @@ def combinations(array,number):
             elif not np.all(arr==val,axis=1).any():
                 arr = np.vstack((arr,val))
     return arr
-
 def get_param():
     ''' returns parameters from command line '''
     global USAGE
@@ -186,40 +185,86 @@ def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
         err3 = np.sqrt(np.sum(np.power(p_real-x,2)))
         err2 = np.sqrt(np.sum(np.power(p_real[:2]-x[:2],2)))
     return x,err2,err3
+def get_leastsquares_combinations(n_cameras,numbers,cam,pt,method='hz',r_height='',p_real=''):
+    '''
+    Applies get_leastsquares function to all possible combinations of length
+    "number" made of elements of "n_cameras".
+    returns dict of corresponding 3D-point, 2D and 3D error.
+    '''
+    arrs = dict()
+    errs2 = dict()
+    errs3 = dict()
+    pts = dict()
+    j = 0
+    for number in numbers:
+        array=combinations(n_cameras,number)
+        for arr in array:
+            # extract data corresponding to camera array
+            cams_selection = [x for x in cam if x.n in arr]
+            pts_selection = [x for i,x in enumerate(pt) if i*2+139 in arr]
 
-def get_bestcameras(n_cameras,cam,pt,number,method='hz',r_height='',p_real=''):
-    array=combinations(n_cameras,3)
-    cams = dict()
-    pts_ref = dict()
-    errs = dict()
-    err2_best = 100
-    err3_best = 100
-    p_best = 0
-    arr_best = 0
-
-    for i,arr in enumerate(array):
-        cams = [x for x in cam if x.n in arr]
-        pts_ref = [x for i,x in enumerate(pt) if i*2+139 in arr]
-        p,err2,err3 = get_leastsquares(cams,pts_ref,method,r_height,p_real)
-        errs[arr] = err3
-        if err3 < err3_best:
-            err3_best = err3
-            err2_best = err2
-            p_best = p
-            arr_best = arr
-    return p_best,err2_best,err3_best,arr_best,errs
-
-def get_rvguess(rv,tv,i=2):
-    global n
-    ''' get guess for rv, tv from specific object points '''
-    if n == 139: # vertical image of chessboard
-        i = 2  # for test_friday only
-    elif n == 141:
-        i = 9 # for test_friday only
-    rv = rv[i-1]
-    tv = np.mean(tv[:8,2])
-    return rv, tv
-    p_norm2 = p_norm2.T[:,:3]
+            # calculate error
+            p,err2,err3 = get_leastsquares(cams_selection,pts_selection,method,r_height,p_real)
+            arrs[j] = arr
+            errs2[j] = err2
+            errs3[j] = err3
+            pts[j] = p
+            j+=1
+    return pts,errs2,errs3,arrs
+def get_best_combination(crit):
+    ''' get best camera combination based on criterium "crit" (err2D or err3D)'''
+    c_best = 1000
+    i_best = 0
+    for i,c in crit.iteritems():
+        if c < c_best:
+            c_best = c
+            i_best = i
+    return i_best, c_best
+def save_combinations(out_dir,fname,arrs,pts,errs,fisheye):
+    if fisheye:
+        fname2 = fname+"_fish.txt"
+    else:
+        fname2 = fname+".txt"
+    with open(out_dir+fname2,"w") as f:
+        for i,arr in arrs.iteritems():
+            pt = pts[i]
+            for ar in arr:
+                f.write("{0:20}\t".format(ar))
+            f.write("{0:8.4f}\t{1:8.4f}\t{2:8.4f}\t".format(pt[0,0],pt[1,0],pt[2,0]))
+            for err in errs:
+                f.write("{0:8.4f}\t".format(err.values()[i]))
+            f.write("\n")
+            # prepare for plotting
+    fix,ax1 = plt.subplots()
+    # plot on two different axis.
+    ax2 = ax1.twinx()
+    j = 0
+    linestyles=['--','-',':']
+    for err in errs:
+        if j < 3:
+            ax1.plot(err.values(),linestyles[j],color='b')
+        else:
+            ax2.plot(err.values(),linestyles[j-3],color='r')
+        j+=1
+    if len(errs) <= 2:
+        ax1.legend(('2D','3D'),loc='best')
+    else:
+        ax1.legend(('3D fixed','2D free','3D free'),loc='best')
+        ax2.set_ylabel('Error Robot [mm]',color='r')
+        for tl in ax2.get_yticklabels():
+            tl.set_color('r')
+    ax1.set_xlabel('Camera Combinations')
+    ax1.set_ylabel('Error Reference Point[mm]',color='b')
+    for tl in ax1.get_yticklabels():
+        tl.set_color('b')
+    ax1.set_title('Error vs. Camera Combination')
+    plt.xticks(arrs.keys(),arrs.values())#or degrees
+    # add space at bottom so that xticks not cut off
+    plt.subplots_adjust(bottom=0.4)
+    # turn xticks
+    plt.setp( ax1.xaxis.get_majorticklabels(), rotation=70)
+    plt.show(block=False)
+    plt.savefig(out_dir+fname)
 def triangulate(P1,P2,i1,i2,p_real):
     p_test = cv2.triangulatePoints(P1,P2,i1,i2)
     p_norm = p_test/p_test[3]
@@ -380,7 +425,7 @@ class Camera:
         self.dist = np.array(dist)
         self.r = np.matrix(r[0])
         self.t = np.matrix(t[0])
-    def reposition(self,opts,ipts,guess=0,flag=cv2.CV_P3P,ransac=0,err=8):
+    def reposition(self,opts,ipts,flag=cv2.CV_P3P,ransac=0,err=8):
         '''
         Redefines the position vectors r and t of the camera given a set of
         corresponding image and object points
@@ -394,19 +439,12 @@ class Camera:
         if flag == cv2.CV_P3P or flag == cv2.CV_EPNP:
             n_points = ipts.shape[0]
             ipts = np.ascontiguousarray(ipts[:,:2]).reshape((n_points,1,2))
-        if guess:
-            tguess = {139:np.array([650,120]),
-                       141:np.array([450,50])}
-            r_guess,h_guess = get_rvguess(self.r,self.t*px_size)
-            t_guess=np.hstack([tguess[self.n],h_guess])
-            self.t = np.matrix(t_guess)
-            self.r = np.matrix(r_guess)
         if ransac:
             rvec,tvec,result = cv2.solvePnPRansac(opts,ipts,self.C,self.dist,
                                                   flags=flag,reprojectionError=err)
         else:
             result,rvec,tvec = cv2.solvePnP(opts,ipts,self.C,self.dist,
-                                        self.r,self.t,guess,flag)
+                                        self.r,self.t,0,flag)
         self.r = np.matrix(rvec)
         self.t = np.matrix(tvec)
         self.update()
@@ -473,7 +511,7 @@ class Camera:
 
         sum_max = 1000
         for repErr in repErr_range:
-            result = self.reposition(img.ref_real,img.ref_img,0,flag,1,repErr)
+            result = self.reposition(img.ref_real,img.ref_img,flag,1,repErr)
             # Check only chosen refpoints by Ransac
             ref_img = ref_real = 0
             try:
@@ -492,7 +530,7 @@ class Camera:
                 print(repErr,': no result obtained')
                 next
         # Use best found repErr to reposition camera
-        self.reposition(img.ref_real,img.ref_img,0,flag,1,repErr_best)
+        self.reposition(img.ref_real,img.ref_img,flag,1,repErr_best)
         return err_best
     def undistort(self,img):
         # intrinsic parameters
@@ -655,8 +693,7 @@ if __name__ == '__main__':
         #flag = cv2.CV_P3P
         flag = cv2.CV_ITERATIVE
         #flag = cv2.CV_EPNP
-        use_guess = 0
-        cam.reposition(img.ref_real,img.ref_img,use_guess,flag)
+        cam.reposition(img.ref_real,img.ref_img,flag)
 
         ######################### INDIVIDUAL METHODS #######################
         #------------------------- Check transform ------------------------#
