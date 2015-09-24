@@ -1,8 +1,6 @@
 0	i
-1.2	i
-1.4	i
-
-
-
-
+1	g l KP
+2	p l KP 40
+3	g l KP
+4	s
 
