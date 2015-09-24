@@ -2,15 +2,19 @@ CSE Project I (8 Credits)
 Frederike Dümbgen
 
 Laboratory of Audiovisual Communications (LCAV)
+Prof. Martin Vetterli
+Supervisor: Robin Scheibler
 
-Experimental setup of sound emitting and processing robot for acoustic based SLAM applications.
-Development of image processing and computer vision algorithm for 3D localization of robot using object to image space correspondences and triangulation
-Integration of acoustic and visual data to create comprehensive framework for experiments including robot movement control, robot localization using cameras and recodring of room impulse response. Comparison of precision of odometry, acoustic and visual localization.
+Experimental setup of sound emitting and processing robot for acoustic based SLAM applications:
+- Development of image processing and computer vision algorithm for 3D localization of robot using object to image space correspondences and triangulation, including setup of webcams.
+- Control of robot movement and localization using odometry. 
+- Recording of room impulse response used in acoustic based SLAM algorithm. 
+- Integration of visual, acoustic and odometric data in a comprehensive framework for experiments comparing the precision of different localization algorithms. 
 
 Deliverables:
-- Framework for above mentionned experiment
+- Framework for above mentioned experiment
 - Comprehensive documentation for use of the framework
-- Experimental data§
+- Experimental data
 - Project report
 
 
