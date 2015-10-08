@@ -1,9 +1,15 @@
+"""
+MarkerSet
+========
+
+Given a number of  markers and their interdistance, this class aims at
+reconstructing their relative coordinates.
+
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-# We have 4 markers and their interdistance.
-# We want to reconstruct their relative coordinates
 
 class MarkerSet:
 
@@ -80,7 +86,7 @@ class MarkerSet:
 
         self.X[:,1] = np.array([0, dist[0,1]])
         for i in xrange(2,m):
-            self.X[:,i] = self.trilateration_single_point(self.X[1,1], 
+            self.X[:,i] = self.trilateration_single_point(self.X[1,1],
                     dist[0,i], dist[1,i])
 
     def EDM(self):
@@ -89,6 +95,10 @@ class MarkerSet:
             - 2*G + np.outer(np.diag(G), np.ones(self.m))
 
     def normalize(self):
+        '''
+        Reposition points such that x0 is at origin, x1 lies on c-axis
+        and x2 lies above x-axis, keeping the relative position to each other.
+        '''
 
         # set first point to origin
         X0 = self.X[:,0,np.newaxis]

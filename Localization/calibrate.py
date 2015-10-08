@@ -1,3 +1,20 @@
+'''
+Calibrate
+=========
+
+Contains all functions necessary for intrinsic and extrinsic camera calibration,
+including the triangulation between cameras for 3D reconstruction.
+
+The class _Camera_ contains the camera's intrinsic parameters and the functions
+related to their calibration.
+
+The class _Image_ contains all image- and object space positions of the
+reference points and the robot location.
+
+
+'''
+
+
 #-*- coding: utf-8 -*-
 #!/usr/bin/env python
 from __future__ import division
@@ -21,7 +38,8 @@ USAGE: calib.py [-o <output path>] [-c <camera path>]
 import numpy as np
 
 def combinations(array,number):
-    ''' returns vector with combinations of "number" elements out of "array" '''
+    ''' returns vector with  all possible camera combinations
+    of specified length (in vector) '''
     arr = np.matrix(array[:number])
     for val in itertools.product(array, repeat=number):
         val = np.array(val)
@@ -64,7 +82,8 @@ def get_param():
 def get_calibpoints(img,pattern_size,counter,out_dir,n,fisheye):
     '''
     returns pairs of object- and image points (chess board corners)
-    for camera calibration'''
+    for camera calibration
+    '''
     square_size = 47 # in mm
     square_size = square_size/px_size # †his doesn't matter for camera calibration!!
     #print("square size:",square_size)
