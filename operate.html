@@ -1,29 +1,55 @@
-<section>
-<h1>
-<a id="acoustic-robot" class="anchor" href="#acoustic-robot" aria-hidden="true"><span class="octicon octicon-link"></span></a>Acoustic Robot
-</h1>
-<a href=""><h3>Operate</h3></a>
-<h2> How to operate the robot </h2>
+<h2>Operate</h2>
 
-<p> Make sure you have succesfully completed all steps of the <a href="setup.html">"Setup</a> before going on to operate the robot. Most importantly, the setup of the network needs to be ready before robot and cameras are turned on so that they connect to the network correctly. </p>
+<p> Things that need to be done before every new experiment... </p>
+
+<p> Make sure you have succesfully completed all steps of the <a href="setup.html">Setup</a> before going on to operate the robot. Most importantly, the setup of the network needs to be ready before robot and cameras are turned on so that they connect to the network correctly. For the full experiment you will need: </p>
+<ul style="list-style-type:disc">
+    <li>Router</li>
+    <li>4 Cameras (Fig. 1) with corresponding tools:</li>
+    <ul>
+        <li> 4 microphone holders</li>
+        <li> 4 screw adapters </li>
+        <li> 4 Camera fixations </li>
+    </ul>
+    <li>4-6 reference points (Fig. 2)</li>
+    <li>Laser distance meter</li>
+    <li>Audio tools:</li>
+    <ul>
+        <li> Point source speaker</li>
+        <li> MOTU Soundcard with at least 2 inputs and FireWire connection.</li>
+        <li> 2 Wireless sound receiver </li>
+        <li> 2 VLR-Jack cables,1 VLR-VLR cable, 1 Firewire cable, Power cables for above instruments  </li>
+    </ul>
+</ul>
+
+<h3> Start network </h3>
+<p> Turn on the network and wait for it to start up (can take a few minutes). </p>
+
 <h3> Place cameras </h3>
 
-<p>Fix the 4 cameras well in different corners of the room such that they share a big common visible area.
-It is useful to indicate the visible area so that no blind areas are entered during the experiments. </p>
+<p>Fix the 4 cameras in different corners of the room such that they have a big common visible area.
+It is useful to indicate the visible area so that no blind areas are entered during the experiments. You may view the camera's visible area <a href="http://172.16.156.139:8080/stream.html" target="_blank">http://172.16.156.139:8080/stream.html</a>. Replace "139" in the URL by the desired camera number.</p>
 
 <h3> Place and measure reference points </h3>
 
 <p> Place 4 to 6 reference points in the visible area. For later processing, the reference points are numbered. Use following numbers only and place them such that all reference points are above an imaginary line drawn from the first reference point to the second reference point:</p>
-<img src="images/referencepoints.png" width=400px />
-<p> Measure the distances between all reference points and store the results in mm in a file.</p>
-<p> TODO: convenient file reading </p>
+<figure>
+    <img src="../images/referencepoints.png" width=400px>
+    <figcaption> Fig.3 - Example of correct reference points placements (All points are above line between points 1 and 2)</figcaption>    
+</figure>
+
+<p> Measure the distances between all reference points and store the results (in milimeters) in a file.</p>
+<p> TODO: create convenient file syntax </p>
 
 <h3> Create navigation file </h3>
 <p> Create a file with the navigation history for the robot to follow. The history needs to be structured in blocks, each block corresponding to one "step" of the robot. (After each step, a localization of the robot is done) </p>
-<iframe src="other/test.txt"></iframe> 
-<p> The valid commands can be found in the Robot documentation (Control/commands.txt)
+<iframe src="../other/test.txt">
+    <caption> test </caption>
+</iframe> 
+<p> The valid commands can be found in the Robot documentation (Control/commands.txt). Save the file under Control/input/your_input_file.txt </p>
 
+<h3> Connect audio player </h3>
+<p>Connect the two receivers to the Soundcard (analog input) with the VLR-Jack Cables. Connect the Audio source to an analog output and turn on the corresponding microphone. Connect the Soundcard by FireWire to your computer and turn it on. </p>
 <h3> Go!  </h3>
 
-<p> You are ready to run the program "location.py" in Localzation/ now.
-</section>
+<p> You are ready to run the program "location.py" in Localzation/ now. Run it from command line and follow the printed out instructions. For help, type command line argument -h. Once you are done with your experiments, you can follow  <a href="results.html">Results</a> for the further analysis. </p>
