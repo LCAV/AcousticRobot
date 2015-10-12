@@ -30,14 +30,29 @@
 <a id="acoustic-robot" class="anchor" href="#acoustic-robot" aria-hidden="true"><span class="octicon octicon-link"></span></a>Acoustic Robot
 </h1>
 <a href=""><h3>Operate</h3></a>
+<h2> How to operate the robot </h2>
 
-<p> How to operate the robot:
-- clone git repository
-- setup network
-- (calibrate cameras)
-- setup ref points and cameras </p>
+<p> Make sure you have succesfully completed all steps of the <a href="setup.html">"Setup</a> before going on to operate the robot. Most importantly, the setup of the network needs to be ready before robot and cameras are turned on so that they connect to the network correctly. </p>
+<h3> Place cameras </h3>
 
+<p>Fix the 4 cameras well in different corners of the room such that they share a big common visible area.
+It is useful to indicate the visible area so that no blind areas are entered during the experiments. </p>
 
+<h3> Place and measure reference points </h3>
+
+<p> Place 4 to 6 reference points in the visible area. For later processing, the reference points are numbered. Use following numbers only and place them such that all reference points are above an imaginary line drawn from the first reference point to the second reference point:</p>
+<img src="images/referencepoints.png" width=400px />
+<p> Measure the distances between all reference points and store the results in mm in a file.</p>
+<p> TODO: convenient file reading </p>
+
+<h3> Create navigation file </h3>
+<p> Create a file with the navigation history for the robot to follow. The history needs to be structured in blocks, each block corresponding to one "step" of the robot. (After each step, a localization of the robot is done) </p>
+<iframe src="other/test.txt"></iframe> 
+<p> The valid commands can be found in the Robot documentation (Control/commands.txt)
+
+<h3> Go!  </h3>
+
+<p> You are ready to run the program "location.py" in Localzation/ now.
 </section>
 </div>
 
