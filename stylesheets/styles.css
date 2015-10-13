@@ -9,6 +9,40 @@ html {
   background: #6c7989 linear-gradient(#6c7989, #434b55) fixed;
 }
 
+overview {
+-webkit-border-radius: 8px 8px 0 0;
+-moz-border-radius: 8px 8px 0 0;
+-ms-border-radius: 8px 8px 0 0;
+-o-border-radius: 8px 8px 0 0;
+border-radius: 8px 8px 0 0;
+padding: 30px;
+}
+overview ul{
+  padding: 0;
+  list-style: none;
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  padding: 1px 0;
+  background: rgba(0,0,0,0.2);
+}
+overview ul li {
+    border-left: 1px solid rgba(0,0,0,0.4);
+    border-right: 1px solid rgba(0,0,0,0.4);
+    float: left;
+    height: 38px;
+    width: 79px;
+}
+overview ul a {
+    color: rgba(255,255,255,0.8);
+    display: block;
+    font-size:11px;
+    font-weight: 400;
+    line-height: 1;
+    padding-top: 12px;
+    text-align: center;
+}
+
 body {
   padding: 50px 0;
   margin: 0;
@@ -32,7 +66,7 @@ body {
   box-shadow: rgba(0, 0, 0, 0.2) 0 0 0 1px, rgba(0, 0, 0, 0.45) 0 3px 10px;
 }
 
-header, section, footer {
+header, section, footer, overview {
   display: block;
 }
 
@@ -52,21 +86,21 @@ strong {
 }
 
 header {
-  -webkit-border-radius: 8px 8px 0 0;
-  -moz-border-radius: 8px 8px 0 0;
-  -ms-border-radius: 8px 8px 0 0;
-  -o-border-radius: 8px 8px 0 0;
-  border-radius: 8px 8px 0 0;
-  background: #C6EAFA;
-  background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ddfbfc), color-stop(100%, #c6eafa));
-  background: -webkit-linear-gradient(#ddfbfc, #c6eafa);
-  background: -moz-linear-gradient(#ddfbfc, #c6eafa);
-  background: -o-linear-gradient(#ddfbfc, #c6eafa);
-  background: -ms-linear-gradient(#ddfbfc, #c6eafa);
-  background: linear-gradient(#ddfbfc, #c6eafa);
-  position: relative;
-  padding: 15px 20px;
-  border-bottom: 1px solid #B2D2E1;
+-webkit-border-radius: 8px 8px 0 0;
+-moz-border-radius: 8px 8px 0 0;
+-ms-border-radius: 8px 8px 0 0;
+-o-border-radius: 8px 8px 0 0;
+border-radius: 8px 8px 0 0;
+background: #C6EAFA;
+background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ddfbfc), color-stop(100%, #c6eafa));
+background: -webkit-linear-gradient(#ddfbfc, #c6eafa);
+background: -moz-linear-gradient(#ddfbfc, #c6eafa);
+background: -o-linear-gradient(#ddfbfc, #c6eafa);
+background: -ms-linear-gradient(#ddfbfc, #c6eafa);
+background: linear-gradient(#ddfbfc, #c6eafa);
+position: relative;
+padding: 15px 20px;
+border-bottom: 1px solid #B2D2E1;
 }
 header h1 {
   margin: 0;

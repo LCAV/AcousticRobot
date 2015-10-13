@@ -5,12 +5,11 @@ top=$(<top.html)
 bottom=$(<bottom.html)
 for f in *.html 
 do
-    echo "removing old results..."
+    echo "$f"
     rm pages/$f
-    echo "copying into new file..."
     echo "$top" >> pages/$f
     cat $f >> pages/$f
     echo "$bottom" >> pages/$f
 done
-
+echo "saved above files in pages/"
 
