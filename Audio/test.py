@@ -17,8 +17,9 @@ def get_device_index(p):
 # input information
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
-CHANNELS=2
+CHANNELS=1
 RATE=44100
+TYPE=None #order of the data for multidimensional arrays.
 
 if len(sys.argv) < 2:
      print("Plays a wave file.\n\nUsage: %s input.wav output.wav" % sys.argv[0])
@@ -26,6 +27,7 @@ if len(sys.argv) < 2:
 
 FIN = sys.argv[1]
 FOUT = sys.argv[2]
+FOUT = FOUT.replace(".wav","")
 
 wf_in = wave.open(FIN,'rb')
 # create managing PyAudio instances
@@ -61,6 +63,13 @@ while data != '':
     frames.append(data_in)
     frames_decoded.append(np.fromstring(data_in,np.int16))
 frames_decoded=np.matrix(frames_decoded)
+# store number of buffers (circa Time * RATE / CHUNKS)
+BUFFERS = frames_decoded.shape[0]
+
+# separate frames to channels
+frames_ordered=frames_decoded.reshape(CHANNELS,BUFFERS*CHUNKS)
+
+#number of buffers*CHUNK)
 wf_in.close()
 
 # stop streams
@@ -73,11 +82,19 @@ stream_in.close()
 p_in.terminate()
 
 # save recorded data in audio file
-wf_out = wave.open(FOUT, 'wb')
-wf_out.setnchannels(CHANNELS)
-wf_out.setsampwidth(p_out.get_sample_size(FORMAT))
-wf_out.setframerate(RATE)
-wf_out.writeframes(b''.join(frames))
-wf_out.close()
+for i in range(CHANNELS):
+    frames_channel = frames_ordered[:,i] # one array of int16 values
+    frames_channel = frames_channel.reshape(BUFFERS,CHUNKS) #put into original shape
+    # recover data format (in one string per buffer)
+    frames_encoded = []
+    for rows in frames_channel:
+        frames_encoded.append(rows.tobytes(TYPE))
+    F=FOUT+str(i)+".wav"
+    wf_out = wave.open(F, 'wb')
+    wf_out.setnchannels(CHANNELS)
+    wf_out.setsampwidth(p_out.get_sample_size(FORMAT))
+    wf_out.setframerate(RATE)
+    wf_out.writeframes(b''.join(frames_encoded))
+    wf_out.close()
 
 p_out.terminate()
