@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-""" Play and Record audio files through soundcard
+"""
+Audio.py class
+==============
 
 Plays a .wav file of your choice on a source and records simultaneously
 the response from 1 or more microphones. The source and all microphones must be
@@ -158,12 +160,12 @@ class Audio:
                 wf_out.close()
         else:
             # save merged data into audio file
-            F=output_file+".wav"
+            F=self.output_file+".wav"
             wf_out = wave.open(F, 'wb')
-            wf_out.setnchannels(CHANNELS)
-            wf_out.setsampwidth(p_out.get_sample_size(FORMAT))
+            wf_out.setnchannels(self.channels)
+            wf_out.setsampwidth(self.samp_width)
             wf_out.setframerate(self.rate)
-            wf_out.writeframes(b''.join(frames_encoded))
+            wf_out.writeframes(b''.join(frames))
             wf_out.close()
         return 1
     def get_device_index(self,p):
@@ -183,6 +185,6 @@ if __name__ == "__main__":
     rate = 44100
     chunk = 1024
     input_file,output_file = get_parameters()
-    Au = Audio(input_file,output_file,2,3,rate,chunk)
+    Au = Audio(input_file,output_file,1,3,rate,chunk)
     frames=Au.play_and_record()
     Au.save_wav_files(frames)

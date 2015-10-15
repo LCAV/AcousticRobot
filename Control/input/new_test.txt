@@ -1,12 +1,11 @@
-0	i
-2	g l NOM_SPEED
-3 	g r NOM_SPEED 
+0	f 
+2 	s 
+3	b
+5	s
+0	r
+1	s
+2	l
 4	s
-
-0	p l NOM_SPEED 30
-1	g l NOM_SPEED
-2	s
-
-0	p l NOM_SPEED 40
-3	g l NOM_SPEED
-4	s
+5	f
+6	b
+7	s

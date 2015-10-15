@@ -33,7 +33,9 @@ increments of 0.1 in the input file.
 
 -------------------------------------------- '''
 
-DEBUG = 1
+DEBUG = 0 # Set to 1 to run program in "simulation mode" (without connecting to robot)
+N = 512 # Counts per revolution
+D =10 # radius of robot wheels in mm
 valid_array = ['i','f','b','l','r','e','v','u','d','a','o','c','sh','sa','s','pl','pr','g','tu','td','z'] # valid commands
 valid_boards = ['r','l','n','o']
 valid_params_motors = ['NOM_SPEED','KP','KI','KD','ACC_INC','ACC_DIV','MIN_SPEED','POS_MARG','SPEED_POS']
@@ -43,7 +45,7 @@ valid_params_other = ['PORT','LED_GPIO','PAN_NOM_SPEED','TILT_NOM_SPEED']
 def signal_handler(signal, frame):
     ''' Interrupt handler for stopping on KeyInterrupt '''
     print('Program stopped manually')
-    cleanup()
+    sys.exit(2)
 
 def touchopen(filename,*args, **kwargs):
     ''' Open or create a file '''
@@ -76,6 +78,9 @@ def get_parameters():
             except:
                 print('error5: please choose a valid output file')
                 sys.exit(2)
+    if inputfile == '':
+        print('error3: please choose a valid input file')
+        sys.exit(2)
     print('Input file is',inputfile)
     print('Output file is',outputfile)
     return inputfile,outputfile
@@ -93,17 +98,17 @@ def read_setandget(command):
     return 1
 def read_file(R,inputfile):
     ''' Read file and check if it is valid, save commands and times in dicts'''
-    file_last = 0
     command_array = []
     time_array = []
     command_blocks = dict()
     time_blocks = dict()
-    counter = 0
-    counter_blocks = 0
-
+    counter_blocks = -1
+    last_time = 0
     with open(inputfile) as f:
         c=csv.DictReader(f,delimiter = '\t', fieldnames = ['time','command'],skipinitialspace=True)
         for line in c :
+            print(line)
+            # read new time and command
             try:
                 file_time = float(line['time'])
             except:
@@ -111,37 +116,42 @@ def read_file(R,inputfile):
                 R.cleanup()
             file_command = line['command']
 
-            diff_file = file_time - file_last
-            print(diff_file,file_command)
             # Check if file starts with i
-            if (counter == 0) and (file_command != 'i'):
+            if (counter_blocks==-1) and (file_command != 'i'):
                 while 1:
                     choice = raw_input("warning1: file doesn't start with 'i'. Continue anyways?(yes=y,no=n) ")
                     if choice == 'y':
                         break
                     elif choice =='n':
                         R.cleanup()
-            # Check if time increments correctly
-            # add new commands and times to current array
-            if (valid_array.count(file_command) > 0) or read_setandget(file_command): # command is valid
+
+            if file_time != 0 and file_time-last_time<0:
+                print('error7: non-incrementing time values:',file_time,last_time)
+                R.cleanup()
+            # save old command block and initialize for next one.
+            elif file_time == 0:
+                if counter_blocks != -1:
+                    time_blocks[counter_blocks] = time_array
+                    command_blocks[counter_blocks] = command_array
+                    time_array = []
+                    command_array = []
+                counter_blocks += 1
+
+            # Add new valid commands and times to current array
+            if (valid_array.count(file_command) > 0) or read_setandget(file_command):
                 time_array.append(file_time)
                 command_array.append(file_command)
+                last_time = file_time
             else:
                 print('error9: non-valid command ',file_command)
                 R.cleanup()
-            # save old command block and initialize for next one.
-            if diff_file < 0:
-                print('reset')
-                time_blocks[counter_blocks] = time_array
-                command_blocks[counter_blocks] = command_array
-                time_array = []
-                command_array = []
-                counter_blocks += 1
-                file_last = 0
-            counter += 1
-            file_last = file_time
-        return time_blocks, command_blocks
-
+        # Add last array to block
+        time_blocks[counter_blocks] = time_array
+        command_blocks[counter_blocks] = command_array
+        if (input("proceed with above listed commands?(0/1)")):
+            return time_blocks, command_blocks
+        else:
+            R.cleanup()
 class Robot:
     def __init__(self,IP,port,buffsize):
         self.IP=IP
@@ -167,7 +177,7 @@ class Robot:
             self.socket.close()
             print('Robot socket closed succesfully')
         except:
-            print('Robot not connected to start with')
+            print('Did not connect to robot')
         try:
             if not os.path.getsize(outputfile):
                 os.remove(outputfile)
@@ -189,21 +199,16 @@ class Robot:
                 if not DEBUG:
                     self.socket.send(command)
                 c.writerow([time.time()-start,command])
-                print('command written')
                 print('{0:15s} \t {1:5.4f} \t {2:5.4f}'.format(command, t,time.time()-start))
 
                 # wait for response
                 if command[0]=='g':
                     if not DEBUG:
                         data = self.socket.recv(BUFFER_SIZE)
-                        print('repose:',data)
                         c.writerow([time.time()-start,data])
-                    print('response written')
                 last_time = t
     def convert(self, pos_left, pos_right):
         ''' Convert position of encoder to mm '''
-        N = 512 # Counts per revolution
-        D =10 # degree of robot wheels in mm
         left_mm = pos_left/512*np.pi*D
         right_mm = pos_right/512*np.pi*D
 if __name__ == '__main__':
@@ -214,7 +219,7 @@ if __name__ == '__main__':
     TCP_PORT = 51717
     BUFFER_SIZE = 1024
     R = Robot(TCP_IP,TCP_PORT,BUFFER_SIZE)
-
+    print('test')
     # Get parameters
     inputfile,outputfile = get_parameters()
 
@@ -226,7 +231,7 @@ if __name__ == '__main__':
         R.connect()
 
     # Execute commands (in blocks)
-    for i,c in enumerate(commands):
+    for i,c in commands.iteritems():
         t=times[i]
         R.move(t,c,outputfile)
         time.sleep(2)
