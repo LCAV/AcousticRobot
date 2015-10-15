@@ -10,15 +10,27 @@ import marker_calibration as mark
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+import ../Control/move
 USAGE = '''
-USAGE: locate.py -o <output path> -n <number of points> [-f <fisheye on (0/1)>]
+USAGE: locate.py -o <output path> -i <input file> -n <number of points> [-f <fisheye on (0/1)>]
 '''
-ROBOT_LOC='''Robot Localization   :
-Enter choice ('n' or 'o' to use new or old measurement, 'q' to quit): '''
 EXTRINSIC='''Extrinsic Calibration:
 Enter camera number or 'q' to skip: '''
 INTRINSIC='''Intrinsic Calibration:
 Enter camera number or 'q' to skip: '''
+ROBOT_LOC='''Robot Localization   :
+Enter choice ('n' or 'o' to use new or old measurement, 'q' to quit): '''
+ROBOT_MOVE='''Robot Moving        :
+Do you want to move the robot? ('y' for yes or 'n' for no)'''
+
+# color frame ƒor robot detection
+COL_MIN = np.array([150,100,0],dtype=np.uint8)
+COL_MAX = np.array([20,250,255],dtype=np.uint8)
+# color frame for reference poitn detection
+COL_MIN_REF = np.array([175,100,0],dtype=np.uint8)
+COL_MAX_REF = np.array([20,250,255],dtype=np.uint8)
+
+NCAMERAS = [139,141,143,145]
 def get_param():
     ''' returns parameters from command line '''
     global USAGE
@@ -26,8 +38,8 @@ def get_param():
     m = 0
     fisheye = 0
     try:
-        opts,args = getopt.getopt(sys.argv[1:],"o:m:f:",
-                                  ['output=','m=','fisheye='])
+        opts,args = getopt.getopt(sys.argv[1:],"o:m:f:i:",
+                                  ['output=','m=','fisheye=','input='])
     except getopt.GetoptError:
         print(USAGE)
         sys.exit(2)
@@ -35,12 +47,14 @@ def get_param():
         if opt in ('--output',"-o"):
             out_dir = str(arg)
         if opt in ('--m',"-m"):
-                m = int(arg)
+            m = int(arg)
         if opt in ('--fisheye',"-f"):
-                fisheye = int(arg)
+            fisheye = int(arg)
+        if opt in ('--input',"-i"):
+            input_file = str(arg)
     if out_dir[-1]!="/":
         out_dir = out_dir+"/"
-    return out_dir,m,fisheye
+    return out_dir,m,fisheye,input_file
 
 if __name__ == '__main__':
     import sys
@@ -48,14 +62,14 @@ if __name__ == '__main__':
 #---------------------------       Initialization       -----------------------#
     # General
     cam_dir = 'calib/'
-    out_dir,n_pts,fisheye = get_param() # number of reference points
+    out_dir,n_pts,fisheye,input_file = get_param() # number of reference points
+    output_file = out_dir+"odometry.tex"
     flag = 0 # alorithm for solvepnp
     ransac = 0 # use ransac or not
     repErr_range = range(1,50)# for Ransac algorithm (8 by default)
 
     # Setup Cameras
-    n_cameras = [139,141,143,145]
-    numbers=range(2,5) # number of cameras to loop through
+    numbers=range(2,4) # number of cameras to loop through
     C139_real = np.matrix([110,670,1750])
     C141_real = np.matrix([460,40,1320])
 
@@ -69,6 +83,13 @@ if __name__ == '__main__':
     ref_z = 20*np.ones((1,n_pts))
     #ref_z = np.array([135,0,230,0]) #height of reference points in mm
     #ref_z = '' #height automatically set to 0
+
+    # Read Robot control file
+     Robot = move.Robot()
+     (times, commands) = read_file(Robot,input_file)
+     Robot.connect()
+     Robot.get_position(output_file)
+     loop_counter = 0
 #--------------------------- 0. Intrinsic Calibration   -----------------------#
 
     n = raw_input(INTRINSIC)
@@ -94,10 +115,8 @@ if __name__ == '__main__':
             img = cam.undistort(img)
 
             #-- get points --#
-            col_min = np.array([175,100,0],dtype=np.uint8)
-            col_max = np.array([20,250,255],dtype=np.uint8)
             img_org,circ_org,pts_img,th_org = persp.imagepoints(img,r_ref,n_pts,t,
-                                                                col_min,col_max)
+                                                                COL_MIN_REF,COL_MAX_REF)
         else:
             break
 #--------------------------- 3.b Get Object Points      -----------------------#
@@ -128,7 +147,7 @@ if __name__ == '__main__':
         plt.close('all')
         # save new position in file
         if choice == 'n':
-            for n in n_cameras:
+            for n in NCAMERAS:
                 cam = calib.Camera(n)
                 cam.read(cam_dir,fisheye)
 
@@ -140,12 +159,11 @@ if __name__ == '__main__':
                 #-- get last reference points --#
                 img_ref = calib.Image(n)
                 img_ref.read_ref(out_dir,"ref_",n_pts)
-                col_min = np.array([150,100,0],dtype=np.uint8)
-                col_max = np.array([20,250,255],dtype=np.uint8)
                 #img_red,circ_red,p,th_red = persp.imagepoints_auto(img,r_rob,1,t,
-                #                                              col_min,col_max,
+                #                                              COL_MIN,COL_MAX,
                 #                                              img_ref.ref_img,r_ref)
-                img_red,circ_red,p,th_red = persp.imagepoints(img,r_rob,1,t,col_min,col_max)
+                img_red,circ_red,p,th_red = persp.imagepoints(img,r_rob,1,t,
+                                                              COL_MIN,COL_MAX)
                 #-- save resutls --#
                 name='pos_img'+str(n)+'.txt'
                 persp.write_pos(out_dir,name,p)
@@ -156,7 +174,7 @@ if __name__ == '__main__':
         pts = dict()
         pts_ref = dict()
         errs = dict()
-        for i,n in enumerate(n_cameras):
+        for i,n in enumerate(NCAMERAS):
             # Load camera
             cam = calib.Camera(n)
             cam.read(cam_dir,fisheye)
@@ -184,16 +202,16 @@ if __name__ == '__main__':
             errs[i]=err_img
 
         ref_real = img.ref_real[choice_ref,:] # real position of reference points
-        p1,e21,e31,arr1 = calib.get_leastsquares_combinations(n_cameras,numbers,cams.values(),
+        p1,e21,e31,arr1 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
                                            pts_ref.values(),'hz',ref_real[0,2],ref_real)
         calib.save_combinations(out_dir,"combi_ref_fixed"+str(choice_ref),arr1,p1,(e21,e31),fisheye)
-        p2,e22,e32,arr2 = calib.get_leastsquares_combinations(n_cameras,numbers,cams.values(),
+        p2,e22,e32,arr2 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
                                            pts_ref.values(),'hz','',ref_real)
         calib.save_combinations(out_dir,"combi_ref_free"+str(choice_ref),arr2,p2,(e22,e32),fisheye)
-        p3,e23,e33,arr3 = calib.get_leastsquares_combinations(n_cameras,numbers,cams.values(),
+        p3,e23,e33,arr3 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
                                            pts.values(),'hz',r_height,r_real)
         calib.save_combinations(out_dir,"combi_rob_fixed"+str(choice_ref),arr3,p3,(e23,e33),fisheye)
-        p4,e24,e34,arr4 = calib.get_leastsquares_combinations(n_cameras,numbers,cams.values(),
+        p4,e24,e34,arr4 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
                                            pts.values(),'hz','',r_real)
         calib.save_combinations(out_dir,"combi_rob_free"+str(choice_ref),arr4,p4,(e24,e34),fisheye)
         calib.save_combinations(out_dir,"combi_all"+str(choice_ref),arr4,p2,(e21,e22,e32,
@@ -227,8 +245,17 @@ if __name__ == '__main__':
             f.write(msg3+"\n")
             f.write(msg4+"\n")
 
+#--------------------------- 4.c Make Robot Move        -----------------------#
+        choice = raw_input(ROBOT_MOVE)
+        if choice == 'y':
+            t = times[loop_counter]
+            c = commands[loop_counter]
+            Robot.move(t,c,output_file)
+            Robot.get_position(output_file)
+            loop_counter += 1
+
+
+
 
 
         choice = raw_input(ROBOT_LOC)
-
-#--------------------------- 4.c Make Robot Move        -----------------------#

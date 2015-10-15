@@ -42,6 +42,10 @@ valid_params_motors = ['NOM_SPEED','KP','KI','KD','ACC_INC','ACC_DIV','MIN_SPEED
 valid_params_neck = ['NOM_PWM','NOM_ANGLE']
 valid_params_other = ['PORT','LED_GPIO','PAN_NOM_SPEED','TILT_NOM_SPEED']
 
+TCP_IP = '172.16.156.137'
+TCP_PORT = 51717
+BUFFER_SIZE = 1024
+
 def signal_handler(signal, frame):
     ''' Interrupt handler for stopping on KeyInterrupt '''
     print('Program stopped manually')
@@ -153,7 +157,7 @@ def read_file(R,inputfile):
         else:
             R.cleanup()
 class Robot:
-    def __init__(self,IP,port,buffsize):
+    def __init__(self,IP=TCP_IP,port=TCP_PORT,buffsize=BUFFER_SIZE):
         self.IP=IP
         self.port=port
         self.buffsize = buffsize
@@ -215,11 +219,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
 
     # Create robot instance
-    TCP_IP = '172.16.156.137'
-    TCP_PORT = 51717
-    BUFFER_SIZE = 1024
     R = Robot(TCP_IP,TCP_PORT,BUFFER_SIZE)
-    print('test')
     # Get parameters
     inputfile,outputfile = get_parameters()
 
@@ -235,6 +235,6 @@ if __name__ == '__main__':
         t=times[i]
         R.move(t,c,outputfile)
         time.sleep(2)
-
+    #TODO: read position of robot! R.get_position(outputfile)
     if not DEBUG:
         R.cleanup(outputfile)
