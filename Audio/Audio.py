@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
 """ Play and Record audio files through soundcard
 
+Plays a .wav file of your choice on a source and records simultaneously
+the response from 1 or more microphones. The source and all microphones must be
+connected to a soundcard which is connected to your computer. (Or use your
+computer as a soundcard directly)
 
+For each microphone channel, a output .wav-file is created.
 
+The program was tested for MOTU 897HD Soundcard and for the internal speakers
+and microphones of a MAC OS X.
 
 """
 from __future__ import print_function, division
@@ -176,6 +183,6 @@ if __name__ == "__main__":
     rate = 44100
     chunk = 1024
     input_file,output_file = get_parameters()
-    Au = Audio(input_file,output_file,2)
+    Au = Audio(input_file,output_file,2,3,rate,chunk)
     frames=Au.play_and_record()
     Au.save_wav_files(frames)
