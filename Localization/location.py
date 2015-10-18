@@ -11,8 +11,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import move
+import Audio
 USAGE = '''
-USAGE: locate.py -o <output path> -i <input file> -m <number of points> [-f <fisheye on (0/1)>]
+USAGE: locate.py -o <output path> -i <input file robot movement> -a <audio file>
+-m <number of points> [-f <fisheye on (0/1)>]
 '''
 EXTRINSIC='''Extrinsic calibration:
 Enter camera number or 'q' to skip: '''
@@ -41,9 +43,11 @@ def get_param():
     out_dir = ''
     m = 0
     fisheye = 0
+    input_mov = ''
+    input_au = ''
     try:
-        opts,args = getopt.getopt(sys.argv[1:],"o:m:f:i:",
-                                  ['output=','m=','fisheye=','input='])
+        opts,args = getopt.getopt(sys.argv[1:],"o:m:f:i:a:",
+                                  ['output=','m=','fisheye=','input=','audio='])
     except getopt.GetoptError:
         print(USAGE)
         sys.exit(2)
@@ -58,13 +62,15 @@ def get_param():
         if opt in ('--fisheye',"-f"):
             fisheye = int(arg)
         if opt in ('--input',"-i"):
-            input_file = str(arg)
+            input_mov = str(arg)
+        if opt in ('--audio',"-a"):
+            input_au = str(arg)
     if opts==[]:
         print(USAGE)
         sys.exit(2)
     if out_dir[-1]!="/":
         out_dir = out_dir+"/"
-    return out_dir,m,fisheye,input_file
+    return out_dir,m,fisheye,input_mov,input_au
 def signal_handler(signal, frame):
     ''' Interrupt handler for stopping on KayInterrupt '''
     print('Program stopped manually')
@@ -76,11 +82,11 @@ if __name__ == '__main__':
 #---------------------------       Initialization       -----------------------#
     # General
     cam_dir = 'calib/'
-    out_dir,n_pts,fisheye,input_file = get_param() # number of reference points
+    out_dir,n_pts,fisheye,input_mov,input_au = get_param()
     current_time = str(int(time.mktime(time.gmtime())))
     output_odo = out_dir+"odometry_"+current_time+".tex"
     output_tim = out_dir+"timings_"+current_time+".tex"
-
+    output_au = out_dir+"audio_"+current_time+".wav"
     # Visual localization
     flag = 0 # alorithm for solvepnp
     ransac = 0 # use ransac or not
@@ -102,7 +108,7 @@ if __name__ == '__main__':
 
     # Odometry localization
     Robot = move.Robot()
-    (times, commands) = move.read_file(Robot,input_file)
+    (times, commands) = move.read_file(Robot,input_mov)
     Robot.connect()
     loop_counter = 0
 #--------------------------- 0. Intrinsic Calibration   -----------------------#
@@ -271,8 +277,10 @@ if __name__ == '__main__':
 #--------------------------- 4.3 Acoustic Localization   ----------------------#
         choice = raw_input(ROBOT_ACO)
         if choice == 'y':
-            #Au.
             print("Acoustic localization")
+            Au = Audio.Audio(input_au,output_au,1)
+            frames=Au.play_and_record()
+            Au.save_wav_files(frames)
 #--------------------------- 5. Make Robot Move        -----------------------#
         choice = raw_input(ROBOT_MOVE)
         if choice == 'y':

@@ -217,25 +217,25 @@ class Robot:
             c=csv.writer(f,delimiter='\t')
             # send request to get position
             for motor in motors:
-                cmd = "g "+motor+" POS"
+                cmd = "g "+motor+" ACT_POS"
                 if not DEBUG:
                     self.socket.send(cmd)
-                # wait for response
+                #wait for response
                 found = 0
-                print('getting response from',self.socket)
                 if not DEBUG:
                     while not found:
                         data = self.socket.recv(BUFFER_SIZE)
-                        print("data:",data)
                         if data.find(cmd)!= -1:
                             pos = int(data.replace(cmd,""))
                             found = 1
+                        #pos = data
+                        #found = 1
                     position[motor]=pos
             c.writerow([position[motors[0]],position[motors[1]]])
     def convert(self, pos_left, pos_right):
         ''' Convert position of encoder to mm '''
-        left_mm = pos_left/512*np.pi*D
-        right_mm = pos_right/512*np.pi*D
+        left_mm = pos_left/N*np.pi*D
+        right_mm = pos_right/N*np.pi*D
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
     # Create robot instance
@@ -254,6 +254,8 @@ if __name__ == '__main__':
     if not DEBUG:
         R.connect()
 
+    # Get initial position
+    R.get_position(output_odo)
     # Execute commands (in blocks)
     for i,c in commands.iteritems():
         print("starting new movement")
