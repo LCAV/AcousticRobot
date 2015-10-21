@@ -44,7 +44,12 @@ def get_centroid(cnt):
     cy,cx = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
     return cx,cy
 def visualization(imgs,n_cam,colorbar=0,switch=0):
-    ''' Visualize results '''
+    ''' Visualize results in figures named by their title.
+
+    _Parameters_:
+
+
+    '''
     n = len(imgs)
     for (tit,im) in imgs.items():
         #plt.subplot(n,1,i),plt.imshow(im)
@@ -112,7 +117,19 @@ def get_parameters():
 
     return inputfile,outputpath
 def write_ref(dirname,name,pts_img,M,pts_obj):
-    ''' save positions in file '''
+    ''' Save reference points positions in file, overwriting old results
+
+    _Parameters_:
+    dirname = directory
+    name = name of file
+    pts_img = np array with image positions of reference points.
+    M = geometric transformation np matrix(3x3) obtained from geometric_transformationN
+    pts_obj = np array with object positions of reference points
+
+    format of pts_img, pts_obj: row i: (pi_x, pi_y) with i going from 1 to m
+    (m = number of reference points)
+
+    _Returns_: Nothing'''
     with open(dirname+name,"w") as f:# overwrite
         for pt in pts_img:
             f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
@@ -122,6 +139,14 @@ def write_ref(dirname,name,pts_img,M,pts_obj):
             pt = pt*10 #points in mm
             f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
 def write_pos(dirname,name,p):
+    ''' save robot position (img or obj) in file, appending to old results
+
+    _Parameters_:
+    dirname = directory
+    name = name of file
+    p = np array with robot position (x,y)
+
+    _Returns_: Nothing'''
     with open(dirname+name,"a") as f: # append
         if p.any():
             for pt in p:
@@ -144,10 +169,10 @@ def create_summary(img_flat,pts_obj,p=np.zeros(1)):
                     (255,255,0),1,cv2.CV_AA)
     return img_summary
 
-def save_open_images(outputpath,n_cam):
+def save_open_images(outputpath,n_cam,loopcounter=''):
     for i in plt.get_figlabels():
         plt.figure(i)
-        plt.savefig(outputpath+str(i)+'.png')
+        plt.savefig(outputpath+str(loopcounter)+"_"+str(i)+'.png')
 
 ''' --------   Image Processing ------------ '''
 def get_circles_count(img,contours,t,w,r):
@@ -394,38 +419,31 @@ def imagepoints(img,r,n,t,col_min,col_max,reduced=0):
     return img_color,circ_color,pos_color,th
 
 ''' --------------  Geometry ---------------'''
-def objectpoints(m):
+def objectpoints(m,name):
+    ''' reads objectpoint positions from file.
+    _Parameters_:
+    m = number of points
+    name = file name
+
+    _Returns_:
+    pts_obj = object posotions of reference points (in cm)
+    margin = x- and y distance from left-most and down-most point with respect
+    to reference.
+    M1 = object returned by MarkerSet.
+'''
     # Initialisation
     dim = 2
-    marker_diameter = 0#0.040 # in m
-    D = np.zeros((m,m))
-    # Test distances in m
-    s = 0.7 # square side
-    d = (2*s*s)**0.5 # square diagonal
-    D[0,1] = D[1,0] = s + marker_diameter
-    D[0,2] = D[2,0] = d + marker_diameter
-    D[0,3] = D[3,0] = s + marker_diameter
-    D[1,2] = D[2,1] = s + marker_diameter
-    D[1,3] = D[3,1] = d + marker_diameter
-    D[3,2] = D[2,3] = s + marker_diameter
-
-    D[0,1] = D[1,0] = 1.602 + marker_diameter
-    D[0,2] = D[2,0] = 3.202 + marker_diameter
-    D[0,3] = D[3,0] = 2.644 + marker_diameter
-    D[1,2] = D[2,1] = 2.050 + marker_diameter
-    D[1,3] = D[3,1] = 2.325 + marker_diameter
-    D[2,3] = D[3,2] = 1.459 + marker_diameter
-    if m>=5:
-        D[0,4] = D[4,0] = 1.734 + marker_diameter
-        D[1,4] = D[4,1] = 2.412 + marker_diameter
-        D[2,4] = D[4,2] = 2.713 + marker_diameter
-        D[3,4] = D[4,3] = 1.447 + marker_diameter
-    if m>=6:
-        D[0,5] = D[5,0] = 1.735 + marker_diameter/2
-        D[1,5] = D[5,1] = 1.096 + marker_diameter/2
-        D[2,5] = D[5,2] = 1.489 + marker_diameter/2
-        D[3,5] = D[5,3] = 1.257 + marker_diameter/2
-        D[4,5] = D[5,4] = 1.588 + marker_diameter/2
+    marker_diameter = 0.040 # in m
+    # Read relative positions (in m)
+    D = np.genfromtxt(name,delimiter=";",skiprows=1,
+                   skip_header=1,filling_values=0)
+    # Delete first column
+    D = D[:,1:]
+    # Fill other half of the matrix:
+    D = D + D.T
+    # Add marker diameter to all values that are not 0
+    D = D+marker_diameter
+    D[D==marker_diameter]=0
     # Get postions
     M1 = mark.MarkerSet(m=m,dim=dim,diameter=marker_diameter)
     M1.fromEDM(D**2)
@@ -550,8 +568,8 @@ if __name__ == "__main__":
                     circ_red = np.zeros(img.shape)
                 #-------------- Project image to 2D -----------#
                 # Get real positions
-                #TODO only for testing
-                pts_obj2,margin,M = objectpoints(m)
+                # only for testing
+                pts_obj2,margin,M = objectpoints(m,'input/objectpoints.csv')
                 # position of real points in cm, pt = (x,y)
                 pts_obj_test=np.array([[0,0],[70,0],[70,70],[0,70]],dtype=np.float32)
                 pts_obj_test=np.vstack((pts_obj_test,[50,33],[16,90]))

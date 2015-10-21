@@ -59,7 +59,7 @@ def get_param():
     out_dir = ''
     cam_dir = ''
     n = 141
-    fisheye = 0
+    fisheye = '0000'
     try:
         opts,args = getopt.getopt(sys.argv[1:],"o:c:n:f:",
                                   ['save=', 'cam=','n=','fisheye='])
@@ -74,7 +74,8 @@ def get_param():
         if opt in ('--n',"-n"):
             n = int(arg)
         if opt in ('--fisheye',"-f"):
-            fisheye = int(arg)
+            fish = np.array(arg.split('0'))
+            fisheye = [c=='1' for c in fish]
     if out_dir[-1]!="/":
         out_dir = out_dir+"/"
     if cam_dir[-1]!="/":
@@ -309,7 +310,7 @@ class Camera:
         self.R = np.matrix(R)
         self.Proj = self.C*np.hstack((self.R,self.t))
         self.Center = -self.R.I*self.t
-    def read(self,cam_dir,fisheye):
+    def read(self,cam_dir,fisheye=0):
         ''' get camera parameters from file '''
         import numpy as np
         i=0
@@ -668,7 +669,7 @@ if __name__ == '__main__':
 
     # make new calibration
     #camera = Camera(n)
-    #img_points,obj_points,size = camera.get_checkpoints(out_dir,fisheye)
+    #img_points,obj_points,size = camera.get_checkpoints(out_dir,fisheye[n])
     #root mean square (RMS) re-projection error (good between 0.1 and 1)
     #camera.calibrate(obj_points,img_points,size)
     #camera.save(out_dir)
