@@ -80,12 +80,15 @@ class Audio:
 
         if self.channels>1, each element of frames is a list of format format_np.
         '''
+        print(self.input_file)
         wf_in = wave.open(self.input_file,'rb')
         # create managing PyAudio instances
         p_out = pyaudio.PyAudio()
         p_in = pyaudio.PyAudio()
         self.get_device_index(p_in)
         # initialize streams
+        print(wf_in.getframerate())
+        print(wf_in.getnchannels())
         stream_out = p_out.open(output_device_index=self.index,
                                 format=p_out.get_format_from_width(wf_in.getsampwidth()),
                                 channels=wf_in.getnchannels(),

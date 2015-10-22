@@ -241,8 +241,8 @@ def get_best_combination(crit):
             c_best = c
             i_best = i
     return i_best, c_best
-def save_combinations(out_dir,fname,arrs,pts,errs,fisheye):
-    if fisheye:
+def save_combinations(out_dir,fname,arrs,pts,errs,fisheye=False):
+    if fisheye==True:
         fname2 = fname+"_fish.txt"
     else:
         fname2 = fname+".txt"

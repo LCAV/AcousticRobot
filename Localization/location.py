@@ -21,6 +21,8 @@ m=6
 f='0000'
 
 '''
+DEBUG=1
+
 EXTRINSIC='''Extrinsic calibration:
 Enter camera number or 'q' to skip: '''
 INTRINSIC='''Intrinsic calibration:
@@ -47,10 +49,10 @@ MIN_REF = np.array([175,150,0],dtype=np.uint8)
 MAX_REF = np.array([20,250,255],dtype=np.uint8)
 R_REF = 8 # radius of referencepoints (in pixels)
 R_ROB = 15 # radius of robot point (in pixels)
-THRESH = 50 # empiric threshold for circle detection
+THRESH = 20 # empiric threshold for circle detection
 MARGIN = np.array([100,100]) #margin from leftmost and downlost ref point to reference (in cm)
 
-NCAMERAS = [139,141,143,145]
+NCAMERAS = [141,143,145]
 #NCAMERAS = [139]
 def get_param():
     ''' returns parameters from command line '''
@@ -111,7 +113,7 @@ if __name__ == '__main__':
     flag = 0 # alorithm for solvepnp
     numbers=range(2,4) # number of cameras to loop through
 
-    r_real = np.matrix([1118,975,182]) #real position robot in mm
+    r_real = np.matrix([2118,1975,182]) #real position robot in mm
     r_height = r_real[0,2] #height of robot in mm
     choice_ref = 4 #chosen reference point for error calculation
     ref_z = 20*np.ones((1,n_pts))
@@ -142,7 +144,13 @@ if __name__ == '__main__':
             n = int(n)
             cam = calib.Camera(n)
             cam.read(in_dir,fisheye)
-            img = get.get_image(n)
+
+            if DEBUG:
+                img=cv2.imread(in_dir+'image'+str(n)+".png")
+                b,g,r= cv2.split(img)
+                img=cv2.merge((r,g,b))
+            else:
+                img = get.get_image(n)
 
             # save unchanged image
             plt.imsave(out_dir+'image'+str(n),img)
@@ -177,6 +185,7 @@ if __name__ == '__main__':
         imgs = {'summary':img_summary}
         persp.visualization(imgs,n,0,1)
         persp.save_open_images(out_dir,n)
+        plt.close('all')
 
 #--------------------------- 4. Localization            -----------------------#
 #--------------------------- 4.1 Visual localization    -----------------------#
@@ -193,7 +202,14 @@ if __name__ == '__main__':
                     cam = calib.Camera(n)
                     cam.read(in_dir,fisheye[i])
 
-                    img = get.get_image(n)
+                    if DEBUG:
+                        img=cv2.imread(in_dir+"image"+str(n)+".png")
+                        b,g,r= cv2.split(img)
+                        img=cv2.merge((r,g,b))
+                    else:
+                        img = get.get_image(n)
+
+
                     #-- undistort image --#
                     #img = cam.undistort(img)
                     #-- get point --#
@@ -206,11 +222,12 @@ if __name__ == '__main__':
                     img_red,circ_red,p,th_red = persp.imagepoints(img,R_ROB,1,THRESH,
                                                                 MIN,MAX)
                     #--save results--#
-                    name='posimg_'+str(n)+'_'+'.txt'
+                    name='posimg_'+str(n)+'_'+start_time+'.txt'
                     persp.write_pos(out_dir,name,p)
                     imgs={'img_red':img_red,'circ_red':circ_red,'img':img}
                     persp.visualization(imgs,n)
                     persp.save_open_images(out_dir,n,loop_counter)
+                    plt.close('all')
 
     #--------------------------- 4.1.b Calculate Object Point ---------------------#
             cams = dict()
@@ -248,16 +265,16 @@ if __name__ == '__main__':
             ref_real = img.ref_real[choice_ref,:] # real position of reference points
             p1,e21,e31,arr1 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
                                             pts_ref.values(),'hz',ref_real[0,2],ref_real)
-            calib.save_combinations(out_dir,"combi_ref_fixed"+str(choice_ref),arr1,p1,(e21,e31),fisheye)
+            calib.save_combinations(out_dir,"combi_ref_fixed"+str(choice_ref),arr1,p1,(e21,e31))
             p2,e22,e32,arr2 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
                                             pts_ref.values(),'hz','',ref_real)
-            calib.save_combinations(out_dir,"combi_ref_free"+str(choice_ref),arr2,p2,(e22,e32),fisheye)
+            calib.save_combinations(out_dir,"combi_ref_free"+str(choice_ref),arr2,p2,(e22,e32))
             p3,e23,e33,arr3 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
                                             pts.values(),'hz',r_height,r_real)
-            calib.save_combinations(out_dir,"combi_rob_fixed"+str(choice_ref),arr3,p3,(e23,e33),fisheye)
+            calib.save_combinations(out_dir,"combi_rob_fixed"+str(choice_ref),arr3,p3,(e23,e33))
             p4,e24,e34,arr4 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
                                             pts.values(),'hz','',r_real)
-            calib.save_combinations(out_dir,"combi_rob_free"+str(choice_ref),arr4,p4,(e24,e34),fisheye)
+            calib.save_combinations(out_dir,"combi_rob_free"+str(choice_ref),arr4,p4,(e24,e34))
             calib.save_combinations(out_dir,"combi_all"+str(choice_ref),arr4,p2,(e21,e22,e32,
                                                                 e23,e24,e34),fisheye)
             # Pick best combination based on chosen criteria
@@ -268,6 +285,7 @@ if __name__ == '__main__':
             p_lq2 = p4[index2]
             err22 = e24[index2]
             err32 = e34[index2]
+            print("real position:",r_real)
 
             # Results visualization and saving
             msg0="Best combination (based on best 3D error with free height):{0},error: {1:6.4f}".format(arr2[index2],err2)
@@ -313,7 +331,9 @@ if __name__ == '__main__':
         if choice == 'y':
             print("Acoustic localization")
             output_au = output_au.replace('/','/'+str(loop_counter)+'_')
-            Au = Audio.Audio(input_au,output_au,1)
+            rate = 44100
+            chunk = 1024
+            Au = Audio.Audio(input_au,output_au,1,3,rate,chunk)
             frames=Au.play_and_record()
             Au.save_wav_files(frames)
 #--------------------------- 5. Make Robot Move        -----------------------#
