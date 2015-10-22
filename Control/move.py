@@ -163,10 +163,10 @@ class Robot:
             self.socket = s
         except (KeyboardInterrupt, SystemExit):
             print('error10: could not connect to robot, manually stopped')
-            cleanup()
+            self.cleanup()
         except:
             print('error11: could not connect to robot')
-            cleanup()
+            self.cleanup()
     def cleanup(self,output_tim='',output_odo=''):
         ''' Close socket, delete empty outputfiles.'''
         try:

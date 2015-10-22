@@ -310,7 +310,7 @@ class Camera:
         self.R = np.matrix(R)
         self.Proj = self.C*np.hstack((self.R,self.t))
         self.Center = -self.R.I*self.t
-    def read(self,cam_dir,fisheye=0):
+    def read(self,cam_dir,fisheye=False):
         ''' get camera parameters from file '''
         import numpy as np
         i=0
@@ -320,8 +320,11 @@ class Camera:
         rvecs = []
         tvecs = []
         fname = "results"
-        if fisheye:
+        if fisheye==True:
+            print("loading fisheye parameters...")
             fname = "results_fish"
+        else:
+            print("loading parameters...")
         with open(cam_dir+fname+str(self.n)+".txt","r") as f:
             c = csv.reader(f,delimiter='\t')
             count = sum(1 for _ in c) # number of lines in file
@@ -637,8 +640,8 @@ class Image:
         '''
         get newest robot position from pos_img file of this camera
         '''
-        #fname = self.get_newest(dirname,fname)
-        fname=dirname+fname+str(self.n)+".txt"
+        fname = self.get_newest(dirname,fname)
+        #fname=dirname+fname+str(self.n)+".txt"
         p = ''
         with open(fname,"r") as f:
             c = csv.reader(f,delimiter = '\t')

@@ -53,7 +53,7 @@ def visualization(imgs,n_cam,colorbar=0,switch=0):
     n = len(imgs)
     for (tit,im) in imgs.items():
         #plt.subplot(n,1,i),plt.imshow(im)
-        plt.close(tit),plt.figure(tit)
+        plt.close(tit+str(n_cam)),plt.figure(tit+str(n_cam))
         if switch == 0:
             plt.imshow(im)
         else:
@@ -236,7 +236,8 @@ def extract_color(img,range_min,range_max,r):
     ''' Color contours extraction '''
     i=0
     max_area=0
-    min_area = r**2*np.pi/5
+    min_area = r**2*np.pi/15
+    print("Extract: minimum area = ", min_area)
     #min_area = 50
     best_cnt = 1
     cx = cy = 0
@@ -427,8 +428,6 @@ def objectpoints(m,name):
 
     _Returns_:
     pts_obj = object posotions of reference points (in cm)
-    margin = x- and y distance from left-most and down-most point with respect
-    to reference.
     M1 = object returned by MarkerSet.
 '''
     # Initialisation
@@ -449,11 +448,8 @@ def objectpoints(m,name):
     M1.fromEDM(D**2)
     M1.normalize()
     #left and lower margin respectively, in m
-    margin = np.array([0.4+marker_diameter,0.46+marker_diameter]) #200
-
-    margin = margin*100 # margin in cm
     pts_obj = M1.X.T*100 # pts in cm.
-    return pts_obj,margin,M1
+    return pts_obj,M1
 def geometric_transformationN(img,pts_obj,pts_img,size):
     ''' Find Homography for N points '''
     pts_obj = pts_obj.astype(np.float32)
@@ -569,7 +565,8 @@ if __name__ == "__main__":
                 #-------------- Project image to 2D -----------#
                 # Get real positions
                 # only for testing
-                pts_obj2,margin,M = objectpoints(m,'input/objectpoints.csv')
+                margin = np.array([40,46]) #in cm
+                pts_obj2,M = objectpoints(m,'input/objectpoints.csv')
                 # position of real points in cm, pt = (x,y)
                 pts_obj_test=np.array([[0,0],[70,0],[70,70],[0,70]],dtype=np.float32)
                 pts_obj_test=np.vstack((pts_obj_test,[50,33],[16,90]))
