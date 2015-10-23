@@ -1,11 +1,76 @@
-<h2> Setup </h2>
+<h2>Setup</h2>
 
-<p>Things that only need to be done once...</p>
+<p> Things that need to be done before every new experiment... </p>
 
-<h3> Clone git repository </h3>
+<p> 
+Make sure you have succesfully completed all steps of the <a href="preparation.html">Setup</a> before going on to this setup 
+Most importantly, the setup of the network needs to be ready before robot and cameras are turned on so that they connect to the network correctly. 
+For the full experiment you will need: </p>
 
-<h3> Setup network </h3>
+<ul style="list-style-type:disc">
+<li>Router</li>
+<li>4 Cameras (Fig. 1) with corresponding tools:</li>
+<ul>
+<li> 4 microphone holders</li>
+<li> 4 screw adapters </li>
+<li> 4 Camera fixations </li>
+</ul>
+<li>4-6 reference points (Fig. 2)</li>
+<li>Laser distance meter</li>
+<li>Audio tools:</li>
+<ul>
+<li> Point source speaker</li>
+<li> MOTU Soundcard with at least 2 inputs and FireWire connection.</li>
+<li> 2 Wireless sound receiver </li>
+<li> 2 VLR-Jack cables,1 VLR-VLR cable, 1 Firewire cable, Power cables for above instruments  </li>
+</ul>
+</ul>
 
-<h3> Calibrate cameras </h3>
+<h3> Start network </h3>
 
-<h3> Download driver for audio </h3>
+<p> Turn on the network and wait for it to start up (can take a few minutes). </p>
+
+<h3> Place cameras </h3>
+
+<p>
+Fix the 4 cameras in different corners of the room such that they have a big common visible area.
+It is useful to indicate the visible area so that no blind areas are entered during the experiments. 
+You may view the camera's visible area 
+<a href="http://172.16.156.139:8080/stream.html" target="_blank">http://172.16.156.139:8080/stream.html</a>. 
+Replace "139" in the URL by the desired camera number.</p>
+
+<h3> Place and measure reference points </h3>
+
+<p> 
+Place 4 to 6 reference points in the visible area. For later processing, the reference points are numbered. Use following numbers only and place them such that all reference points are above an imaginary line drawn from the first reference point to the second reference point:</p>
+
+<figure>
+<img src="../images/referencepoints.png" width=400px>
+<figcaption> Fig.3 - Example of correct reference points placements (All points are above line between points 1 and 2)</figcaption>    
+</figure>
+<p> 
+First define an area of about 2x2m where the robot is going to be allowed to move.
+Adjust the cameras so that the robot head is visible in all of them. 
+Mark the area of visibility for each camera to find out where to set the reference points, always considering two neighbouring cameras. 
+</p>
+
+
+<p> 
+Measure the distances between all reference points and store the results (in milimeters) in the file input/objectpoints.cls.
+The file is structured like a euclidian distance matrix, so the element i,j cooresponds to the distance between reference point i and j. 
+You only need to fill out lower diagonal of the matrix at it is symmetric. 
+Leave the upper diagonal blank or fill it with zeros so that the continuation works. 
+
+It is possible that you have to adjust the following parameters: 
+R_REF
+R_ROB
+THRESH
+They represent the size in pixels of the reference points and the robot head respectively and depend on the camera location and the image resolution. 
+
+A first thing to check is weather the projection works. All reference points should be projected to the good location. (see summaryX.png)
+If this is not correct, there could be several reasons: 
+- camera parameters (from calibration) not correct
+- real reference point positions not correct
+- image points not correctly detected -> check h and s images to see weather applied MIN_REF and MAX_REF are correct. 
+
+</p>
