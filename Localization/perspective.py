@@ -1,5 +1,18 @@
 #-*- coding: utf-8 -*-
 #!/usr/bin/env python
+'''
+Perspective
+===========
+
+Contains all functions related to image processing for marker detection,
+object point reading and transformation and geometry transforms.
+
+
+
+
+'''
+
+
 from __future__ import division
 from __future__ import print_function
 import cv2, sys, getopt, urllib, operator
@@ -26,8 +39,7 @@ file.py [-o <outputpath>]
 manipulations are done on image from stream of indicated camera
 (and saved in outputpath with camera number in name)
 '''
-
-'''--------------  Basics ------------------ '''
+#--------------  Basics -----------------#
 def gray_conversion(img):
     ''' Create 1-channel CV_8U image '''
     if img.dtype != 'uint8' or len(img.shape) != 2:
@@ -63,7 +75,7 @@ def visualization(imgs,n_cam,colorbar=0,switch=0):
         plt.title(tit+str(n_cam))
     plt.show(block=False)
 
-'''----------  Program handling ------------ '''
+#----------  Program handling -----------#
 class InteractivePlotN:
     ''' Plot where N reference points can be picked by mouse-click'''
     def __init__(self,pict,name,number):
@@ -152,7 +164,6 @@ def write_pos(dirname,name,p):
             for pt in p:
                 f.write(str(pt)+'\t')
             f.write("\n")
-
 def create_summary(img_flat,pts_obj,p=np.zeros(1)):
     img_summary = rgb_conversion(img_flat)
     # create summary image
@@ -168,13 +179,12 @@ def create_summary(img_flat,pts_obj,p=np.zeros(1)):
         cv2.circle(img_summary,(int(test_p[0]),int(test_p[1])),5,
                     (255,255,0),1,cv2.CV_AA)
     return img_summary
-
 def save_open_images(outputpath,n_cam,loopcounter=''):
     for i in plt.get_figlabels():
         plt.figure(i)
         plt.savefig(outputpath+str(loopcounter)+"_"+str(i)+'.png')
 
-''' --------   Image Processing ------------ '''
+#-------------- Image Points ------------#
 def get_circles_count(img,contours,t,w,r):
     ''' Circles detection by counting pixels around contour centers '''
     t_pixels=r*4 #minimum distance between two circle centers
@@ -351,7 +361,6 @@ def get_histograms(img,img_mask,n):
     plt.legend('s')
     plt.show(block=False)
     return hist_h,hist_s
-
 def imagepoints_auto(img,r1,n,t,col_min,col_max,points,r2):
     ''' Get positions of robot automatically (ignoring reference poitns)'''
     x,y = np.ogrid[:img.shape[0],:img.shape[1]]
@@ -365,7 +374,6 @@ def imagepoints_auto(img,r1,n,t,col_min,col_max,points,r2):
         circle = circle.astype(np.uint8)
         img_reduced[circle==1] = [255,255,255]
     return imagepoints(img_reduced,r1,n,t,col_min,col_max,1)
-
 def imagepoints(img,r,n,t,col_min,col_max,reduced=0):
     ''' Get positions of reference points or robot. '''
     img_reduced = img.copy()
@@ -419,9 +427,11 @@ def imagepoints(img,r,n,t,col_min,col_max,reduced=0):
 
     return img_color,circ_color,pos_color,th
 
-''' --------------  Geometry ---------------'''
+#------------- Object Points ------------#
 def objectpoints(m,name):
-    ''' reads objectpoint positions from file.
+    '''
+    reads objectpoint positions from file.
+
     _Parameters_:
     m = number of points
     name = file name
@@ -429,7 +439,7 @@ def objectpoints(m,name):
     _Returns_:
     pts_obj = object posotions of reference points (in cm)
     M1 = object returned by MarkerSet.
-'''
+    '''
     # Initialisation
     dim = 2
     marker_diameter = 0.040 # in m
@@ -447,7 +457,6 @@ def objectpoints(m,name):
     M1 = mark.MarkerSet(m=m,dim=dim,diameter=marker_diameter)
     M1.fromEDM(D**2)
     M1.normalize()
-    #left and lower margin respectively, in m
     pts_obj = M1.X.T*100 # pts in cm.
     return pts_obj,M1
 def geometric_transformationN(img,pts_obj,pts_img,size):
@@ -457,15 +466,6 @@ def geometric_transformationN(img,pts_obj,pts_img,size):
     M,__ = cv2.findHomography(pts_img,pts_obj)
     img_flat = cv2.warpPerspective(img,M,size)
     return img_flat, np.matrix(M)
-def create_order(pts):
-    ''' reorganizes points in order top to bottom, left to right '''
-    pts_3D_top=pts[0][:2]
-    pts_3D_bot=pts[0][-2:]
-    pt1,pt2=sorted(pts_3D_top,key=operator.itemgetter(1))
-    pt3,pt4=sorted(pts_3D_bot,key=operator.itemgetter(1))
-    pts = [pt1,pt2,pt3,pt4]
-    pts = np.array(pts)
-    return np.array(pts)
 def restore_order(original,moved,min_dist):
     ''' reorganize points in order of clicking '''
     if moved.shape[1] > 1:
@@ -502,9 +502,33 @@ def format_points(pts_obj,margin,mask = 'all'):
         cv2.circle(img_test,(int(pt[0]),int(pt[1])),10,(255),3,cv2.CV_AA)
 
     return img_test,pts_obj,(int(size[0]),int(size[1]))
+def change_ref(pts_basis,margin,pt_wall):
+    '''
+    Change of basis from wall to reference points.
+
+    _Parameters_: (all distances in meters)
+    pts_basis: list of positions of first and second reference points in wall
+    reference. ([x1,y1],[x2,y2])
+    margin: margin from leftmost and downmost reference points to new reference.
+    pt_wall: position of point in wall reference
+
+    _Returns_: position of point in reference point basis (in meters)
+    '''
+    pt1 = pts_basis[0]
+    pt2 = pts_basis[1]
+    pt = pt_wall[0,:2]
+    t_vec=pt1
+    theta = -np.arctan((pt1[1]-pt2[1])/(pt1[0]-pt2[0]))
+    rotation = np.matrix(([np.cos(theta),-np.sin(theta)],
+                         [np.sin(theta),np.cos(theta)]))
 
 
-''' ----------------   Main  --------------- '''
+    x_translated = np.matrix(pt - t_vec).T
+    x_prim = rotation*x_translated
+    x_prim = x_prim.T+np.matrix(margin)
+    pt_wall[0,:2]=x_prim
+    return pt_wall
+
 if __name__ == "__main__":
     choice = "y"
     #DEBUG = 1
@@ -565,7 +589,7 @@ if __name__ == "__main__":
                 #-------------- Project image to 2D -----------#
                 # Get real positions
                 # only for testing
-                margin = np.array([40,46]) #in cm
+                margin = np.array([40,46],dtype=np.float) #in cm
                 pts_obj2,M = objectpoints(m,'input/objectpoints.csv')
                 # position of real points in cm, pt = (x,y)
                 pts_obj_test=np.array([[0,0],[70,0],[70,70],[0,70]],dtype=np.float32)

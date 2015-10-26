@@ -50,8 +50,9 @@ MAX_REF = np.array([20,250,255],dtype=np.uint8)
 R_REF = 8 # radius of referencepoints (in pixels)
 R_ROB = 15 # radius of robot point (in pixels)
 THRESH = 20 # empiric threshold for circle detection
-MARGIN = np.array([100,100]) #margin from leftmost and downlost ref point to reference (in cm)
-
+MARGIN = np.array([100,100],dtype=np.float) #margin from leftmost and downlost ref point to reference (in cm)
+PTS_BASIS = np.array(([2.161,3.556],[3.704,1.844])) #position of first and second reference points from wall (in m)
+# TODO: test with this combination
 NCAMERAS = [141,143,145]
 #NCAMERAS = [139]
 def get_param():
@@ -112,8 +113,9 @@ if __name__ == '__main__':
     # Visual localization
     flag = 0 # alorithm for solvepnp
     numbers=range(2,4) # number of cameras to loop through
+    r_wall = np.matrix([3.633,3.374,2.00])
+    r_real = 1000*persp.change_ref(PTS_BASIS,MARGIN/100,r_wall)
 
-    r_real = np.matrix([2118,1975,182]) #real position robot in mm
     r_height = r_real[0,2] #height of robot in mm
     choice_ref = 4 #chosen reference point for error calculation
     ref_z = 20*np.ones((1,n_pts))
@@ -121,7 +123,7 @@ if __name__ == '__main__':
     #ref_z = '' #height automatically set to 0
 
     # Odometry
-    loop_counter = 0
+    loop_counter = ''
     robot_connected=False
 
 #--------------------------- 0. Intrinsic Calibration   -----------------------#
@@ -146,7 +148,7 @@ if __name__ == '__main__':
             cam.read(in_dir,fisheye)
 
             if DEBUG:
-                img=cv2.imread(in_dir+'image'+str(n)+".png")
+                img=cv2.imread(in_dir+str(loop_counter)+"_image"+str(n)+".png")
                 b,g,r= cv2.split(img)
                 img=cv2.merge((r,g,b))
             else:
@@ -190,8 +192,15 @@ if __name__ == '__main__':
 #--------------------------- 4. Localization            -----------------------#
 #--------------------------- 4.1 Visual localization    -----------------------#
 #--------------------------- 4.1.a Get Image Points     -----------------------#
+    loop_counter = 0
     choice_loc = raw_input(ROBOT_LOC)
     while choice_loc != "n":
+
+        # write current real position in file
+        name='posreal_'+start_time+'.txt'
+        r_real_formatted = np.array(r_real)[0]
+        persp.write_pos(out_dir,name,r_real_formatted)
+
         choice = raw_input(ROBOT_VIS)
         if choice != 'n':
             print("Visual localization...")
@@ -203,7 +212,7 @@ if __name__ == '__main__':
                     cam.read(in_dir,fisheye[i])
 
                     if DEBUG:
-                        img=cv2.imread(in_dir+"image"+str(n)+".png")
+                        img=cv2.imread(in_dir+str(loop_counter)+"_image"+str(n)+".png")
                         b,g,r= cv2.split(img)
                         img=cv2.merge((r,g,b))
                     else:
@@ -299,8 +308,6 @@ if __name__ == '__main__':
             print(msg3)
             print(msg4)
 
-            name='posreal_fix_'+start_time+'.txt'
-            persp.write_pos(out_dir,name,r_real)
             name='posobj_fix_'+start_time+'.txt'
             persp.write_pos(out_dir,name,p_lq1)
             name='posobj_free_'+start_time+'.txt'
@@ -330,10 +337,10 @@ if __name__ == '__main__':
         choice = raw_input(ROBOT_ACO)
         if choice == 'y':
             print("Acoustic localization")
-            output_au = output_au.replace('/','/'+str(loop_counter)+'_')
+            out_au = output_au.replace('/','/'+str(loop_counter)+'_')
             rate = 44100
             chunk = 1024
-            Au = Audio.Audio(input_au,output_au,1,3,rate,chunk)
+            Au = Audio.Audio(input_au,out_au,1,3,rate,chunk)
             frames=Au.play_and_record()
             Au.save_wav_files(frames)
 #--------------------------- 5. Make Robot Move        -----------------------#
@@ -343,20 +350,19 @@ if __name__ == '__main__':
             t = times[loop_counter]
             c = commands[loop_counter]
             Robot.move(t,c,output_tim)
-
-#--------------------------- TEST ONLY: NEW REAL POSITION ---------------------#
-        x = raw_input("new robot position x")
-        y = raw_input("new_robot position y")
-        if x!='':
-            r_real[0,0]=x
-
-        if y!='':
-            r_real[0,1]=y
+            # TEST ONLY: NEW REAL POSITION
+            x = raw_input("new robot position x in m, measured from wall: ")
+            y = raw_input("new_robot position y in m, measured from wall: ")
+            if x!='':
+                r_wall[0,0]=x
+            if y!='':
+                r_wall[0,1]=y
+            r_real = 1000*persp.change_ref(PTS_BASIS,MARGIN/100,r_wall)
 
         loop_counter += 1
         choice_loc = raw_input(ROBOT_LOC)
 #--------------------------- 6. Terminate               -----------------------#
-if robot_connected:
-    Robot.cleanup()
-    print("Robot cleaned up successfully")
-print("Program terminated")
+    if robot_connected:
+        Robot.cleanup()
+        print("Robot cleaned up successfully")
+    print("Program terminated")

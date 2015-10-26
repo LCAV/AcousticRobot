@@ -57,7 +57,7 @@ class Audio:
             [format_np] = format of output, in numpy.... notation (default: np.int16)
         '''
         self.input_file = input_file
-        self.output_file = output_file
+        self.output_file = output_file.replace('.wav','')
         self.channels=channels
         self.index = index
         self.rate=rate
@@ -153,7 +153,6 @@ class Audio:
                 frames_encoded = []
                 for rows in frames_channel:
                     frames_encoded.append(rows.tobytes())
-
                 F=self.output_file+str(i)+".wav"
                 wf_out = wave.open(F, 'wb')
                 wf_out.setnchannels(self.channels)

@@ -1,4 +1,6 @@
- #-*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
+#!/usr/bin/env python
+
 '''
 Calibrate
 =========
@@ -6,18 +8,17 @@ Calibrate
 Contains all functions necessary for intrinsic and extrinsic camera calibration,
 including the triangulation between cameras for 3D reconstruction.
 
-The class _Camera_ contains the camera's intrinsic parameters and the functions
-related to their calibration.
+The class _Camera_ contains the camera's intrinsic and extrinsic parameters
+and the functions used for calibration.
 
 The class _Image_ contains all image- and object space positions of the
-reference points and the robot location.
+reference points and the robot location in the respective images.
+
+All functions using more than one camera are not linked to an object
 
 
 '''
 
-
-#-*- coding: utf-8 -*-
-#!/usr/bin/env python
 from __future__ import division
 from __future__ import print_function
 from future.utils import iteritems
@@ -81,56 +82,12 @@ def get_param():
     if cam_dir[-1]!="/":
         cam_dir = cam_dir + "/"
     return out_dir,cam_dir,n,fisheye
-def get_calibpoints(img,pattern_size,counter,out_dir,n,fisheye):
-    '''
-    returns pairs of object- and image points (chess board corners)
-    for camera calibration
-    '''
-    square_size = 47 # in mm
-    square_size = square_size/px_size # †his doesn't matter for camera calibration!!
-    #print("square size:",square_size)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    pattern_points = np.zeros( (np.prod(pattern_size), 3), np.float32 )
-    pattern_points[:,:2] = np.indices(pattern_size).T.reshape(-1, 2)
-    pattern_points *= square_size
-
-    h, w = 0, 0
-    try:
-        found, corners = cv2.findChessboardCorners(gray, pattern_size)
-    except KeyboardInterrupt:
-        sys.exit(1)
-    fig,ax=plt.subplots()
-    if found:
-        print(str(counter)+": chessboard found")
-        term = ( cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, 30, 0.1 )
-        cv2.cornerSubPix(gray, corners, (5, 5), (-1, -1), term)
-        if out_dir:
-            print("saving...")
-            out = img.copy()
-            cv2.drawChessboardCorners(out, pattern_size, corners, found)
-            ax.imshow(out),plt.show(block=False)
-            fname = "input"
-            if fisheye:
-                fname="input_fish"
-            cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,n,counter),img)
-            fname = "output"
-            if fisheye:
-                fname="output_fish"
-            cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,n,counter), out)
-        return corners.reshape(-1, 2), pattern_points
-    elif not found:
-        if not corners == None:
-            print(str(counter)+': chessboard only partially found')
-            out = img.copy()
-            cv2.drawChessboardCorners(out, pattern_size, corners, found)
-            ax.imshow(out),plt.show(block=False)
-        else:
-            ax.imshow(img),plt.show(block=False)
-            print(str(counter)+': chessboard not found')
-        return [],[]
 def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
     '''
-    Solve least squares problem with or without fixed height
+    Solve least squares problem for point position with or without fixed height
+    _Parameters_:
+    cam: array of Camera objects used for triangulation
+    pt: array of points to be measured
     Returns real position of robot based on observation with cam1 and cam2
     '''
     A_part = dict()
@@ -210,7 +167,19 @@ def get_leastsquares_combinations(n_cameras,numbers,cam,pt,method='hz',r_height=
     '''
     Applies get_leastsquares function to all possible combinations of length
     "number" made of elements of "n_cameras".
-    returns dict of corresponding 3D-point, 2D and 3D error.
+
+    _Parameters_:
+    n_cameras: array of cameras to be tested (e.g. [139,141,145])
+    numbers: array of numbers of cameras to be tested.
+    cam: list of corresponding camera instances
+    pt: image positions of point to be triangulated (matrix with [x,y,z])
+    method: method to be used in leastsquares (with or without fixed height),
+    see get_leastsquares for more details.
+    r_height: real height of point (if known)
+    p_real: real position of point (if known)
+
+    _Returns_: position of corresponding 3D-point, 2D and 3D error.
+
     '''
     arrs = dict()
     errs2 = dict()
@@ -221,8 +190,12 @@ def get_leastsquares_combinations(n_cameras,numbers,cam,pt,method='hz',r_height=
         array=combinations(n_cameras,number)
         for arr in array:
             # extract data corresponding to camera array
-            cams_selection = [x for x in cam if x.n in arr]
-            pts_selection = [x for i,x in enumerate(pt) if i*2+139 in arr]
+            cams_selection=[]
+            pts_selection=[]
+            for i,c in enumerate(n_cameras):
+                if c in arr:
+                    cams_selection.append(cam[i])
+                    pts_selection.append(pt[i])
 
             # calculate error
             p,err2,err3 = get_leastsquares(cams_selection,pts_selection,method,r_height,p_real)
@@ -286,7 +259,17 @@ def save_combinations(out_dir,fname,arrs,pts,errs,fisheye=False):
     plt.setp( ax1.xaxis.get_majorticklabels(), rotation=70)
     plt.show(block=False)
     plt.savefig(out_dir+fname)
-def triangulate(P1,P2,i1,i2,p_real):
+def triangulate(P1,P2,i1,i2,p_real=''):
+    '''
+    Performs triangulation with cv2-functioin triangulatePoints.
+
+    _Parameters_:
+    P1,P2: camera Projection matrixes
+    i1,i2: point image positions in 2 cameras
+    p_real: real position of point (if known), for error calculation
+
+    _Returns_: position of corresponding 3D point, 2D and 3D error.
+    '''
     p_test = cv2.triangulatePoints(P1,P2,i1,i2)
     p_norm = p_test/p_test[3]
     p_norm = p_norm.T[:,:3]
@@ -384,7 +367,7 @@ class Camera:
                     img = get.get_image(self.n)
                     h, w = img.shape[:2]
                     img_pt, obj_pt = get_calibpoints(img,pattern_size,
-                                                     counter,out_dir,self.n,fisheye)
+                                                     counter,out_dir,fisheye)
                     if not obj_pt == []:
                         img_points.append(img_pt)
                         obj_points.append(obj_pt)
@@ -397,6 +380,53 @@ class Camera:
             except KeyboardInterrupt:
                 print("program terminated by user")
                 sys.exit(1)
+    def get_calibpoints(self,img,pattern_size,counter,out_dir,fisheye):
+        '''
+        returns pairs of object- and image points (chess board corners)
+        for camera calibration
+        '''
+        square_size = 47 # in mm
+        square_size = square_size/px_size # †his doesn't matter for camera calibration!!
+        #print("square size:",square_size)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        pattern_points = np.zeros( (np.prod(pattern_size), 3), np.float32 )
+        pattern_points[:,:2] = np.indices(pattern_size).T.reshape(-1, 2)
+        pattern_points *= square_size
+
+        h, w = 0, 0
+        try:
+            found, corners = cv2.findChessboardCorners(gray, pattern_size)
+        except KeyboardInterrupt:
+            sys.exit(1)
+        fig,ax=plt.subplots()
+        if found:
+            print(str(counter)+": chessboard found")
+            term = ( cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, 30, 0.1 )
+            cv2.cornerSubPix(gray, corners, (5, 5), (-1, -1), term)
+            if out_dir:
+                print("saving...")
+                out = img.copy()
+                cv2.drawChessboardCorners(out, pattern_size, corners, found)
+                ax.imshow(out),plt.show(block=False)
+                fname = "input"
+                if fisheye:
+                    fname="input_fish"
+                cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,self.n,counter),img)
+                fname = "output"
+                if fisheye:
+                    fname="output_fish"
+                cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,self.n,counter), out)
+            return corners.reshape(-1, 2), pattern_points
+        elif not found:
+            if not corners == None:
+                print(str(counter)+': chessboard only partially found')
+                out = img.copy()
+                cv2.drawChessboardCorners(out, pattern_size, corners, found)
+                ax.imshow(out),plt.show(block=False)
+            else:
+                ax.imshow(img),plt.show(block=False)
+                print(str(counter)+': chessboard not found')
+            return [],[]
     def save_checkpoints_file(self,out_dir,n_cameras):
         choice = "y"
         counter = 1
@@ -418,7 +448,7 @@ class Camera:
                 sys.exit(1)
     def get_checkpoints_file(self,out_dir,fisheye):
         '''
-        gets checkboard points for the intrinsic camera  calibration. elf.Proj.T*self.Proj).I*self.Proj.TROM FILES
+        gets checkboard points for the intrinsic camera  calibration.
         '''
         choice = "y"
         counter = 1

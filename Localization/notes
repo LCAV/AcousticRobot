@@ -1,6 +1,12 @@
-output new wihtout undistort
+output new without undistort
 
 output new_new with new localisation 
 
 output1: 139 best combination!? 
-tried again output2 with all combinations. 
+
+tried again output2 with all combinations. But this didn’t work!! -> BUG in program. 
+Did tests with only odometry measuring and acoustics.
+only one channel.
+
+
+
