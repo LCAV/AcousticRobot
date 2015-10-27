@@ -19,6 +19,7 @@ import pyaudio
 import wave
 import sys
 import numpy as np
+from scipy.io import wavfile
 
 def get_parameters():
     '''
@@ -177,11 +178,26 @@ class Audio:
 
         _Returns_: nothing
         '''
-
         for i in range(p.get_device_count()):
             print("Index ",i,":\n",p.get_device_info_by_index(i))
 
         self.index = int(input("\nEnter index of Audio device to be used from above list: \n"))
+    def analyze(self,y_file,u_file):
+        ru,u = wavfile.read(u_file)
+        ry,y = wavfile.read(y_file)
+        length=2*max(len(u),len(y))
+        u_long = np.zeros(length)
+        y_long = np.zeros(length)
+        u_long[:len(u)]=u
+        y_long[:len(y)]=y
+        Y = np.fft.rfft(y_long)
+        U = np.fft.rfft(u_long)
+        f = np.fft.rfftfreq(y.shape[0], d=1/Fs)
+        plot(f, np.abs(S))
+
+
+
+
 
 if __name__ == "__main__":
     rate = 44100

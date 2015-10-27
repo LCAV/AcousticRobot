@@ -52,9 +52,7 @@ R_ROB = 15 # radius of robot point (in pixels)
 THRESH = 20 # empiric threshold for circle detection
 MARGIN = np.array([100,100],dtype=np.float) #margin from leftmost and downlost ref point to reference (in cm)
 PTS_BASIS = np.array(([2.161,3.556],[3.704,1.844])) #position of first and second reference points from wall (in m)
-# TODO: test with this combination
 NCAMERAS = [141,143,145]
-#NCAMERAS = [139]
 def get_param():
     ''' returns parameters from command line '''
     out_dir = ''
@@ -113,7 +111,7 @@ if __name__ == '__main__':
     # Visual localization
     flag = 0 # alorithm for solvepnp
     numbers=range(2,4) # number of cameras to loop through
-    r_wall = np.matrix([3.633,3.374,2.00])
+    r_wall = np.matrix([3.633,3.374,1.65])
     r_real = 1000*persp.change_ref(PTS_BASIS,MARGIN/100,r_wall)
 
     r_height = r_real[0,2] #height of robot in mm
@@ -301,7 +299,7 @@ if __name__ == '__main__':
             msg1="Fixed height [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(p_lq1[0]),float(p_lq1[1]),float(p_lq1[2]),err21,err31)
             msg2="Free height [mm]:  [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(p_lq2[0]),float(p_lq2[1]),float(p_lq2[2]),err22,err32)
             msg3="Real position [mm]:[{0:8.4f} , {1:8.4f} , {2:8.4f}]".format(r_real[0,0],r_real[0,1],r_real[0,2])
-            msg4="Error reference poitns [px]: {0} ".format(errors)
+            msg4="Error reference points [px]: {0} ".format(errors)
             print(msg0)
             print(msg1)
             print(msg2)
