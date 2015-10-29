@@ -111,8 +111,10 @@ if __name__ == '__main__':
     # Visual localization
     flag = 0 # alorithm for solvepnp
     numbers=range(2,4) # number of cameras to loop through
-    r_wall = np.matrix([3.633,3.374,1.65])
+    r_wall = np.matrix([3.633,3.374,1.65]) # real robot position from wall
     r_real = 1000*persp.change_ref(PTS_BASIS,MARGIN/100,r_wall)
+    # TODO:corrected because of measurement error!
+    r_real[0,0]=r_real[0,0]+254.97
 
     r_height = r_real[0,2] #height of robot in mm
     choice_ref = 4 #chosen reference point for error calculation
