@@ -3,15 +3,15 @@
 
 <h3> Create navigation file </h3>
 <p> 
-Create a file with the navigation history for the robot to follow. 
+Create a file with the navigation sequence for the robot to follow. 
 The history needs to be structured in blocks, each block corresponding to one "step" of the robot. 
-After each step, a localization of the robot may be done.
-A new block starts, when the time restarts at zero. 
+Each "step" consists of multiple lines. One line contains a time (int or float) and the command to be sent at that time. The time and command must be separated by exactly one tab. After each step, a localization of the robot may be done.
+A new step starts, when the time restarts at zero. 
 </p>
 <iframe src="../other/test.txt">
 <caption> test </caption>
 </iframe> 
-<p> The valid commands can be found in the Robot documentation (Control/commands.txt). Save the file under input/control.txt </p>
+<p> The valid commands can be found in the Robot documentation or under (Control/commands.txt). Save the file under input/control.txt </p>
 
 <h3> Connect audio player </h3>
 <p>

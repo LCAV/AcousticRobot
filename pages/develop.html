@@ -27,7 +27,8 @@
 </header>
 <section>
 <overview> 
-<ul> 
+<ul>
+<li><a href="preparation.html"><strong> Prepare </strong></a></li> 
 <li><a href="setup.html"><strong> Setup </strong></a></li> 
 <li><a href="operate.html"><strong> Operate </strong></a></li> 
 <li><a href="analyze.html"><strong> Analyze </strong></a></li> 
@@ -37,7 +38,23 @@
 <h1><a id="acoustic-robot" class="anchor" href="#acoustic-robot" aria-hidden="true"><span class="octicon octicon-link"></span></a>Acoustic Robot</h1>
 <h2> Develop <h2>
 
-<h3> Code </h3>
+<h3> Robot </h3>
+<p>For a better functioning of the robot, a changement has been made in the source code of the server. 
+A line was added to the function stop_drive_motors()  so that when the robot is at rest, its motors are shut down. 
+Without doing so, the motors sometimes entered some unstable state where they were making a loud noise after receiving the command to stop.
+The resulting code with highlighted inserted line was:
+
+In order to compile it,... 
+
+</p>
+
+
+<h3> Cameras </h3>
+<p> Describe functioning of cameras 
+</p>
+
+
+<h3> Program </h3>
 <p><a href="../html/index.html" target="_blank">View Code with Doxygen</a></p>
 
 <h3> Page </h3>

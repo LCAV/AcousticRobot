@@ -27,7 +27,8 @@
 </header>
 <section>
 <overview> 
-<ul> 
+<ul>
+<li><a href="preparation.html"><strong> Prepare </strong></a></li> 
 <li><a href="setup.html"><strong> Setup </strong></a></li> 
 <li><a href="operate.html"><strong> Operate </strong></a></li> 
 <li><a href="analyze.html"><strong> Analyze </strong></a></li> 
@@ -35,17 +36,150 @@
 </ul>     
 </overview> 
 <h1><a id="acoustic-robot" class="anchor" href="#acoustic-robot" aria-hidden="true"><span class="octicon octicon-link"></span></a>Acoustic Robot</h1>
-<h2> Setup </h2>
+<h2>Setup</h2>
 
-<p>Things that only need to be done once...</p>
+<p> Things that need to be done before every new experiment... </p>
 
-<h3> Clone git repository </h3>
+<p> 
+Make sure you have succesfully completed all steps of the <a href="preparation.html">Setup</a> before going on to this setup 
+Most importantly, the setup of the network needs to be ready before robot and cameras are turned on so that they connect to the network correctly. 
+For the full experiment you will need: </p>
 
-<h3> Setup network </h3>
+<ul style="list-style-type:disc">
+<li>Router</li>
+<li>4 Cameras (Figure 1) with corresponding tools:</li>
+<ul>
+<li> 4 microphone holders</li>
+<li> 4 screw adapters </li>
+<li> 4 Camera fixations </li>
+</ul>
+<li>4-6 reference points (Figure 2)</li>
+<li>Laser distance meter</li>
+<li>Audio tools:</li>
+<ul>
+<li> Point source speaker</li>
+<li> MOTU Soundcard with at least 2 inputs and FireWire connection.</li>
+<li> 2 Wireless sound receiver </li>
+<li> 2 VLR-Jack cables,1 VLR-VLR cable, 1 Firewire cable, Power cables for above instruments  </li>
+</ul>
+</ul>
 
-<h3> Calibrate cameras </h3>
+<h3> Start network </h3>
 
-<h3> Download driver for audio </h3>
+<p> Turn on the network and wait for it to start up (can take a few minutes). </p>
+
+<h3> Place cameras </h3>
+
+<p>
+Fix the 4 cameras in different corners of the room such that they have a big common visible area.
+It is useful to indicate the visible area so that no blind areas are entered during the experiments. 
+<b>Important</b>: do not unplug the cameras before shutting them down correctly or the SD card might get corrupted. 
+You can turn off the camera by pressing and holding the button on the side for longer than 7 seconds.
+The green light will then blink slowly for about 10 times and then turn off. 
+When only the red camera is turned on, you are safe to unplug the camera. 
+
+You may view the camera's visible area at
+<a href="http://172.16.156.139:8080/stream.html" target="_blank">http://172.16.156.139:8080/stream.html</a>. 
+Replace "139" in the URL by the desired camera number.
+</p>
+
+<p> 
+Mark an area where the robot should be allowed to move. Place the robot in the critical points of the area and adjust the camera
+orientation such that it can just see the robot's head. (See Figure 3)
+
+<figure>
+<img src="../images/robotplacement.png" width=500px>
+<figcaption> 
+Figure 3 - Example of well adjusted camera for robot detecting. 
+The white crosses mark the area where the robot is allowed to move.
+</figcaption>    
+</figure>
+</p>
+
+<h3> Place and measure reference points </h3>
+
+<p> 
+Place 4 to 6 reference points in the visible area. For later processing, the reference points are numbered. 
+Use following numbers only and place them such that all reference points are above an imaginary 
+line drawn from the first reference point to the second reference point. (see Figure 4)
+
+<figure>
+<img src="../images/reference.png" width=500px>
+<figcaption> 
+Figure 4 - Example of correct reference points placements (All points are above line between points 1 and 2)
+</figcaption>    
+</figure>
+
+You can find the visible area by always considering two neighbouring cameras and putting 
+the reference point where both cameras can just see it (see Figure 5).
+
+<figure>
+<img src="../images/refplacement.png" width=500px>
+<figcaption> 
+Figure 5 - Example for finding the biggest common visible area)
+</figcaption>    
+</figure>
+</p>
+
+
+<p> 
+Measure the distances between all reference points and store the results (in milimeters) in the file input/objectpoints.cls.
+The file is structured like a euclidian distance matrix, so the element i,j cooresponds to the distance between reference point i and j. 
+You only need to fill out lower diagonal of the matrix at it is symmetric. 
+Leave the upper diagonal blank or fill it with zeros (see Figure 6)
+</p>
+
+<figure>
+<img src="../images/objectpoints.png" width=500px>
+<figcaption> 
+Figure 6 - How to measure and save the distances between points.)
+</figcaption>    
+</figure>
+</p>
+
+<p> 
+While the program is still in its test phase, it is useful to also store the real position of the robot. 
+As it is easier to measure the robot position with respect to the walls than with respect to the reference points, 
+the coordinates of the robot are entered in the wall reference frame and converted by the program to the reference point frame. 
+Measure the x and y position of the first two reference points and store the results in PTS_BASIS in the program. 
+(SHOULD BE READ IN FROM FILE TOO!)
+</p>
+
+
+<h3> Extrinsic calibration </h3>
+<p>
+
+You can now run the program. Make sure that you have created an output folder (called "output" here) where you will to store all results
+of this session. Make sure that all parameters are available in the input folder (called "input" here), see Figure 7
+
+<figure>
+<img src="../images/filestructure.png" width=500px>
+<figcaption> 
+Figure 7 - File structure. X corresponds to camera number (139, 141, etc.) and N to iteration number. TIME is the time when the program is started.
+</figcaption>    
+</figure>
+</p>
+
+It is possible that you have to adjust the following parameters: 
+
+<ul style="list-style-type:disc">
+<li>R_REF (radius in pixels of reference points)</li>
+<li>R_ROB (radius in pixels of robot head)</li>
+<li>THRESH (threshold for circle detection)</li>
+</ul>
+They depend on the camera location and the image resolution. The terminal output indicates what parameter probably need to be changed. 
+
+A first thing to check is weather the projection works. All reference points should be projected to the good location. (see output/summaryX.png)
+If this is not correct, there could be several reasons: 
+
+<ul style="list-style-type:disc">
+<li>camera parameters (from calibration) not correct. Solution: recalibrate</li>
+<li>real reference point positions not correct. Solution: measure distances again</li>
+<li>image points not correctly detected. Solution: check h and s images to see weather applied color limits 
+(MIN_REF and MAX_REF for reference points,
+(MIN, MAX for robot) are correct. </li>
+</ul>
+</p>
 </section>
 </div>
 
