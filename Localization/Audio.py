@@ -154,7 +154,7 @@ class Audio:
                 frames_encoded = []
                 for rows in frames_channel:
                     frames_encoded.append(rows.tobytes())
-                F=self.output_file+str(i)+".wav"
+                F=self.output_file+'_'+str(i)+".wav"
                 wf_out = wave.open(F, 'wb')
                 wf_out.setnchannels(self.channels)
                 wf_out.setsampwidth(self.samp_width)

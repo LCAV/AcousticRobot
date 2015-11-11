@@ -233,28 +233,6 @@ class Robot:
                         #found = 1
                     position[motor]=pos
             c.writerow([position[motors[0]],position[motors[1]]])
-    def odometry(self, enc_left, enc_right,x1,y1,theta1):
-        '''
-        Calculates new position x2,y2, based on encoder measures and
-        last position x1,y1
-
-        _Parameters_:
-        enc_left, enc_right: encoder positions
-        x1,y1,theta1: last position
-
-        _Returns_:
-        x2,y2,theta2: new position
-        '''
-        l_left = enc_left/N*np.pi*R_wheels
-        l_right = enc_right/N*np.pi*R_wheels
-
-        theta2 = (l_left-l_right)/D+theta1
-        r=abs(D/2*(l_left+l_right)/(l_left-l_right))
-
-        # calculate new positions
-        x2 = x1 + r*(cos(theta2-theta1)-1)
-        y2 = y2 + r*(sin(theta2-theta1)-1)
-        return x2,y2,theta2
 
 
 if __name__ == '__main__':

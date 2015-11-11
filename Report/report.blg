@@ -1,0 +1,73 @@
+This is BibTeX, Version 0.99d (TeX Live 2012)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: report.aux
+The style file: unsrtnat.bst
+I found no \citation commands---while reading file report.aux
+Database file #1: Bibliography.bib
+I was expecting a `,' or a `}'---line 6 of file Bibliography.bib
+ :     
+ :     publisher = "Cambridge University Press"
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+You're missing a field name---line 21 of file Bibliography.bib
+ : 
+ : %    author    = "Vance, J. and Zeidan, F. and Murphy, B. ",
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+You're missing a field name---line 29 of file Bibliography.bib
+ : 
+ : %    author    = "Langlois, William E. and Deville, Michel O.",
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+You're missing a field name---line 38 of file Bibliography.bib
+ : 
+ : %    author  = "Iordanoff, I.",
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+You're missing a field name---line 49 of file Bibliography.bib
+ : 
+ : %note = "Accessed January 5, 2015",
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+You've used 0 entries,
+            2481 wiz_defined-function locations,
+            551 strings with 4428 characters,
+and the built_in function-call counts, 34 in all, are:
+= -- 0
+> -- 0
+< -- 0
++ -- 0
+- -- 0
+* -- 2
+:= -- 11
+add.period$ -- 0
+call.type$ -- 0
+change.case$ -- 0
+chr.to.int$ -- 0
+cite$ -- 0
+duplicate$ -- 0
+empty$ -- 1
+format.name$ -- 0
+if$ -- 1
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 0
+newline$ -- 8
+num.names$ -- 0
+pop$ -- 0
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 1
+stack$ -- 0
+substring$ -- 0
+swap$ -- 0
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 0
+while$ -- 0
+width$ -- 0
+write$ -- 7
+(There were 6 error messages)

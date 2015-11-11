@@ -101,13 +101,13 @@ if __name__ == '__main__':
 #---------------------------       Initialization       -----------------------#
     # General
     out_dir,in_dir,n_pts,fisheye = get_param()
-    start_time = str(int(time.mktime(time.gmtime())))
+    TIME = str(int(time.mktime(time.gmtime())))
     input_au =in_dir+"sound.wav"
     input_mov = in_dir+"control.txt"
     input_obj = in_dir+"objectpoints.csv"
-    output_odo = out_dir+"odometry_"+start_time+".txt"
-    output_tim = out_dir+"timings_"+start_time+".txt"
-    output_au = out_dir+"audio_"+start_time+".wav"
+    output_odo = out_dir+"odometry_"+TIME+".txt"
+    output_tim = out_dir+"timings_"+TIME+".txt"
+    output_au = out_dir+"audio_"+TIME+".wav"
     # Visual localization
     flag = 0 # alorithm for solvepnp
     numbers=range(2,4) # number of cameras to loop through
@@ -174,19 +174,19 @@ if __name__ == '__main__':
 
         #-- save results --#
         # positions
-        name='ref_'+str(n)+'_'+start_time+str('.txt')
+        name='ref_'+str(n)+'_'+TIME+str('.txt')
         persp.write_ref(out_dir,name,pts_img,M,pts_obj)
         # images
-        imgs={'img_h':h,'img_s':s}
+        imgs={'img_h_'+str(n)+'_'+TIME:h,'img_s_'+str(n)+'_'+TIME:s}
         persp.visualization(imgs,n,1)
-        imgs = {'img':img}
-        persp.visualization(imgs,n)
-        imgs = {'img_org':img_org,'circ_org':circ_org}
+        imgs = {'img_'+str(n)+'_'+TIME:img,
+                'img_org_'+str(n)+'_'+TIME:img_org,
+                'circ_org_'+str(n)+'_'+TIME:circ_org}
         persp.visualization(imgs,n)
         img_summary = persp.create_summary(img_flat,pts_obj)
-        imgs = {'summary':img_summary}
+        imgs = {'summary_'+str(n)+'_'+TIME:img_summary}
         persp.visualization(imgs,n,0,1)
-        persp.save_open_images(out_dir,n)
+        persp.save_open_images(out_dir)
         plt.close('all')
 
 #--------------------------- 4. Localization            -----------------------#
@@ -197,15 +197,17 @@ if __name__ == '__main__':
     while choice_loc != "n":
 
         # write current real position in file
-        name='posreal_'+start_time+'.txt'
-        r_real_formatted = np.array(r_real)[0]
-        persp.write_pos(out_dir,name,r_real_formatted)
+        choice = raw_input(ROBOT_REAL)
+        if choice != 'n':
+            name='posreal_'+TIME+'.txt'
+            r_real_formatted = np.array(r_real)[0]
+            persp.write_pos(out_dir,name,r_real_formatted)
 
         choice = raw_input(ROBOT_VIS)
         if choice != 'n':
             print("Visual localization...")
             plt.close('all')
-            # save new reference positions in file
+            # save new robot  positions in file
             if choice == 'y':
                 for i,n in enumerate(NCAMERAS):
                     cam = calib.Camera(n)
@@ -231,11 +233,13 @@ if __name__ == '__main__':
                     img_red,circ_red,p,th_red = persp.imagepoints(img,R_ROB,1,THRESH,
                                                                 MIN,MAX)
                     #--save results--#
-                    name='posimg_'+str(n)+'_'+start_time+'.txt'
+                    name='posimg_'+str(n)+'_'+TIME+'.txt'
                     persp.write_pos(out_dir,name,p)
-                    imgs={'img_red':img_red,'circ_red':circ_red,'img':img}
+                    imgs={'img_red_'+str(n)+'_'+TIME:img_red,
+                          'circ_red_'+str(n)+'_'+TIME:circ_red,
+                          'img_'+str(n)+'_'+TIME:img}
                     persp.visualization(imgs,n)
-                    persp.save_open_images(out_dir,n,loop_counter)
+                    persp.save_open_images(out_dir,loop_counter)
                     plt.close('all')
 
     #--------------------------- 4.1.b Calculate Object Point ---------------------#
@@ -308,9 +312,9 @@ if __name__ == '__main__':
             print(msg3)
             print(msg4)
 
-            name='posobj_fix_'+start_time+'.txt'
+            name='posobj_fix_'+TIME+'.txt'
             persp.write_pos(out_dir,name,p_lq1)
-            name='posobj_free_'+start_time+'.txt'
+            name='posobj_free_'+TIME+'.txt'
             persp.write_pos(out_dir,name,p_lq2)
 
             with open(out_dir+str(loop_counter)+"results"+str(choice_ref)+".txt",'w') as f:

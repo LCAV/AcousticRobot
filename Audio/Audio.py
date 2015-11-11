@@ -19,6 +19,7 @@ import pyaudio
 import wave
 import sys
 import numpy as np
+from scipy.io import wavfile
 
 def get_parameters():
     '''
@@ -60,7 +61,7 @@ class Audio:
         self.output_file = output_file.replace('.wav','')
         self.channels=channels
         self.index = index
-        self.rate=rate
+        self.rate=float(rate)
         self.chunk = chunk
         self.format_au = format_au
         self.format_np = format_np
@@ -71,7 +72,7 @@ class Audio:
         _Returns_: frames
         frames is a list with #BUFFER elements
         (#BUFFER ~= Time of input_file * rate / chunk), each element is one frame
-        with length chunk*channels.
+        with N chunk*channels.
         the samples for different channels are stored in
         alternating order.
         (for channels x and o, one frame would be [xoxo ... xo])
@@ -177,11 +178,48 @@ class Audio:
 
         _Returns_: nothing
         '''
-
         for i in range(p.get_device_count()):
             print("Index ",i,":\n",p.get_device_info_by_index(i))
 
         self.index = int(input("\nEnter index of Audio device to be used from above list: \n"))
+    def analyze(self,y_file,u_file,number):
+        # Initialization
+        name='RIR_'+str(number)
+        Fs = self.rate # sampling rate
+        T = 20 # seconds of interest
+        t = np.linspace(0,T,T*Fs) # time vector
+        M = 1000 # width Hann window
+        # Read input files
+        ru,u = wavfile.read(u_file)
+        ry,y = wavfile.read(y_file)
+        # Deconvolute signals
+        N=2*max(len(u),len(y))
+        u_long = np.zeros(N)
+        y_long = np.zeros(N)
+        u_long[:len(u)]=u
+        y_long[:len(y)]=y
+        Y = abs(np.fft.rfft(y_long))
+        U = abs(np.fft.rfft(u_long))
+        H = Y/U
+        # Apply window
+        hann=np.zeros(H.shape)
+        hann[:M] = np.hanning(2*M)[M:]
+        hann_half = hann[floor(len(hann))/2-1:]
+        H_filtered=H*hann_half
+        # Create impulse response
+        h_filtered = np.fft.irfft(H_filtered)
+        f = np.fft.rfftfreq(N, d=1/Fs)
+        figure(1),plot(t,h_filtered[:len(t)]),axis('tight')
+        xlabel('t [s]'),ylabel('h'),title('RIR_'+str(number))
+        savefig('analysis/RIR_'+str(n))
+        figure(2),plot(t,h_filtered[:len(t)]),axis([0,2*T/3,-0.00005,0.00005])
+        savefig('analysis/RIR_'+str(n)+'_zoom')
+        xlabel('t [s]'),ylabel('h'),title('RIR_'+str(number)+'_zoom')
+        figure(3),plot(f,H_filtered),xlabel('f (Hz)'),ylabel('|H(f)|')
+        t = np.linspace(0,10,10*Fs)
+        savefig('analysis/H_'+str(n))
+
+
 
 if __name__ == "__main__":
     rate = 44100

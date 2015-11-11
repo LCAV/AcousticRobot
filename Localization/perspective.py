@@ -56,23 +56,27 @@ def get_centroid(cnt):
     cy,cx = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
     return cx,cy
 def visualization(imgs,n_cam,colorbar=0,switch=0):
-    ''' Visualize results in figures named by their title.
+    ''' Visualize results in matplotlib figures with title given and colorbar.
 
     _Parameters_:
+    imgs: image dictionary with keys: image titles (string)
+    and values: corresponding image (np.array)
+    [colorbar]: if set to 1, a colorbar is shown in figure (default 0)
+    [swtich]: if set to 1, the picture is shown from bottom to top. (default 0)
 
-
+    _Returns_: None
     '''
     n = len(imgs)
     for (tit,im) in imgs.items():
         #plt.subplot(n,1,i),plt.imshow(im)
-        plt.close(tit+str(n_cam)),plt.figure(tit+str(n_cam))
+        plt.close(tit,plt.figure(tit)
         if switch == 0:
             plt.imshow(im)
         else:
             plt.imshow(im, origin = 'lower')
         if colorbar == 1:
                 plt.colorbar()
-        plt.title(tit+str(n_cam))
+        plt.title(tit)
     plt.show(block=False)
 
 #----------  Program handling -----------#
@@ -104,7 +108,6 @@ class InteractivePlotN:
     def draw(self):
         plt.imshow(self.name)
         plt.show()
-
 def get_parameters():
     ''' Get filename from command line '''
     inputfile = ''
@@ -179,7 +182,7 @@ def create_summary(img_flat,pts_obj,p=np.zeros(1)):
         cv2.circle(img_summary,(int(test_p[0]),int(test_p[1])),5,
                     (255,255,0),1,cv2.CV_AA)
     return img_summary
-def save_open_images(outputpath,n_cam,loopcounter=''):
+def save_open_images(outputpath,loopcounter=''):
     for i in plt.get_figlabels():
         plt.figure(i)
         plt.savefig(outputpath+str(loopcounter)+"_"+str(i)+'.png')
