@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 import marker_calibration as mark
 import time
 import get_image as get
+import calibrate as calib
 
 DEBUG = 1
 USAGE = '''
@@ -69,7 +70,7 @@ def visualization(imgs,n_cam,colorbar=0,switch=0):
     n = len(imgs)
     for (tit,im) in imgs.items():
         #plt.subplot(n,1,i),plt.imshow(im)
-        plt.close(tit,plt.figure(tit)
+        plt.close(tit),plt.figure(tit)
         if switch == 0:
             plt.imshow(im)
         else:
@@ -505,11 +506,11 @@ def format_points(pts_obj,margin,mask = 'all'):
         cv2.circle(img_test,(int(pt[0]),int(pt[1])),10,(255),3,cv2.CV_AA)
 
     return img_test,pts_obj,(int(size[0]),int(size[1]))
-def change_ref(pts_basis,margin,pt_wall):
+def change_wall_to_ref(pts_basis,margin,pt_wall):
     '''
     Change of basis from wall to reference points.
 
-    _Parameters_: (all distances in meters)
+    _Parameters_: (all distances in mm)
     pts_basis: list of positions of first and second reference points in wall
     reference. ([x1,y1],[x2,y2])
     margin: margin from leftmost and downmost reference points to new reference.
@@ -531,106 +532,20 @@ def change_ref(pts_basis,margin,pt_wall):
     x_prim = x_prim.T+np.matrix(margin)
     pt_wall[0,:2]=x_prim
     return pt_wall
+def change_ref_to_wall(pts_basis,margin,pt_ref):
+    ''' inverse of change_wall_to_ref '''
+    pt1 = pts_basis[0]
+    pt2 = pts_basis[1]
+    pt = np.matrix(pt_ref[0,:2])
+
+    theta = np.arctan((pt1[1]-pt2[1])/(pt1[0]-pt2[0]))
+    x_prim = pt-np.matrix(margin)
+    norm = np.linalg.norm(x_prim)
+    phi = np.arctan((x_prim[0,0])/(x_prim[0,1]))
+    x=np.sin(theta+phi)*norm+pt1[0]
+    y=np.cos(theta+phi)*norm+pt1[1]
+    pt_ref[0,:2] = np.array([x,y])
+    return pt_ref
 
 if __name__ == "__main__":
-    choice = "y"
-    #DEBUG = 1
-    while True:
-        try:
-            if choice == "y":
-                plt.close('all')
-                img = ''
-                n_cam = 'None'
-                n_pts = 4 #number of reference points
-                mask = [0,0,1,1,1,1] #choice of reference points
-                while True:
-                    try:
-                        n_cam = int(n_cam)
-                        break
-                    except:
-                        n_cam = raw_input("Please enter camera number: ")
-                #---------------- Get parameters --------------#
-                inputfile,outputpath = get_parameters()
-                if inputfile == '':
-                    img = get.get_image(n_cam)
-                else:
-                    img = cv2.imread(inputfile,cv2.IMREAD_COLOR)
-                if outputpath != '':
-                    if outputpath[-1]!="/":
-                        outputpath = outputpath+"/"
-                    outputfile = outputpath+"img"+str(n_cam)+".jpg"
-                    cv2.imwrite(outputfile,img)
-
-                #----------- Extract reference points----------#
-                # find orange
-                col_min = np.array([175,100,0],dtype=np.uint8)
-                col_max = np.array([20,250,255],dtype=np.uint8)
-                r=30
-                t=100
-                img_org,circ_org,pts_img,th_org = imagepoints(img,r,n_pts,t,
-                                                              col_min,col_max)
-                if pts_img.shape[1] == 0:
-                    print("No reference points found. Try again!")
-                    break
-
-                #-------------- Find robot position  ----------#
-                choice = "n"
-                choice = raw_input("Find robot position?(y/n)")
-                if choice == "y":
-                    col_min = np.array([150,100,0],dtype=np.uint8)
-                    col_max = np.array([20,250,255],dtype=np.uint8)
-                    r = 40
-                    t = 50
-                    img_red,circ_red,p,th_red = imagepoints(img,r,1,t,
-                                                            col_min,col_max)
-
-                else:
-                    p = np.array([np.zeros((1,2))])
-                    img_red = np.zeros(img.shape)
-                    th_red = np.zeros(img.shape)
-                    circ_red = np.zeros(img.shape)
-                #-------------- Project image to 2D -----------#
-                # Get real positions
-                # only for testing
-                margin = np.array([40,46],dtype=np.float) #in cm
-                pts_obj2,M = objectpoints(m,'input/objectpoints.csv')
-                # position of real points in cm, pt = (x,y)
-                pts_obj_test=np.array([[0,0],[70,0],[70,70],[0,70]],dtype=np.float32)
-                pts_obj_test=np.vstack((pts_obj_test,[50,33],[16,90]))
-                pts_obj_test = pts_obj_test+margin
-                # Ony choose certain object points
-
-                img_test,pts_obj,size = format_points(pts_obj2,margin,mask)
-                img_flat,M = geometric_transformationN(img,pts_obj,pts_img,size)
-
-                ##------------------ Summary ------------------#
-                img_summary = create_summary(img_flat,pts_obj,p)
-
-                # write results into file
-                if outputpath != '':
-                    current_time = str(int(time.mktime(time.gmtime())))
-                    name='ref_' +str(n_cam)+'_'+current_time+str('.txt')
-                    write_ref(outputpath,name,pts_img,M,pts_obj)
-                    name='pos_img'+str(n_cam)+'.txt'
-                    write_pos(outputpath,name,p)
-                #---------------  Visualization    ------------#
-                h,s,v = cv2.split(cv2.cvtColor(img,cv2.COLOR_BGR2HSV))
-                imgs = {'img_h':h,
-                        'img_s':s}
-                visualization(imgs,n_cam,1)
-                imgs = {'img_org':img_org,
-                        'circ_org':circ_org}
-                visualization(imgs,n_cam,)
-                imgs = {'img_red':img_red,
-                        'circ_red':circ_red}
-                visualization(imgs,n_cam)
-                imgs = {'summary':img_summary}
-                visualization(imgs,n_cam,0,1)
-                if outputpath != '':
-                    save_open_images(outputpath,n_cam)
-            elif choice == "n":
-                sys.exit(1)
-            choice = raw_input("Do you want to perform another localisation? (y/n)")
-        except (KeyboardInterrupt, SystemExit):
-            print("Program terminated by user")
-            sys.exit(1)
+    sys.exit(1)
