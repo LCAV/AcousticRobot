@@ -3,7 +3,7 @@
 from __future__ import division
 from __future__ import print_function
 
-import calibrate as calib
+import calibrate_check as calib
 import perspective as persp
 import get_image as get
 import marker_calibration as mark
@@ -64,6 +64,7 @@ MARGIN = np.array([1000,1000],dtype=np.float) #margin from leftmost and downlost
 PTS_BASIS = np.array(([2161,3556],[3704,1844])) #position of first and second reference points from wall (in mm)
 NCAMERAS = [141,143,145]
 def get_param():
+    global DEBUG
     ''' returns parameters from command line '''
     out_dir = ''
     in_dir = ''
@@ -112,7 +113,12 @@ if __name__ == '__main__':
     import getopt
 #---------------------------       Initialization       -----------------------#
     # General
-    out_dir,in_dir,n_pts,fisheye = get_param()
+    out_dir,in_dir,NPTS,fisheye = get_param()
+    if DEBUG:
+        print("Running in DEBUG mode\n")
+    else:
+        print("Running in real mode\n")
+
     TIME = str(int(time.mktime(time.gmtime())))
     input_au =in_dir+"sound.wav"
     input_mov = in_dir+"control.txt"
@@ -130,7 +136,7 @@ if __name__ == '__main__':
 
     r_height = r_real[0,2] #height of robot in mm
     choice_ref = 4 #chosen reference point for error calculation
-    ref_z = 20*np.ones((1,n_pts))
+    ref_z = 20*np.ones((1,NPTS))
     #ref_z = np.array([135,0,230,0]) #height of reference points in mm
     #ref_z = '' #height automatically set to 0
 
@@ -158,51 +164,29 @@ if __name__ == '__main__':
             n = int(n)
             cam = calib.Camera(n)
             cam.read(in_dir,fisheye)
-
+            img=calib.Image(n)
             if DEBUG:
-                img=cv2.imread(in_dir+str(loop_counter)+"_image"+str(n)+".png")
-                b,g,r= cv2.split(img)
-                img=cv2.merge((r,g,b))
+                img.load_image(in_dir+str(loop_counter)+"_image"+str(n)+".png")
             else:
-                img = get.get_image(n)
+                img.take_image()
 
             # save unchanged image
-            plt.imsave(out_dir+'image'+str(n),img)
-            h,s,v = cv2.split(cv2.cvtColor(img,cv2.COLOR_BGR2HSV))
+            plt.imsave(out_dir+'image'+str(n),img.img)
 
-            #-- get points --#
-            img_org,circ_org,pts_img,th_org = persp.imagepoints(img,R_REF,n_pts,THRESH,
-                                                                MIN_REF,MAX_REF)
+            img.get_refimage(R_REF,THRESH,MIN_REF,MAX_REF,NPTS,1,out_dir,
+                             TIME)
+
+#--------------------------- 3.b Get Object Points      -----------------------#
+            img.get_refobject(input_obj,NPTS,MARGIN,1,out_dir,TIME)
+            name='ref_'+str(n)+'_'+TIME+str('.txt')
+            img.write_ref(out_dir,name,img.ref_img,img.M,img.ref_obj)
         else:
             break
-#--------------------------- 3.b Get Object Points      -----------------------#
-        #-- get points --#
-        pts_obj,M = persp.objectpoints(n_pts,input_obj)
-        __,pts_obj,size = persp.format_points(pts_obj,MARGIN/10)
-        img_flat,M = persp.geometric_transformationN(img,pts_obj,pts_img,size)
-
-        #-- save results --#
-        # positions
-        name='ref_'+str(n)+'_'+TIME+str('.txt')
-        persp.write_ref(out_dir,name,pts_img,M,pts_obj)
-        # images
-        imgs={'img_h_'+str(n)+'_'+TIME:h,'img_s_'+str(n)+'_'+TIME:s}
-        persp.visualization(imgs,n,1)
-        imgs = {'img_'+str(n)+'_'+TIME:img,
-                'img_org_'+str(n)+'_'+TIME:img_org,
-                'circ_org_'+str(n)+'_'+TIME:circ_org}
-        persp.visualization(imgs,n)
-        img_summary = persp.create_summary(img_flat,pts_obj)
-        imgs = {'summary_'+str(n)+'_'+TIME:img_summary}
-        persp.visualization(imgs,n,0,1)
-        persp.save_open_images(out_dir)
-        plt.close('all')
 
 #--------------------------- 4. Localization            -----------------------#
     loop_counter = 0
     choice_loc = raw_input(ROBOT_LOC)
     while choice_loc != "n":
-
         # write current real position in file
         choice = raw_input(ROBOT_REAL)
         if choice != 'n':
@@ -235,7 +219,7 @@ if __name__ == '__main__':
                     else:
                         img.take_image()
 
-                    img.get_robotimage(R_ROB,THRESH,MIN,MAX,1,out_dir,TIME)
+                    img.get_robotimage(R_ROB,THRESH,MIN,MAX,1,out_dir,TIME,loop_counter)
                     name='posimg_'+str(n)+'_'+TIME+'.txt'
                     img.write_pos(out_dir,name,img.r_img)
 
@@ -250,19 +234,19 @@ if __name__ == '__main__':
                 cam = calib.Camera(n)
                 cam.read(in_dir,fisheye[i])
                 img = calib.Image(n)
-                img.read_ref(out_dir,"ref_",n_pts)
+                img.read_ref(out_dir,"ref_",NPTS)
                 img.read_pos(out_dir,"posimg_")
-                img.ref_real = img.augment(img.ref_real,ref_z)
+                img.ref_obj = img.augment(img.ref_obj,ref_z)
 
                 #--- Extrinsic calibration ---#
                 err_img = 0
-                cam.reposition(img.ref_real,img.ref_img,flag)
-                ref, err_img,lamda = cam.check_imagepoints(img.augment(img.ref_real),
+                cam.reposition(img.ref_obj,img.ref_img,flag)
+                ref, err_img,lamda = cam.check_imagepoints(img.augment(img.ref_obj),
                                                            img.ref_img)
-                ref_obj,err_obj = cam.check_objectpoints(img.augment(img.ref_real),
+                ref_obj,err_obj = cam.check_objectpoints(img.augment(img.ref_obj),
                                                           img.augment(img.ref_img))
                 #--- Individual Robot position ---#
-                img.r,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
+                img.r_obj,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
                                                         'hz',r_height,r_real)
                 imgs[i]=img
                 cams[i]=cam
@@ -272,12 +256,12 @@ if __name__ == '__main__':
 
             errors = np.matrix([round(np.sum(x)/len(x),4) for x in errs.values()])
 
-            ref_real = img.ref_real[choice_ref,:] # real position of reference points
+            ref_obj = img.ref_obj[choice_ref,:] # real position of reference points
             p1,e21,e31,arr1 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
-                                            pts_ref.values(),'hz',ref_real[0,2],ref_real)
+                                            pts_ref.values(),'hz',ref_obj[0,2],ref_obj)
             calib.save_combinations(out_dir,"combi_ref_fixed"+str(choice_ref),arr1,p1,(e21,e31))
             p2,e22,e32,arr2 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
-                                            pts_ref.values(),'hz','',ref_real)
+                                            pts_ref.values(),'hz','',ref_obj)
             calib.save_combinations(out_dir,"combi_ref_free"+str(choice_ref),arr2,p2,(e22,e32))
             p3,e23,e33,arr3 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
                                             pts.values(),'hz',r_height,r_real)
@@ -310,10 +294,10 @@ if __name__ == '__main__':
             print(msg4)
 
             name='posobj_fix_'+TIME+'.txt'
-            p_lq1_wall = persp.change_ref_to_wall(PTS_BASIS,MARGIN,p_lq1)
+            p_lq1_wall = persp.change_ref_to_wall(PTS_BASIS,MARGIN,p_lq1.T)
             persp.write_pos(out_dir,name,p_lq1_wall)
             name='posobj_free_'+TIME+'.txt'
-            p_lq2_wall = persp.change_ref_to_wall(PTS_BASIS,MARGIN,p_lq2)
+            p_lq2_wall = persp.change_ref_to_wall(PTS_BASIS,MARGIN,p_lq2.T)
             persp.write_pos(out_dir,name,p_lq2_wall)
 
             with open(out_dir+str(loop_counter)+"results"+str(choice_ref)+".txt",'w') as f:
@@ -353,7 +337,6 @@ if __name__ == '__main__':
             t = times[loop_counter]
             c = commands[loop_counter]
             Robot.move(t,c,output_tim)
-
 
         loop_counter += 1
         choice_loc = raw_input(ROBOT_LOC)

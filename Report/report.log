@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.7.25)  9 NOV 2015 10:03
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.7.25)  11 NOV 2015 23:59
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -892,11 +892,15 @@ Package microtype Info: Character `029' is missing
 (microtype)             in font `T1/pplx/m/sc/12'.
 (microtype)             Ignoring protrusion settings for this character.
 
-No file report.bbl.
+(./report.bbl
+
+Package natbib Warning: Empty `thebibliography' environment on input line 8.
+
+)
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 44.
 LaTeX Font Info:    Try loading font information for OT1+pplx on input line 44.
 
-(/usr/local/texlive/2012/texmf-dist/tex/latex/psnfss/ot1pplx.fd
+ (/usr/local/texlive/2012/texmf-dist/tex/latex/psnfss/ot1pplx.fd
 File: ot1pplx.fd 2004/09/06 font definitions for OT1/pplx.
 )
 LaTeX Font Info:    Try loading font information for OML+zplm on input line 44.
@@ -929,24 +933,14 @@ Package atveryend Info: Empty hook `AfterLastShipout' on input line 44.
  (./report.aux)
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 44.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 44.
-
-
-Package rerunfilecheck Warning: File `report.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `report.out':
-(rerunfilecheck)             Before: D41D8CD98F00B204E9800998ECF8427E;0
-(rerunfilecheck)             After:  7AAFA72F1489102D367C88167BB9F04B;147.
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
+Package rerunfilecheck Info: File `report.out' has not changed.
+(rerunfilecheck)             Checksum: 7AAFA72F1489102D367C88167BB9F04B;147.
  ) 
 Here is how much of TeX's memory you used:
- 11993 strings out of 493488
- 178496 string characters out of 3141326
- 289350 words of memory out of 3000000
- 15085 multiletter control sequences out of 15000+200000
+ 12000 strings out of 493488
+ 178556 string characters out of 3141326
+ 290505 words of memory out of 3000000
+ 15090 multiletter control sequences out of 15000+200000
  28066 words of font info for 70 fonts, out of 3000000 for 9000
  957 hyphenation exceptions out of 8191
  43i,14n,45p,772b,331s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -956,10 +950,10 @@ xlive/2012/texmf-dist/fonts/type1/public/fpl/fplrc8a.pfb></usr/local/texlive/20
 12/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/local/texlive/2012/texm
 f-dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/local/texlive/2012/texmf-dist/
 fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on report.pdf (1 page, 59222 bytes).
+Output written on report.pdf (1 page, 59724 bytes).
 PDF statistics:
- 37 PDF objects out of 1000 (max. 8388607)
- 28 compressed objects within 1 object stream
+ 47 PDF objects out of 1000 (max. 8388607)
+ 38 compressed objects within 1 object stream
  5 named destinations out of 1000 (max. 500000)
- 28161 words of extra memory for PDF output out of 29859 (max. 10000000)
+ 28185 words of extra memory for PDF output out of 29859 (max. 10000000)
 

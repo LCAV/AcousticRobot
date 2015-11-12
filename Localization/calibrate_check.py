@@ -567,14 +567,14 @@ class Camera:
 
         sum_max = 1000
         for repErr in repErr_range:
-            result = self.reposition(img.ref_real,img.ref_img,flag,1,repErr)
+            result = self.reposition(img.ref_obj,img.ref_img,flag,1,repErr)
             # Check only chosen refpoints by Ransac
-            ref_img = ref_real = 0
+            ref_img = ref_obj = 0
             try:
                 ref_img = img.ref_img[result].reshape(result.shape[0],2)
-                ref_real = img.ref_real[result].reshape(result.shape[0],3)
+                ref_obj = img.ref_obj[result].reshape(result.shape[0],3)
                 # Check if the match is new best match
-                ref, err_img,__ = self.check_imagepoints(img.augment(ref_real),ref_img)
+                ref, err_img,__ = self.check_imagepoints(img.augment(ref_obj),ref_img)
                 sum_current = err_img.sum()/err_img.shape[0]
                 if sum_current < sum_max:
                     sum_max = sum_current
@@ -586,7 +586,7 @@ class Camera:
                 print(repErr,': no result obtained')
                 next
         # Use best found repErr to reposition camera
-        self.reposition(img.ref_real,img.ref_img,flag,1,repErr_best)
+        self.reposition(img.ref_obj,img.ref_img,flag,1,repErr_best)
         return err_best
     def undistort(self,img):
         # intrinsic parameters
@@ -626,14 +626,13 @@ class Camera:
         return np.array(dst)
 
 class Image:
-    def __init__(self,n,ref_real=0,r_truth=0,ref_img=0,ref=0,r_img=0,r=0):
+    def __init__(self,n,ref_obj=0,r_truth=0,ref_img=0,ref=0,r_img=0,r=0):
         self.n = n
         self.ref_img = ref_img
-        self.ref = ref
+        self.ref_obj = ref
         self.r_img = r_img
-        self.r = r
+        self.r_obj = r
         self.r_truth = r_truth
-        self.ref_real = ref_real
     def take_image(self):
         ''' Get image from camera'''
         self.img = get.get_image(self.n)
@@ -684,7 +683,7 @@ class Image:
         img_points = pts_img.astype(np.float32)
         obj_points = pts_obj.astype(np.float32)
         self.ref_img = np.matrix(img_points)
-        self.ref_real = np.matrix(obj_points)
+        self.ref_obj = np.matrix(obj_points)
     def read_pos(self,dirname,fname):
         '''
         get newest robot position from pos_img file of this camera
@@ -735,7 +734,6 @@ class Image:
                 for pt in p:
                     f.write(str(pt)+'\t')
                 f.write("\n")
-
     def augment(self,pt,z = ''):
         ''' Add third dimension to points (ones if not specified) '''
         dim = pt.shape[0]
@@ -746,9 +744,7 @@ class Image:
                 return np.matrix(np.hstack((pt,np.ones((dim,1))))).astype(np.float32)
         else:
             return np.matrix(np.hstack((pt,z.reshape(dim,1)))).astype(np.float32)
-    def get_objetpoints(self,):
-
-    def get_robotimage(self,R,THRESH,MIN,MAX,save=0,out_dir='',TIME=0):
+    def get_robotimage(self,R,THRESH,MIN,MAX,save=0,out_dir='',TIME=0,loop=''):
         ''' Finds robot position in image using persp.imagepoints.
 
         _Parameters_:
@@ -765,52 +761,56 @@ class Image:
         if save:
             imgs={'img_red_'+str(self.n)+'_'+TIME:img_red,
                   'circ_red_'+str(self.n)+'_'+TIME:circ_red,
-                  'img_'+str(self.n)+'_'+TIME:img}
-            persp.visualization(imgs,n)
-            persp.save_open_images(out_dir,loop_counter)
+                  'img_'+str(self.n)+'_'+TIME:self.img}
+            persp.visualization(imgs,self.n)
+            persp.save_open_images(out_dir,loop)
             plt.close('all')
+    def get_refimage(self,R,THRESH,MIN,MAX,NPTS,save=0,out_dir='',TIME=0,loop=''):
+        ''' Finds reference position in image using persp.imagepoints.
 
-    def get_refimage(
+        _Parameters_:
+        R,NPTS,THRESH,MIN,MAX: parameters used by persp.imagepoints
+        save: set to 1 if you wish to save results (images)
+        out_dir: directory where to save images.
+        TIME: start time of program (for file naming)
 
-
-        self.ref_img =
-    def get_checkerpoints(self,):
-        return 0
-
-global px_size
-px_size = 1.4*10**-3 # mm per pixel
-
-if __name__ == '__main__':
-    import getopt
-    TIME = str(int(time.mktime(time.gmtime())))
-    w=8
-    h=5
-    MIN_REF = np.array([175,100,0],dtype=np.uint8)
-    MAX_REF = np.array([20,250,255],dtype=np.uint8)
-    R_REF=30
-    THRESH=100
-    ipts=dict()
-    ipts_new=dict()
-    indexes=dict()
-    ipts_selec = dict()
-
-    out_dir,cam_dir,n,fisheye = get_param()
-
-    for n in [143,145]:
+        _Returns_:
+        Nothing
+        '''
+        img_org,circ_org,pts_img,th_org = persp.imagepoints(self.img,R,NPTS,THRESH,
+                                                            MIN,MAX)
+        self.ref_img=pts_img
+        if save:
+            h,s,__ = cv2.split(cv2.cvtColor(self.img,cv2.COLOR_BGR2HSV))
+            imgs={'img_h_'+str(self.n)+'_'+TIME:h,'img_s_'+str(self.n)+'_'+TIME:s}
+            persp.visualization(imgs,self.n,1)
+            imgs={'img_org_'+str(self.n)+'_'+TIME:img_org,
+                  'circ_org_'+str(self.n)+'_'+TIME:circ_org,
+                  'img_'+str(self.n)+'_'+TIME:self.img}
+            persp.visualization(imgs,self.n)
+            persp.save_open_images(out_dir,loop)
+            plt.close('all')
+    def get_refobject(self,input_obj,NPTS,MARGIN,save=0,out_dir='',TIME=0):
+        pts_obj,M = persp.objectpoints(NPTS,input_obj)
+        __,pts_obj,size = persp.format_points(pts_obj,MARGIN/10)
+        img_flat,M = persp.geometric_transformationN(self.img,pts_obj,self.ref_img,size)
+        self.ref_obj = pts_obj
+        self.M = M
+        if save:
+            # images
+            img_summary = persp.create_summary(img_flat,pts_obj)
+            imgs = {'summary_'+str(self.n)+'_'+TIME:img_summary}
+            persp.visualization(imgs,self.n,0,1)
+            persp.save_open_images(out_dir)
+            plt.close('all')
+    def get_checkerboard(self,cam_dir,fisheye,w,h,
+                         R,THRESH,MIN,MAX,save,out_diout_dir='',TIME=0,loop=''):
         cam = Camera(n)
-        ''' get checkerboard imagepoints'''
         cam.read(cam_dir,fisheye)
-        ipts[n],opts,img=cam.get_checkpoints_file(out_dir,fisheye)
+        ipts,opts,img=cam.get_checkpoints_file(out_dir,fisheye)
         plt.close('all')
 
-        ''' get corner points '''
-        # find image points closest to A, B and C respectively.
-
-        img_org,circ_org,pts_img,th_org = persp.imagepoints(img,R_REF,3,THRESH,MIN_REF,MAX_REF)
-        imgs={'img_org_'+str(n)+'_'+TIME:img_org,
-              'circ_org_'+str(n)+'_'+TIME:circ_org}
-        persp.visualization(imgs, n)
-        persp.save_open_images(out_dir)
+        img_org,circ_org,pts_img,__ = persp.imagepoints(img,R,3,THRESH,MIN,MAX)
         A = pts_img[0]
         B = pts_img[1]
         C = pts_img[2]
@@ -821,7 +821,7 @@ if __name__ == '__main__':
         min_b=10000
         min_c=10000
         a_ind = b_ind = c_ind = 0
-        for i,pt in enumerate(ipts[n][0]):
+        for i,pt in enumerate(ipts[0]):
             if np.linalg.norm(pt-A)<min_a:
                 min_a = np.linalg.norm(pt-A)
                 a=pt
@@ -835,21 +835,20 @@ if __name__ == '__main__':
                 c=pt
                 c_ind = i
         ''' reorder points from a to b and a to c '''
-        ipts_new[n]=np.zeros(ipts[n][0].shape,dtype=np.float32)
-        j = np.zeros((ipts[n][0].shape[0],1))
-        index = np.zeros((ipts[n][0].shape[0],1))
-        for i in range(ipts[n][0].shape[0]):
+        ipts_new=np.zeros(ipts[0].shape,dtype=np.float32)
+        j = np.zeros((ipts[0].shape[0],1))
+        index = np.zeros((ipts[0].shape[0],1))
+        for i in range(ipts[0].shape[0]):
             j[i] = i + 1 - np.mod(i,w)
             index[i]=a_ind+(c_ind-a_ind)/(w*(h-1))*(j[i]-1)+(b_ind-a_ind)/(w-1)*(i+1-j[i])
-            ipts_new[n][i,:] = ipts[n][0][int(index[i]),:]
-        indexes[n]=(index,j)
+            ipts_new[i,:] = ipts[0][int(index[i]),:]
 
         ''' resposition camera '''
-        cam.reposition(opts[0],ipts_new[n],0)
+        cam.reposition(opts[0],ipts_new,0)
 
         ''' choose 4 corner points for homography'''
-        ipts_selec[n] = np.array([ipts_new[n][0],ipts_new[n][w-1],
-                                ipts_new[n][w*(h-1)],ipts_new[n][w*h-1]])
+        ipts_selec = np.array([ipts_new[0],ipts_new[w-1],
+                                ipts_new[w*(h-1)],ipts_new[w*h-1]])
         opts_selec = np.array([opts[0][0],opts[0][w-1],
                                  opts[0][w*(h-1)],opts[0][w*h-1]])
 
@@ -860,8 +859,36 @@ if __name__ == '__main__':
         size = np.amax(pts_obj[:,:2],axis=0)+MARGIN
         size = (int(size[0]),int(size[1]))
         img_flat,M = persp.geometric_transformationN(img,pts_obj[:,:2],
-                                                     ipts_selec[n],size)
-        img_summary = persp.create_summary(img_flat,pts_obj)
-        imgs={'summary_'+str(n)+'_'+TIME:img_summary}
-        persp.visualization(imgs,n,0,1)
-        persp.save_open_images(out_dir)
+                                                     ipts_selec,size)
+
+        self.ref_img = ipts_new
+        self.ref_obj = opts
+
+        if save:
+            img_summary = persp.create_summary(img_flat,pts_obj)
+            imgs={'summary_'+str(self.n)+'_'+TIME:img_summary}
+            persp.visualization(imgs,self.n,0,1)
+            imgs={'img_org_'+str(self.n)+'_'+TIME:img_org,
+                'circ_org_'+str(self.n)+'_'+TIME:circ_org}
+            persp.visualization(imgs, n)
+            persp.save_open_images(out_dir)
+
+if __name__ == '__main__':
+    import getopt
+    TIME = str(int(time.mktime(time.gmtime())))
+    w=8
+    h=5
+    MIN_REF = np.array([175,100,0],dtype=np.uint8)
+    MAX_REF = np.array([20,250,255],dtype=np.uint8)
+    R_REF=30
+    THRESH=100
+    imgs=dict()
+
+    out_dir,cam_dir,n,fisheye = get_param()
+
+    for n in [143,145]:
+        img = Image(n)
+        img.get_checkerboard(cam_dir,fisheye,w,h,
+                               R_REF,THRESH,MIN_REF,MAX_REF,1,out_dir,TIME)
+        imgs[n] = img
+
