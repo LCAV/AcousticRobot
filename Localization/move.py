@@ -207,6 +207,14 @@ class Robot:
                         data = self.socket.recv(BUFFER_SIZE)
                         c.writerow([round(time.time()-start,4),data])
                 last_time = t
+    def activate(self):
+        ''' Set motors back into control mode (to be called after every stop) '''
+        if not DEBUG:
+            self.socket.send("p l CONTROL 2")
+            time.sleep(1)
+            self.socket.send("p r CONTROL 2")
+        return 1
+
     def get_position(self,outputfile):
         ''' gets encoder position from left and right motor and writes them into
         the odometry output file'''
@@ -257,6 +265,9 @@ if __name__ == '__main__':
     R.get_position(output_odo)
     # Execute commands (in blocks)
     for i,c in commands.iteritems():
+        print("activate motors")
+        R.activate()
+
         print("starting new movement")
         t=times[i]
         R.move(t,c,output_tim)

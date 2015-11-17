@@ -3,7 +3,7 @@
 
 '''
 Calibrate
-=========
+===============
 
 Contains all functions necessary for intrinsic and extrinsic camera calibration,
 including the triangulation between cameras for 3D reconstruction.
@@ -32,12 +32,13 @@ import os
 import sys
 from scipy.linalg import svd
 import itertools
+import perspective as persp
+import time
+
 USAGE = '''
 USAGE: calib.py [-o <output path>] [-c <camera path>]
 [-n <camera_number>] [-f <fisheye on (0/1)>]
 '''
-
-import numpy as np
 
 def combinations(array,number):
     ''' returns vector with  all possible camera combinations
@@ -58,7 +59,7 @@ def get_param():
     ''' returns parameters from command line '''
     global USAGE
     out_dir = ''
-    cam_dir = ''
+    in_dir = ''
     n = 141
     fisheye = '0000'
     try:
@@ -71,7 +72,7 @@ def get_param():
         if opt in ('--save',"-o"):
             out_dir = str(arg)
         if opt in ("--cam", "-c"):
-            cam_dir = str(arg)
+            in_dir = str(arg)
         if opt in ('--n',"-n"):
             n = int(arg)
         if opt in ('--fisheye',"-f"):
@@ -79,9 +80,9 @@ def get_param():
             fisheye = [c=='1' for c in fish]
     if out_dir[-1]!="/":
         out_dir = out_dir+"/"
-    if cam_dir[-1]!="/":
-        cam_dir = cam_dir + "/"
-    return out_dir,cam_dir,n,fisheye
+    if in_dir[-1]!="/":
+        in_dir = in_dir + "/"
+    return out_dir,in_dir,n,fisheye
 def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
     '''
     Solve least squares problem for point position with or without fixed height
@@ -293,7 +294,7 @@ class Camera:
         self.R = np.matrix(R)
         self.Proj = self.C*np.hstack((self.R,self.t))
         self.Center = -self.R.I*self.t
-    def read(self,cam_dir,fisheye=False):
+    def read(self,in_dir,fisheye=False):
         ''' get camera parameters from file '''
         import numpy as np
         i=0
@@ -304,11 +305,9 @@ class Camera:
         tvecs = []
         fname = "results"
         if fisheye==True:
-            print("loading fisheye parameters...")
             fname = "results_fish"
-        else:
-            print("loading parameters...")
-        with open(cam_dir+fname+str(self.n)+".txt","r") as f:
+        print("Loading camera parameters from",in_dir+fname+str(self.n)+".txt")
+        with open(in_dir+fname+str(self.n)+".txt","r") as f:
             c = csv.reader(f,delimiter='\t')
             count = sum(1 for _ in c) # number of lines in file
             dim = int((count-5)/2) #number of images in folder
@@ -331,12 +330,12 @@ class Camera:
         self.dist = np.array(dist)
         self.r = np.matrix(rvecs)
         self.t = np.matrix(tvecs)
-    def save(self,cam_dir,fisheye):
+    def save(self,in_dir,fisheye):
         ''' save camera parameters in file '''
         fname = "results"
         if fisheye:
             fname = "results_fish"
-        with open(cam_dir+fname+str(self.n)+".txt","w") as f:
+        with open(in_dir+fname+str(self.n)+".txt","w") as f:
             f.write(str(self.rms)+'\n')
             for e in self.C:
                 f.write("{0:10.4f}\t{1:10.4f}\t{2:10.4f}\n".format(e[0,0],e[0,1],e[0,2]))
@@ -353,8 +352,7 @@ class Camera:
                 f.write("\n")
     def get_checkpoints(self,out_dir,fisheye):
         '''
-        Gets checkboard points for the intrinsic camera  calibration.
-
+        gets checkboard points for the intrinsic camera  calibration.
         '''
         choice = "y"
         counter = 1
@@ -381,13 +379,12 @@ class Camera:
             except KeyboardInterrupt:
                 print("program terminated by user")
                 sys.exit(1)
-    def get_calibpoints(self,img,pattern_size,counter,out_dir,fisheye):
+    def get_calibpoints(self,img,pattern_size,counter,out_dir,fisheye,save_input=True,save_output=True):
         '''
         returns pairs of object- and image points (chess board corners)
         for camera calibration
         '''
         square_size = 47 # in mm
-        square_size = square_size/px_size # †his doesn't matter for camera calibration!!
         #print("square size:",square_size)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         pattern_points = np.zeros( (np.prod(pattern_size), 3), np.float32 )
@@ -410,25 +407,34 @@ class Camera:
                 cv2.drawChessboardCorners(out, pattern_size, corners, found)
                 ax.imshow(out),plt.show(block=False)
                 fname = "input"
-                if fisheye:
+                if int(fisheye[int((n-139)/2)]):
                     fname="input_fish"
-                cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,self.n,counter),img)
+                if save_input:
+                    cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,self.n,counter),img)
                 fname = "output"
-                if fisheye:
+                if int(fisheye[int((n-139)/2)]):
                     fname="output_fish"
-                cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,self.n,counter), out)
-            return corners.reshape(-1, 2), pattern_points
+                if save_output:
+                    cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,self.n,counter), out)
+            return corners.reshape(-1, 2), pattern_points,out
         elif not found:
             if not corners == None:
                 print(str(counter)+': chessboard only partially found')
                 out = img.copy()
                 cv2.drawChessboardCorners(out, pattern_size, corners, found)
                 ax.imshow(out),plt.show(block=False)
+                fname="output"
+                if int(fisheye[int((n-139)/2)]):
+                    fname="output_fish"
+                cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,self.n,counter), out)
             else:
                 ax.imshow(img),plt.show(block=False)
                 print(str(counter)+': chessboard not found')
-            return [],[]
+            return [],[],0
     def save_checkpoints_file(self,out_dir,n_cameras):
+        '''
+        take pictures and save them in out_dir for later processing
+        '''
         choice = "y"
         counter = 1
         while True:
@@ -447,9 +453,10 @@ class Camera:
             except KeyboardInterrupt:
                 print("program terminated by user")
                 sys.exit(1)
-    def get_checkpoints_file(self,out_dir,fisheye):
+    def get_checkpoints_file(self,out_dir,fisheye,img=''):
         '''
-        gets checkboard points for the intrinsic camera  calibration.
+        gets checkboard points for the intrinsic camera calibration from pictures
+        that have been taken previously
         '''
         choice = "y"
         counter = 1
@@ -457,21 +464,30 @@ class Camera:
         img_points = []
         pattern_size = (8, 5)
         try:
-            # Collect Data
-            for f in os.listdir(out_dir):
-                if f.startswith("input"+str(self.n)):
-                    img = cv2.imread(out_dir+f,cv2.IMREAD_COLOR)
-                    print("reading ",out_dir+f)
-                    h, w = img.shape[:2]
-                    img_pt, obj_pt = get_calibpoints(img,pattern_size,
-                                                    counter,out_dir,self.n,fisheye)
-                    if not obj_pt == []:
-                        img_points.append(img_pt)
-                        obj_points.append(obj_pt)
-                    counter += 1
-            return img_points, obj_points, (w,h)
+            # Collect Data from input files in folder
+            if img=='':
+                for f in os.listdir(out_dir):
+                    if f.startswith("input"+str(self.n)):
+                        img = cv2.imread(out_dir+f,cv2.IMREAD_COLOR)
+                        print("reading ",out_dir+f)
+                        h, w = img.shape[:2]
+                        img_pt, obj_pt,__ = self.get_calibpoints(img,pattern_size,
+                                                              counter,out_dir,fisheye,0)
+                        if not obj_pt == []:
+                            img_points.append(img_pt)
+                            obj_points.append(obj_pt)
+                        counter += 1
+            # work with image given as argument
+            else:
+                h, w = img.shape[:2]
+                img_pt, obj_pt,output = self.get_calibpoints(img,pattern_size,
+                                                      counter,out_dir,fisheye,0)
+            if not obj_pt == []:
+                img_points.append(img_pt)
+                obj_points.append(obj_pt)
+            return img_points,obj_points,output
         except KeyboardInterrupt:
-            print("program terminated by user")
+            print("Program terminated by user")
             sys.exit(1)
     def calibrate(self,obj_points,img_points,size):
         rms,C,dist,r,t = cv2.calibrateCamera(obj_points,img_points,size, None, None)
@@ -523,9 +539,6 @@ class Camera:
         r3 = r3.T
         t = lamda*self.C.T*h3.T
         proj = np.hstack((r1,r2,r3,t))
-
-
-
     def check_imagepoints(self,p_obj,p_img):
         '''
         Returns images of reference points (known) and the relative error matrix
@@ -566,14 +579,14 @@ class Camera:
 
         sum_max = 1000
         for repErr in repErr_range:
-            result = self.reposition(img.ref_real,img.ref_img,flag,1,repErr)
+            result = self.reposition(img.ref_obj,img.ref_img,flag,1,repErr)
             # Check only chosen refpoints by Ransac
-            ref_img = ref_real = 0
+            ref_img = ref_obj = 0
             try:
                 ref_img = img.ref_img[result].reshape(result.shape[0],2)
-                ref_real = img.ref_real[result].reshape(result.shape[0],3)
+                ref_obj = img.ref_obj[result].reshape(result.shape[0],3)
                 # Check if the match is new best match
-                ref, err_img,__ = self.check_imagepoints(img.augment(ref_real),ref_img)
+                ref, err_img,__ = self.check_imagepoints(img.augment(ref_obj),ref_img)
                 sum_current = err_img.sum()/err_img.shape[0]
                 if sum_current < sum_max:
                     sum_max = sum_current
@@ -585,7 +598,7 @@ class Camera:
                 print(repErr,': no result obtained')
                 next
         # Use best found repErr to reposition camera
-        self.reposition(img.ref_real,img.ref_img,flag,1,repErr_best)
+        self.reposition(img.ref_obj,img.ref_img,flag,1,repErr_best)
         return err_best
     def undistort(self,img):
         # intrinsic parameters
@@ -624,18 +637,45 @@ class Camera:
         # cv.Undistort2(src,dst, intrinsics, dist_coeffs)
         return np.array(dst)
 
-
 class Image:
-    def __init__(self,n,ref_real=0,r_truth=0,ref_img=0,ref=0,r_img=0,r=0):
+    def __init__(self,n,ref_obj=0,r_truth=0,ref_img=0,ref=0,r_img=0,r=0):
         self.n = n
         self.ref_img = ref_img
-        self.ref = ref
+        self.ref_obj = ref
         self.r_img = r_img
-        self.r = r
+        self.r_obj = r
         self.r_truth = r_truth
-        self.ref_real = ref_real
+    def take_image(self):
+        ''' Get image from camera'''
+        self.img = get.get_image(self.n)
+    def load_image(self,fname,swop=True):
+        ''' Load image from file.
+        _Parameters_:
+        fname: path to picture to be loaded
+        swop: if True, picture will be converted from BGR(cv2 default) to RGB (matplotlib default)
+
+        _Returns_:
+        None (updates self.img)
+
+        '''
+        img=cv2.imread(fname)
+        if swop:
+            b,g,r= cv2.split(img)
+            self.img=cv2.merge((r,g,b))
+        else:
+            self.img=img
     def get_newest(self,dirname,fname):
-        ''' Get newest file name '''
+        ''' Get newest file in directory "dirname" starting with
+        "fname" and camera number
+
+        _Parameters_:
+        dirname: directory where file is to be searched for.
+        fname: start of filename (will be followed by camera number)
+
+        _Returns_:
+        Full relative path to newest file
+
+        '''
         f_newest = '0000000000'
         for f in os.listdir(dirname):
             if f.startswith(fname+str(self.n)):
@@ -648,7 +688,7 @@ class Image:
         'dirname'
         '''
         fname = self.get_newest(dirname,fname)
-        #print("reading",fname)
+        print("Loading ref positions from ",fname)
         i = 0
         pts_img = np.zeros((m,2))
         M = np.zeros((3,3))
@@ -657,8 +697,12 @@ class Image:
             c = csv.reader(f,delimiter = '\t')
             for line in c:
                 if i >= 0 and i <m:
+                    print("ref:",i)
+                    print(line)
                     pts_img[i,:] = line
                 elif i >= m and i < m+3:
+                    #TODO: What's the problem here???????
+                    print("M:",i)
                     M[i-m,:] = line
                 elif i >= m+3 and i<2*m+3:
                     pts_obj[i-(m+3),:] = line
@@ -666,7 +710,8 @@ class Image:
         img_points = pts_img.astype(np.float32)
         obj_points = pts_obj.astype(np.float32)
         self.ref_img = np.matrix(img_points)
-        self.ref_real = np.matrix(obj_points)
+        self.ref_obj = np.matrix(obj_points)
+        self.M = M
     def read_pos(self,dirname,fname):
         '''
         get newest robot position from pos_img file of this camera
@@ -680,6 +725,44 @@ class Image:
                 p = [float(x) for x in line if x!='']
         # last value of p corresponds to last line
         self.r_img = np.array(p,dtype=np.float32)
+    def write_ref(self,dirname,name,pts_img,M,pts_obj):
+        ''' Save reference points positions in file, overwriting old results
+
+            _Parameters_:
+            dirname = directory
+            name = name of file
+            pts_img = np array with image positions of reference points.
+            M = geometric transformation np matrix(3x3) obtained from geometric_transformationN
+            pts_obj = np array with object positions of reference points
+
+            format of pts_img, pts_obj: row i: (pi_x, pi_y) with i going from 1 to m
+            (m = number of reference points)
+
+            _Returns_: Nothing
+        '''
+        print("Writing ref positions to ",dirname+name)
+        with open(dirname+name,"w") as f:# overwrite
+            for pt in pts_img:
+                f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
+            for m in M:
+                f.write(str(m[0,0])+"\t"+str(m[0,1])+"\t"+str(m[0,2])+"\n")
+            for pt in pts_obj:
+                pt = pt*10 #points in mm
+                f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
+    def write_pos(self,dirname,name,p):
+        ''' save robot position (img,obj or real) in file, appending to old results
+
+            _Parameters_:
+            dirname = directory
+            name = name of file
+            p = np array with robot position (x,y)
+
+            _Returns_: Nothing'''
+        with open(dirname+name,"a") as f: # append
+            if p.any():
+                for pt in p:
+                    f.write(str(pt)+'\t')
+                f.write("\n")
     def augment(self,pt,z = ''):
         ''' Add third dimension to points (ones if not specified) '''
         dim = pt.shape[0]
@@ -690,113 +773,162 @@ class Image:
                 return np.matrix(np.hstack((pt,np.ones((dim,1))))).astype(np.float32)
         else:
             return np.matrix(np.hstack((pt,z.reshape(dim,1)))).astype(np.float32)
+    def get_robotimage(self,R,THRESH,MIN,MAX,save=0,out_dir='',TIME=0,loop=''):
+        ''' Finds robot position in image using persp.imagepoints.
 
-global px_size
-px_size = 1.4*10**-3 # mm per pixel
+        _Parameters_:
+        R,THRESH,MIN,MAX: parameters used by persp.imagepoints
+        save: set to 1 if you wish to save results (images)
+        out_dir: directory where to save images.
+        TIME: start time of program (for file naming)
+
+        _Returns_:
+        Nothing
+        '''
+        img_red,circ_red,p,__ = persp.imagepoints(self.img,R,1,THRESH,MIN,MAX)
+        self.r_img=p
+        if save:
+            imgs={'img_red_'+str(self.n)+'_'+TIME:img_red,
+                  'circ_red_'+str(self.n)+'_'+TIME:circ_red,
+                  'img_'+str(self.n)+'_'+TIME:self.img}
+            persp.visualization(imgs,self.n)
+            persp.save_open_images(out_dir,loop)
+            plt.close('all')
+    def get_refimage(self,R,THRESH,MIN,MAX,NPTS,save=0,out_dir='',TIME=0,loop=''):
+        ''' Finds reference position in image using persp.imagepoints.
+
+        _Parameters_:
+        R,NPTS,THRESH,MIN,MAX: parameters used by persp.imagepoints
+        save: set to 1 if you wish to save results (images)
+        out_dir: directory where to save images.
+        TIME: start time of program (for file naming)
+
+        _Returns_:
+        Nothing
+        '''
+        img_org,circ_org,pts_img,th_org = persp.imagepoints(self.img,R,NPTS,THRESH,
+                                                            MIN,MAX)
+        self.ref_img=pts_img
+        if save:
+            h,s,__ = cv2.split(cv2.cvtColor(self.img,cv2.COLOR_BGR2HSV))
+            imgs={'img_h_'+str(self.n)+'_'+TIME:h,'img_s_'+str(self.n)+'_'+TIME:s}
+            persp.visualization(imgs,self.n,1)
+            imgs={'img_org_'+str(self.n)+'_'+TIME:img_org,
+                  'circ_org_'+str(self.n)+'_'+TIME:circ_org,
+                  'img_'+str(self.n)+'_'+TIME:self.img}
+            persp.visualization(imgs,self.n)
+            persp.save_open_images(out_dir,loop)
+            plt.close('all')
+    def get_refobject(self,input_obj,NPTS,MARGIN,save=0,out_dir='',TIME=0):
+        pts_obj,M = persp.objectpoints(NPTS,input_obj)
+        __,pts_obj,size = persp.format_points(pts_obj,MARGIN/10)
+        img_flat,M = persp.geometric_transformationN(self.img,pts_obj,self.ref_img,size)
+        self.ref_obj = pts_obj
+        self.M = M
+        if save:
+            # images
+            img_summary = persp.create_summary(img_flat,pts_obj)
+            imgs = {'summary_'+str(self.n)+'_'+TIME:img_summary}
+            persp.visualization(imgs,self.n,0,1)
+            persp.save_open_images(out_dir)
+            plt.close('all')
+    def get_checkerboard(self,in_dir,fisheye,w,h,MARGIN,
+                         R,THRESH,MIN,MAX,save,out_dir='',TIME=0,loop=''):
+        cam = Camera(n)
+        cam.read(in_dir,fisheye)
+        ipts,opts,img_out=cam.get_checkpoints_file(out_dir,fisheye,self.img)
+        plt.close('all')
+
+        img_org,circ_org,pts_img,__ = persp.imagepoints(self.img,R,3,THRESH,MIN,MAX)
+        A = pts_img[0]
+        B = pts_img[1]
+        C = pts_img[2]
+        a = np.array([10000,10000])
+        b = np.array([10000,10000])
+        c = np.array([10000,10000])
+        min_a=10000
+        min_b=10000
+        min_c=10000
+        a_ind = b_ind = c_ind = 0
+        for i,pt in enumerate(ipts[0]):
+            if np.linalg.norm(pt-A)<min_a:
+                min_a = np.linalg.norm(pt-A)
+                a=pt
+                a_ind = i
+            if np.linalg.norm(pt-B)<min_b:
+                min_b = np.linalg.norm(pt-B)
+                b=pt
+                b_ind = i
+            if np.linalg.norm(pt-C)<min_c:
+                min_c = np.linalg.norm(pt-C)
+                c=pt
+                c_ind = i
+        ''' reorder points from a to b and a to c '''
+        ipts_new=np.zeros(ipts[0].shape,dtype=np.float32)
+        j = np.zeros((ipts[0].shape[0],1))
+        index = np.zeros((ipts[0].shape[0],1))
+        for i in range(ipts[0].shape[0]):
+            j[i] = i + 1 - np.mod(i,w)
+            index[i]=a_ind+(c_ind-a_ind)/(w*(h-1))*(j[i]-1)+(b_ind-a_ind)/(w-1)*(i+1-j[i])
+            ipts_new[i,:] = ipts[0][int(index[i]),:]
+
+        ''' resposition camera '''
+        #cam.reposition(opts[0],ipts_new,0)
+
+        ''' choose 4 corner points for homography'''
+        ipts_selec = np.array([ipts_new[0],ipts_new[w-1],
+                                ipts_new[w*(h-1)],ipts_new[w*h-1]])
+        opts_selec = np.array([opts[0][0],opts[0][w-1],
+                                 opts[0][w*(h-1)],opts[0][w*h-1]])
+
+        pts_obj = opts_selec.copy()
+        pts_obj[:,0]+=MARGIN[0]
+        pts_obj[:,1]+=MARGIN[1]
+        size = np.amax(pts_obj[:,:2],axis=0)+MARGIN
+        size = (int(size[0]),int(size[1]))
+        img_flat,M = persp.geometric_transformationN(self.img,pts_obj[:,:2],
+                                                     ipts_selec,size)
+
+        self.ref_img = ipts_new
+        self.ref_obj = opts[0]
+        self.M = M
+
+        if save:
+            img_summary = persp.create_summary(img_flat,pts_obj)
+            imgs={'summary_'+str(self.n)+'_'+TIME:img_summary}
+            persp.visualization(imgs,self.n,0,1)
+            imgs={'img_org_'+str(self.n)+'_'+TIME:img_org,
+                'circ_org_'+str(self.n)+'_'+TIME:circ_org,
+                  'img_out_'+str(self.n)+'_'+TIME:img_out}
+            persp.visualization(imgs,n)
+            persp.save_open_images(out_dir)
 
 if __name__ == '__main__':
     import getopt
+    TIME = str(int(time.mktime(time.gmtime())))
+    w=7
+    h=5
+    MIN_REF = np.array([175,100,0],dtype=np.uint8)
+    MAX_REF = np.array([20,250,255],dtype=np.uint8)
+    R_REF=30
+    THRESH=10
+    imgs=dict()
+    MARGIN=np.array([1000,1000])
 
-   #------------------------- Get parameters -------------------------#
-    out_dir,cam_dir,n,fisheye = get_param()
-    #------------------------ Calibrate Camera ------------------------#
+    out_dir,in_dir,n,fisheye = get_param()
 
-    # make new calibration
-    #camera = Camera(n)
-    #img_points,obj_points,size = camera.get_checkpoints(out_dir,fisheye[n])
-    #root mean square (RMS) re-projection error (good between 0.1 and 1)
-    #camera.calibrate(obj_points,img_points,size)
-    #camera.save(out_dir)
+    for n in [139,141]:
+        img = Image(n)
+        #TODO: fix image taking
+        img.load_image(in_dir+"_image"+str(n)+"_new.png",False)
+        img.get_checkerboard(in_dir,fisheye,w,h,MARGIN,
+                               R_REF,THRESH,MIN_REF,MAX_REF,1,out_dir,TIME)
+        name='ref_'+str(n)+'_'+TIME+str('.txt')
+        img.write_ref(out_dir,name,img.ref_img,img.M,img.ref_obj)
+        img.read_ref(out_dir,"ref_",w*h)
+        img.ref_obj = img.augment(img.ref_obj)
 
-    #-------------------------- Undistort   ---------------------------#
-
-    #camera2.read(cam_dir)
-    #for f in os.listdir(out_dir):
-        #if f.startswith("input"):
-        #if f.startswith("img"+str(camera2.n)):
-            #img_in=cv2.imread(out_dir+f,cv2.IMREAD_COLOR)
-            #undone = camera2.undistort(img_in)
-            #cv2.imwrite(out_dir+f.replace("img","undone"),undone)
-            #cv2.imwrite(out_dir+f.replace("input","undone"),undone)
-
-    #------------------------- Locate Cameras -------------------------#
-
-    # parameters
-    #x0 = np.matrix([10000,5000,1390]) # real position of robot in mm
-    x0 = np.matrix([650,940,190])
-    n_cameras = [139,141]
-    m = 4 #number of reference points
-    img_dic = dict()
-    cam_dic = dict()
-
-    r_height = x0[0,2]
-
-    for n in n_cameras:
-        #---------------------------- Initialize --------------------------#
         cam = Camera(n)
-        cam.read(cam_dir)
-        # use newest file from this camera
-        img=Image(n)
-        img.read_ref(out_dir,"ref_",m)
-        img.read_pos(out_dir,"pos_img")
-        img.r_truth = x0
-        #img.ref_real = img.augment(img.ref_real,np.zeros((4,1)))
-        #z_ref = np.matrix([135,0,230,0]).T #in mm
-        z_ref = ''
-        img.ref_real = img.augment(img.ref_real,z_ref)
-        #------------------------- Calibrate camera -----------------------#
-        #flag = cv2.CV_P3P
-        flag = cv2.CV_ITERATIVE
-        #flag = cv2.CV_EPNP
-        cam.reposition(img.ref_real,img.ref_img,flag)
-
-        ######################### INDIVIDUAL METHODS #######################
-        #------------------------- Check transform ------------------------#
-        img.ref,err_img,__ = cam.check_imagepoints(img.augment(img.ref_real),img.ref_img)
-        print("ind: ref point img match [px]",cam.n,"\n",err_img)
-        #--------------------------- Get Robot 3D -------------------------#
-        img.r,err2,err3 = get_leastsquares([cam],[img.augment(img.r_img)],
-                                           'my',r_height,x0)
-        print("ind: robot position [mm]",img.r.T,'2D',err2,'3D',err3)
-        img_dic[n] = img
-        cam_dic[n] = cam
-
-    ############################### COMBINED METHODS #######################
-    c139 = cam_dic[139]
-    c141 = cam_dic[141]
-    i139 = img_dic[139]
-    i141 = img_dic[141]
-
-    #------------------------------ Least squares -------------------------#
-    p_ob1,err21,err31 = get_leastsquares([c139,c141],[i139.augment(i139.r_img),
-                                   i141.augment(i141.r_img)],'hz',r_height,x0)
-    p_ob2,err22,err32 = get_leastsquares([c139,c141],[i139.augment(i139.r_img),
-                                   i141.augment(i141.r_img)],'my',r_height,x0)
-    p_ob3,err23,err33 = get_leastsquares([c139,c141],[i139.augment(i139.r_img),
-                                   i141.augment(i141.r_img)],'hz','',x0)
-    p_ob4,err24,err34 = get_leastsquares([c139,c141],[i139.augment(i139.r_img),
-                                   i141.augment(i141.r_img)],'my','',x0)
-    print("lq: hz fixed height: robot position [mm]",p_ob1.T,'2D',err21,'3D',err31)
-    #print("lq: my fixed height: robot position ",p_ob2.T,'2D',err22,'3D',err32)
-    print("lq: hz free height: robot position [mm]",p_ob3.T,'2D',err23,'3D',err33)
-    #print("lq: my free height: robot position ",p_ob4.T,'2D',err24,'3D',err34)
-    #------------------------------ Triangulation -------------------------#
-    # triangulate reference points
-    opts_norm,err2r,err3r = triangulate(c139.Proj, c141.Proj,i139.ref_img.T,i141.ref_img.T,img.ref_real)
-    print("triang: ref points error 2D [mm] \n",err2r)#,'3D',err3r)
-    # triangulate robot point
-    p_norm,err2p,err3p = triangulate(c139.Proj, c141.Proj,i139.r_img,i141.r_img,x0)
-    print("triang: robot position [mm]",p_norm,"error 2D",err2p[0],"3D",err3p[0])
-    print("\n real robot position [mm]",x0)
-
-    '''H,mask  = cv2.findHomography(i1.ref_img,i2.ref_img)
-    __,P,__ = cv2.estimateAffine3D(i1.augment(i1.ref_img),i2.augment(i2.ref_img))
-    opts = cv.fromarray(opts)
-    ipts = cv.fromarray(i1.ref_img)
-    cam_C = cv.fromarray(cam.C)
-    cam_dist = cv.fromarray(np.matrix(cam.dist))
-    cam_r = cv.fromarray(cam.r)
-    cam_t = cv.fromarray(cam.t)
-    cv.FindExtrinsicCameraParams2(opts,ipts, cam_C,cam_dist,cam_r,cam_t)
-    # Doesn't work for some reason:
-    #retval,cam1,dist1,cam2,dist2,R,T,E,F = cv2.stereoCalibrate(opts,i1.ref_img,i2.ref_img,size)'''
+        cam.read(in_dir,False)
+        cam.reposition(img.ref_obj,img.ref_img,0)
+        imgs[n]=img
