@@ -61,7 +61,7 @@ class Audio:
         self.output_file = output_file.replace('.wav','')
         self.channels=channels
         self.index = index
-        self.rate=float(rate)
+        self.rate=rate
         self.chunk = chunk
         self.format_au = format_au
         self.format_np = format_np
@@ -81,7 +81,7 @@ class Audio:
 
         if self.channels>1, each element of frames is a list of format format_np.
         '''
-        print(self.input_file)
+        print("Playing sound:",self.input_file)
         wf_in = wave.open(self.input_file,'rb')
         # create managing PyAudio instances
         p_out = pyaudio.PyAudio()
@@ -154,7 +154,7 @@ class Audio:
                 frames_encoded = []
                 for rows in frames_channel:
                     frames_encoded.append(rows.tobytes())
-                F=self.output_file+str(i)+".wav"
+                F=self.output_file+'_'+str(i)+".wav"
                 wf_out = wave.open(F, 'wb')
                 wf_out.setnchannels(self.channels)
                 wf_out.setsampwidth(self.samp_width)
@@ -218,8 +218,6 @@ class Audio:
         figure(3),plot(f,H_filtered),xlabel('f (Hz)'),ylabel('|H(f)|')
         t = np.linspace(0,10,10*Fs)
         savefig('analysis/H_'+str(n))
-
-
 
 if __name__ == "__main__":
     rate = 44100

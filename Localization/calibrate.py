@@ -350,7 +350,7 @@ class Camera:
                 for i in range(3):
                     f.write("{0:10.4f}\t".format(self.t.T[j,i]))
                 f.write("\n")
-    def get_checkpoints(self,out_dir,fisheye):
+    def get_checkpoints(self,out_dir,w,h,fisheye):
         '''
         gets checkboard points for the intrinsic camera  calibration.
         '''
@@ -358,14 +358,14 @@ class Camera:
         counter = 1
         obj_points = []
         img_points = []
-        pattern_size = (8, 5)
+        pattern_size = (w, h)
         while True:
             try:
                 # Collect Data
                 if choice == "y":
                     img = get.get_image(self.n)
                     h, w = img.shape[:2]
-                    img_pt, obj_pt = get_calibpoints(img,pattern_size,
+                    img_pt, obj_pt,__ = self.get_calibpoints(img,pattern_size,
                                                      counter,out_dir,fisheye)
                     if not obj_pt == []:
                         img_points.append(img_pt)
@@ -407,12 +407,12 @@ class Camera:
                 cv2.drawChessboardCorners(out, pattern_size, corners, found)
                 ax.imshow(out),plt.show(block=False)
                 fname = "input"
-                if int(fisheye[int((n-139)/2)]):
+                if int(fisheye[int((self.n-139)/2)]):
                     fname="input_fish"
                 if save_input:
                     cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,self.n,counter),img)
                 fname = "output"
-                if int(fisheye[int((n-139)/2)]):
+                if int(fisheye[int((self.n-139)/2)]):
                     fname="output_fish"
                 if save_output:
                     cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,self.n,counter), out)
@@ -453,7 +453,7 @@ class Camera:
             except KeyboardInterrupt:
                 print("program terminated by user")
                 sys.exit(1)
-    def get_checkpoints_file(self,out_dir,fisheye,img=''):
+    def get_checkpoints_file(self,out_dir,w,h,fisheye,img=''):
         '''
         gets checkboard points for the intrinsic camera calibration from pictures
         that have been taken previously
@@ -462,7 +462,7 @@ class Camera:
         counter = 1
         obj_points = []
         img_points = []
-        pattern_size = (8, 5)
+        pattern_size = (w, h)
         try:
             # Collect Data from input files in folder
             if img=='':
@@ -647,6 +647,7 @@ class Image:
         self.r_truth = r_truth
     def take_image(self):
         ''' Get image from camera'''
+        print("Taking image from camera",self.n,"(this can take a moment)...")
         self.img = get.get_image(self.n)
     def load_image(self,fname,swop=True):
         ''' Load image from file.
@@ -664,6 +665,12 @@ class Image:
             self.img=cv2.merge((r,g,b))
         else:
             self.img=img
+    def show_hsv(self):
+        h,s,v = cv2.split(cv2.cvtColor(img.img,cv2.COLOR_BGR2HSV))
+        plt.close(1),plt.close(2),plt.close(3)
+        plt.figure(1),plt.imshow(h),plt.colorbar(),plt.show(block=False)
+        plt.figure(2),plt.imshow(s),plt.colorbar(),plt.show(block=False)
+        plt.figure(3),plt.imshow(v),plt.colorbar(),plt.show(block=False)
     def get_newest(self,dirname,fname):
         ''' Get newest file in directory "dirname" starting with
         "fname" and camera number
@@ -697,12 +704,8 @@ class Image:
             c = csv.reader(f,delimiter = '\t')
             for line in c:
                 if i >= 0 and i <m:
-                    print("ref:",i)
-                    print(line)
                     pts_img[i,:] = line
                 elif i >= m and i < m+3:
-                    #TODO: What's the problem here???????
-                    print("M:",i)
                     M[i-m,:] = line
                 elif i >= m+3 and i<2*m+3:
                     pts_obj[i-(m+3),:] = line
@@ -834,9 +837,9 @@ class Image:
             plt.close('all')
     def get_checkerboard(self,in_dir,fisheye,w,h,MARGIN,
                          R,THRESH,MIN,MAX,save,out_dir='',TIME=0,loop=''):
-        cam = Camera(n)
+        cam = Camera(self.n)
         cam.read(in_dir,fisheye)
-        ipts,opts,img_out=cam.get_checkpoints_file(out_dir,fisheye,self.img)
+        ipts,opts,img_out=cam.get_checkpoints_file(out_dir,w,h,fisheye,self.img)
         plt.close('all')
 
         img_org,circ_org,pts_img,__ = persp.imagepoints(self.img,R,3,THRESH,MIN,MAX)
@@ -900,8 +903,10 @@ class Image:
             imgs={'img_org_'+str(self.n)+'_'+TIME:img_org,
                 'circ_org_'+str(self.n)+'_'+TIME:circ_org,
                   'img_out_'+str(self.n)+'_'+TIME:img_out}
-            persp.visualization(imgs,n)
+            persp.visualization(imgs,self.n)
             persp.save_open_images(out_dir)
+
+        return pts_img
 
 if __name__ == '__main__':
     import getopt
@@ -921,7 +926,7 @@ if __name__ == '__main__':
         img = Image(n)
         #TODO: fix image taking
         img.load_image(in_dir+"_image"+str(n)+"_new.png",False)
-        img.get_checkerboard(in_dir,fisheye,w,h,MARGIN,
+        imagepoints=img.get_checkerboard(in_dir,fisheye,w,h,MARGIN,
                                R_REF,THRESH,MIN_REF,MAX_REF,1,out_dir,TIME)
         name='ref_'+str(n)+'_'+TIME+str('.txt')
         img.write_ref(out_dir,name,img.ref_img,img.M,img.ref_obj)
