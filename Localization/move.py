@@ -147,7 +147,8 @@ def read_file(R,inputfile):
         # Add last array to block
         time_blocks[counter_blocks] = time_array
         command_blocks[counter_blocks] = command_array
-        if (input("proceed with above listed commands?(0/1)")):
+        choice = raw_input("proceed with above listed commands?(yes=y,no=n)")
+        if (choice=='y'):
             return time_blocks, command_blocks
         else:
             R.cleanup()

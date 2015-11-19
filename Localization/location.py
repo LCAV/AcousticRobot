@@ -62,7 +62,7 @@ THRESH = 50 # empiric threshold for circle detection
 MARGIN = np.array([10,10],dtype=np.float) #margin from leftmost and downlost ref point to reference (in mm)
 PTS_BASIS = np.array(([145,270],[1240,150])) #position of first and second reference points from wall (in mm)
 R_HEIGHT = 20
-NCAMERAS = [141,145]
+NCAMERAS = [139,141,143,145]
 CHECKERBOARD = 1 # weather or not to use checkerboard for extrinsic calculation
 WIDTH = 7
 HEIGHT = 5
@@ -356,6 +356,7 @@ if __name__ == '__main__':
 
             print("Activating motors")
             Robot.activate()
+            time.sleep(2)
             print("Moving robot")
             t = times[loop_counter]
             c = commands[loop_counter]

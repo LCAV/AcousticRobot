@@ -424,7 +424,7 @@ class Camera:
                 cv2.drawChessboardCorners(out, pattern_size, corners, found)
                 ax.imshow(out),plt.show(block=False)
                 fname="output"
-                if int(fisheye[int((n-139)/2)]):
+                if int(fisheye[int((self.n-139)/2)]):
                     fname="output_fish"
                 cv2.imwrite('{0}/{1}{2}_{3}.jpg'.format(out_dir,fname,self.n,counter), out)
             else:

@@ -65,8 +65,8 @@ class Audio:
         self.chunk = chunk
         self.format_au = format_au
         self.format_np = format_np
-    def get_bytes_width(self,wf_in):
-        data_type=wf_in.dtype
+    def get_bytes_width(self,wf_out):
+        data_type=wf_out.dtype
         if data_type==np.float64:
             byte_number = 8
         elif byte_type ==np.float32:
@@ -98,19 +98,19 @@ class Audio:
         if self.channels>1, each element of frames is a list of format format_np.
         '''
         print("Playing sound:",self.input_file)
-        wf_in = wave.open(self.input_file,'rb')
-        #wf_rate,wf_in = wavfile.read(self.input_file)
+        wf_out = wave.open(self.input_file,'rb')
+        #wf_rate,wf_out = wavfile.read(self.input_file)
         # create managing PyAudio instances
         p_out = pyaudio.PyAudio()
         p_in = pyaudio.PyAudio()
         self.get_device_index(p_in)
         # initialize streams
-        print(wf_in.getframerate())
-        print(wf_in.getnchannels())
+        print(wf_out.getframerate())
+        print(wf_out.getnchannels())
         stream_out = p_out.open(output_device_index=self.index,
-                                format=p_out.get_format_from_width(wf_in.getsampwidth()),
-                                channels=wf_in.getnchannels(),
-                                rate=wf_in.getframerate(),
+                                format=p_out.get_format_from_width(wf_out.getsampwidth()),
+                                channels=wf_out.getnchannels(),
+                                rate=wf_out.getframerate(),
                                 output=True)
         stream_in = p_in.open(input_device_index=self.index,
                             format=self.format_au,
@@ -123,16 +123,86 @@ class Audio:
         frames = []
         frames_decoded = []
         # read data
-        data = wf_in.readframes(self.chunk)
+        data = wf_out.readframes(self.chunk)
         while data != '':
             # play
             stream_out.write(data)
-            data = wf_in.readframes(self.chunk)
+            data = wf_out.readframes(self.chunk)
             # record
             data_in = stream_in.read(self.chunk)
             frames.append(data_in)
             frames_decoded.append(np.fromstring(data_in,self.format_np))
-        wf_in.close()
+        wf_out.close()
+
+        # stop streams
+        stream_out.stop_stream()
+        stream_out.close()
+        stream_in.stop_stream()
+        stream_in.close()
+
+        # close PyAudio
+        p_in.terminate()
+        p_out.terminate()
+        if self.channels > 1:
+            return frames_decoded
+        else:
+            return frames
+    def play_and_record_long(self):
+        ''' Plays input file and records output channels,
+        recording longer than input file is.
+
+        _Parameters_: none
+
+        _Returns_: frames
+        frames is a list with #BUFFER elements
+        (#BUFFER ~= Time of input_file * rate / chunk), each element is one frame
+        with N chunk*channels.
+        the samples for different channels are stored in
+        alternating order.
+        (for channels x and o, one frame would be [xoxo ... xo])
+
+        if self.channels=1, each element of frames is one long string.
+
+        if self.channels>1, each element of frames is a list of format format_np.
+        '''
+        print("Playing sound:",self.input_file)
+        wf_out = wave.open(self.input_file,'rb')
+        #wf_rate,wf_out = wavfile.read(self.input_file)
+        # create managing PyAudio instances
+        p_out = pyaudio.PyAudio()
+        p_in = pyaudio.PyAudio()
+        self.get_device_index(p_in)
+        # initialize streams
+        print(wf_out.getframerate())
+        print(wf_out.getnchannels())
+        stream_out = p_out.open(output_device_index=self.index,
+                                format=p_out.get_format_from_width(wf_out.getsampwidth()),
+                                channels=wf_out.getnchannels(),
+                                rate=wf_out.getframerate(),
+                                output=True)
+        stream_in = p_in.open(input_device_index=self.index,
+                            format=self.format_au,
+                            channels=self.channels,
+                            rate=self.rate,
+                            input=True,
+                            frames_per_buffer=self.chunk)
+        self.samp_width = p_out.get_sample_size(self.format_au)
+        # initialize frames (to store recorded data in)
+        frames = []
+        frames_decoded = []
+        # read data
+        out_duration = wf_out.getnframes()/wf_out.getnchannels()/wf_out.getframerate()
+        in_duration = out_duration + 3 #add 3 seconds of recording in the end.
+        data = wf_out.readframes(self.chunk)
+        for i in range(0,int(self.rate/self.chunk*in_duration)):
+            # play
+            stream_out.write(data)
+            data = wf_out.readframes(self.chunk)
+            # record
+            data_in = stream_in.read(self.chunk)
+            frames.append(data_in)
+            frames_decoded.append(np.fromstring(data_in,self.format_np))
+        wf_out.close()
 
         # stop streams
         stream_out.stop_stream()
