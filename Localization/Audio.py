@@ -107,8 +107,9 @@ class Audio:
         # initialize streams
         print(wf_out.getframerate())
         print(wf_out.getnchannels())
+        bytewidth=wf_out.getsampwidth()#number of bytes per sample
         stream_out = p_out.open(output_device_index=self.index,
-                                format=p_out.get_format_from_width(wf_out.getsampwidth()),
+                                format=p_out.get_format_from_width(bytewidth),
                                 channels=wf_out.getnchannels(),
                                 rate=wf_out.getframerate(),
                                 output=True)

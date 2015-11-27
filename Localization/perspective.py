@@ -132,42 +132,6 @@ def get_parameters():
             outputpath=arg
 
     return inputfile,outputpath
-def write_ref(dirname,name,pts_img,M,pts_obj):
-    ''' Save reference points positions in file, overwriting old results
-
-    _Parameters_:
-    dirname = directory
-    name = name of file
-    pts_img = np array with image positions of reference points.
-    M = geometric transformation np matrix(3x3) obtained from geometric_transformationN
-    pts_obj = np array with object positions of reference points
-
-    format of pts_img, pts_obj: row i: (pi_x, pi_y) with i going from 1 to m
-    (m = number of reference points)
-
-    _Returns_: Nothing'''
-    with open(dirname+name,"w") as f:# overwrite
-        for pt in pts_img:
-            f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
-        for m in M:
-            f.write(str(m[0,0])+"\t"+str(m[0,1])+"\t"+str(m[0,2])+"\n")
-        for pt in pts_obj:
-            pt = pt*10 #points in mm
-            f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
-def write_pos(dirname,name,p):
-    ''' save robot position (img or obj) in file, appending to old results
-
-    _Parameters_:
-    dirname = directory
-    name = name of file
-    p = np array with robot position (x,y)
-
-    _Returns_: Nothing'''
-    with open(dirname+name,"a") as f: # append
-        if p.any():
-            for pt in p:
-                f.write(str(pt)+'\t')
-            f.write("\n")
 def create_summary(img_flat,pts_obj,p=np.zeros(1)):
     img_summary = rgb_conversion(img_flat)
     # create summary image
@@ -250,7 +214,7 @@ def extract_color(img,range_min,range_max,r):
     ''' Color contours extraction '''
     i=0
     max_area=0
-    min_area = r**2*np.pi/15
+    min_area = r**2*np.pi/20
     print("Extract: minimum area = ", min_area)
     #min_area = 50
     best_cnt = 1
@@ -506,46 +470,7 @@ def format_points(pts_obj,margin,mask = 'all'):
         cv2.circle(img_test,(int(pt[0]),int(pt[1])),10,(255),3,cv2.CV_AA)
 
     return img_test,pts_obj,(int(size[0]),int(size[1]))
-def change_wall_to_ref(pts_basis,margin,pt_wall):
-    '''
-    Change of basis from wall to reference points.
 
-    _Parameters_: (all distances in mm)
-    pts_basis: list of positions of first and second reference points in wall
-    reference. ([x1,y1],[x2,y2])
-    margin: margin from leftmost and downmost reference points to new reference.
-    pt_wall: position of point in wall reference
-
-    _Returns_: position of point in reference point basis (in meters)
-    '''
-    pt1 = pts_basis[0]
-    pt2 = pts_basis[1]
-    pt = pt_wall[0,:2]
-    t_vec=pt1
-    theta = -np.arctan((pt1[1]-pt2[1])/(pt1[0]-pt2[0]))
-    rotation = np.matrix(([np.cos(theta),-np.sin(theta)],
-                         [np.sin(theta),np.cos(theta)]))
-
-
-    x_translated = np.matrix(pt - t_vec).T
-    x_prim = rotation*x_translated
-    x_prim = x_prim.T+np.matrix(margin)
-    pt_wall[0,:2]=x_prim
-    return pt_wall
-def change_ref_to_wall(pts_basis,margin,pt_ref):
-    ''' inverse of change_wall_to_ref '''
-    pt1 = pts_basis[0]
-    pt2 = pts_basis[1]
-    pt = np.matrix(pt_ref[0,:2])
-
-    theta = np.arctan((pt1[1]-pt2[1])/(pt1[0]-pt2[0]))
-    x_prim = pt-np.matrix(margin)
-    norm = np.linalg.norm(x_prim)
-    phi = np.arctan((x_prim[0,0])/(x_prim[0,1]))
-    x=np.sin(theta+phi)*norm+pt1[0]
-    y=np.cos(theta+phi)*norm+pt1[1]
-    pt_ref[0,:2] = np.array([x,y])
-    return pt_ref
 
 if __name__ == "__main__":
     sys.exit(1)

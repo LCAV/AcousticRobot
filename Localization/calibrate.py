@@ -89,7 +89,9 @@ def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
     _Parameters_:
     cam: array of Camera objects used for triangulation
     pt: array of points to be measured
-    Returns real position of robot based on observation with cam1 and cam2
+
+    _Returns_:
+    real position of robot based on observation with cam1 and cam2
     '''
     A_part = dict()
     b_part = dict()
@@ -173,14 +175,18 @@ def get_leastsquares_combinations(n_cameras,numbers,cam,pt,method='hz',r_height=
     n_cameras: array of cameras to be tested (e.g. [139,141,145])
     numbers: array of numbers of cameras to be tested.
     cam: list of corresponding camera instances
-    pt: image positions of point to be triangulated (matrix with [x,y,z])
+    pt: vector of augmented image positions of point to be triangulated
+    (matrix with [x,y,1]) in all cameras
     method: method to be used in leastsquares (with or without fixed height),
     see get_leastsquares for more details.
     r_height: real height of point (if known)
     p_real: real position of point (if known)
 
-    _Returns_: position of corresponding 3D-point, 2D and 3D error.
-
+    _Returns_:
+    pts: 3D position
+    2D: 2D error
+    3D: 3D error
+    arrs: list of camera number combination
     '''
     arrs = dict()
     errs2 = dict()
@@ -215,49 +221,55 @@ def get_best_combination(crit):
             c_best = c
             i_best = i
     return i_best, c_best
-def save_combinations(out_dir,fname,arrs,pts,errs,fisheye=False):
+def save_combinations(out_dir,fname,arrs,pts,errs,errors,title,fisheye=False):
+    '''
+    Saves obtained 2D and 3D errors in .png and textfile.
+
+    _Parameters_:
+    out_dir: output directory
+    fname: file name
+    arrs: list of used camera combinations
+    pts:
+    errs:
+    fisheye: True if fisheye was applied on this camera.
+
+    _Returns_:
+    Nothing
+
+    '''
     if fisheye==True:
         fname2 = fname+"_fish.txt"
     else:
         fname2 = fname+".txt"
     with open(out_dir+fname2,"w") as f:
+        f.write("{0:20}\t{1:5}\t{2:5}\t{3:5}\t{4}\n".format("combi","x","y","z",errors))
         for i,arr in arrs.iteritems():
             pt = pts[i]
             for ar in arr:
                 f.write("{0:20}\t".format(ar))
-            f.write("{0:8.4f}\t{1:8.4f}\t{2:8.4f}\t".format(pt[0,0],pt[1,0],pt[2,0]))
+            f.write("{0:5.0f}\t{1:5.0f}\t{2:5.0f}\t".format(pt[0,0],pt[1,0],pt[2,0]))
             for err in errs:
-                f.write("{0:8.4f}\t".format(err.values()[i]))
+                f.write("{0:5.0f}\t".format(err.values()[i]))
             f.write("\n")
-            # prepare for plotting
+
+    # prepare for plotting
     fix,ax1 = plt.subplots()
-    # plot on two different axis.
-    ax2 = ax1.twinx()
     j = 0
     linestyles=['--','-',':']
     for err in errs:
-        if j < 3:
-            ax1.plot(err.values(),linestyles[j],color='b')
-        else:
-            ax2.plot(err.values(),linestyles[j-3],color='r')
+        ax1.plot(err.values(),linestyles[j],color='b')
         j+=1
-    if len(errs) <= 2:
-        ax1.legend(('2D','3D'),loc='best')
-    else:
-        ax1.legend(('3D fixed','2D free','3D free'),loc='best')
-        ax2.set_ylabel('Error Robot [mm]',color='r')
-        for tl in ax2.get_yticklabels():
-            tl.set_color('r')
+    ax1.legend(('2D fixed','2D free','3D free'),loc='best')
     ax1.set_xlabel('Camera Combinations')
-    ax1.set_ylabel('Error Reference Point[mm]',color='b')
+    ax1.set_ylabel('Error [mm]',color='b')
     for tl in ax1.get_yticklabels():
         tl.set_color('b')
-    ax1.set_title('Error vs. Camera Combination')
+    ax1.set_title(title)
     plt.xticks(arrs.keys(),arrs.values())#or degrees
     # add space at bottom so that xticks not cut off
     plt.subplots_adjust(bottom=0.4)
     # turn xticks
-    plt.setp( ax1.xaxis.get_majorticklabels(), rotation=70)
+    plt.setp(ax1.xaxis.get_majorticklabels(), rotation=70)
     plt.show(block=False)
     plt.savefig(out_dir+fname)
 def triangulate(P1,P2,i1,i2,p_real=''):
@@ -278,6 +290,104 @@ def triangulate(P1,P2,i1,i2,p_real=''):
         err3 = np.sqrt(np.sum(np.power(p_real-p_norm,2),axis=1))
         err2 = np.sqrt(np.sum(np.power(p_real[:,:2]-p_norm[:,:2],2),axis=1))
     return p_norm,err2,err3
+def change_wall_to_ref(pts_basis,margin,pt_wall):
+    '''
+    Change of basis from wall to reference points.
+
+    _Parameters_: (all distances in mm)
+    pts_basis: list of positions of first and second reference points in wall
+    reference. ([x1,y1],[x2,y2])
+    margin: margin from leftmost and downmost reference points to new reference.
+    pt_wall: position of point in wall reference
+
+    _Returns_: position of point in reference point basis (in meters)
+    '''
+    pt_ref = pt_wall.copy()
+    pt1 = pts_basis[0]
+    pt2 = pts_basis[1]
+    pt_w = pt_wall[0,:2].reshape(2,1)
+    t_vec=pt1.reshape(2,1)
+    theta = -np.arctan((pt1[1]-pt2[1])/(pt1[0]-pt2[0]))
+    rotation = np.matrix(([np.cos(theta),-np.sin(theta)],
+                        [np.sin(theta),np.cos(theta)]))
+    pt_r = rotation*np.matrix(pt_w - t_vec)+np.matrix(margin).reshape(2,1)
+    pt_ref[0,:2]=pt_r.reshape(1,2)
+    return pt_ref
+def change_ref_to_wall(pts_basis,margin,pt_ref):
+    ''' inverse of change_wall_to_ref '''
+    pt_wall = pt_ref.copy()
+    pt1 = pts_basis[0]
+    pt2 = pts_basis[1]
+    pt_r = pt_ref[0,:2].reshape(2,1)
+    t_vec=pt1.reshape(2,1)
+    theta = -np.arctan((pt1[1]-pt2[1])/(pt1[0]-pt2[0]))
+    rotation = np.matrix(([np.cos(theta),-np.sin(theta)],
+                        [np.sin(theta),np.cos(theta)]))
+    pt_w = rotation.I*(pt_r - np.matrix(margin).reshape(2,1))+t_vec
+    pt_wall[0,:2]=pt_w.reshape(1,2)
+    return pt_wall
+def plot_geometry(pts_basis,margin,real_array=[],obj_array=[],fname=''):
+    plt.figure()
+    # plot reference points
+    plt.plot(pts_basis[:,0],pts_basis[:,1],color='k',linestyle='-')
+    # plot reference coordinate system
+    origin=change_ref_to_wall(pts_basis,margin,np.matrix([0,0,0]))
+    xaxis=change_ref_to_wall(pts_basis,margin,np.matrix([margin[1],0,0]))
+    yaxis=change_ref_to_wall(pts_basis,margin,np.matrix([0,margin[1],0]))
+    plt.plot([yaxis[0,0],origin[0,0],xaxis[0,0]],[yaxis[0,1],origin[0,1],xaxis[0,1]],color='b',linestyle=':')
+    # plot robot positions
+    if real_array!=[]:
+        plt.plot(real_array[:,0],real_array[:,1],marker='o',color='g')
+    if obj_array!=[]:
+        plt.plot(obj_array[:,0],obj_array[:,1],marker='o',color='r')
+    plt.legend(['checkerboard base line','reference basis',
+                'robot real positions','robot calculated positions'],'best')
+
+
+    # plot properties
+    plt.grid(True)
+    plt.axes().set_aspect('equal','datalim')
+    plt.show(block=False)
+
+    if fname!='':
+        plt.savefig(fname)
+def write_ref(dirname,name,pts_img,M,pts_obj):
+    ''' Save reference points positions in file, overwriting old results
+
+        _Parameters_:
+        dirname = directory
+        name = name of file
+        pts_img = np array with image positions of reference points.
+        M = geometric transformation np matrix(3x3) obtained from geometric_transformationN
+        pts_obj = np array with object positions of reference points
+
+        format of pts_img, pts_obj: row i: (pi_x, pi_y) with i going from 1 to m
+        (m = number of reference points)
+
+        _Returns_: Nothing
+    '''
+    print("Writing ref positions to ",dirname+name)
+    with open(dirname+name,"w") as f:# overwrite
+        for pt in pts_img:
+            f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
+        for m in M:
+            f.write(str(m[0,0])+"\t"+str(m[0,1])+"\t"+str(m[0,2])+"\n")
+        for pt in pts_obj:
+            f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
+def write_pos(dirname,name,p):
+    ''' save robot position (img,obj or real) in file, appending to old results
+
+        _Parameters_:
+        dirname = directory
+        name = name of file
+        p = np array with robot position (x,y)
+
+        _Returns_: Nothing'''
+    with open(dirname+name,"a") as f: # append
+        if p.any():
+            for pt in p:
+                f.write(str(pt)+'\t')
+            f.write("\n")
 
 class Camera:
     def __init__(self,n,rms=0,C=0,dist=0,r=0,t=0):
@@ -384,7 +494,7 @@ class Camera:
         returns pairs of object- and image points (chess board corners)
         for camera calibration
         '''
-        square_size = 47 # in mm
+        square_size = 140 # in mm
         #print("square size:",square_size)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         pattern_points = np.zeros( (np.prod(pattern_size), 3), np.float32 )
@@ -565,10 +675,13 @@ class Camera:
         err_obj=np.sqrt(np.sum(np.power(test_obj.T[:,:3]-p_obj[:,:3],2),axis=1))
         return test_obj, err_obj
     def get_theta(self):
-        __,__,__,x,y,z,__ =cv2.decomposeProjectionMatrix(self.Proj)
-        self.yaw = np.arccos(x[1,1])*180/np.pi #yaw
-        self.pitch = np.arccos(y[0,0])*180/np.pi #pitch
-        self.roll = np.arccos(z[0,0])*180/np.pi #roll
+        __,__,__,x,y,z,euler =cv2.decomposeProjectionMatrix(self.Proj)
+        #self.yaw = np.arccos(x[1,1])*180/np.pi #yaw
+        #self.pitch = np.arccos(y[0,0])*180/np.pi #pitch
+        #self.roll = np.arccos(z[0,0])*180/np.pi #roll
+        self.yaw=euler[0]
+        self.pitch=euler[1]
+        self.roll=euler[2]
     def ransac_loop(self,img,flag,repErr_range):
         ''' Loops through values for reprojection Error tolerance (from repErr_range)
         and finds best fit based on error of reprojected reference points.
@@ -659,6 +772,7 @@ class Image:
         None (updates self.img)
 
         '''
+        print('loading image from',fname)
         img=cv2.imread(fname)
         if swop:
             b,g,r= cv2.split(img)
@@ -666,7 +780,7 @@ class Image:
         else:
             self.img=img
     def show_hsv(self):
-        h,s,v = cv2.split(cv2.cvtColor(img.img,cv2.COLOR_BGR2HSV))
+        h,s,v = cv2.split(cv2.cvtColor(self.img,cv2.COLOR_BGR2HSV))
         plt.close(1),plt.close(2),plt.close(3)
         plt.figure(1),plt.imshow(h),plt.colorbar(),plt.show(block=False)
         plt.figure(2),plt.imshow(s),plt.colorbar(),plt.show(block=False)
@@ -728,44 +842,6 @@ class Image:
                 p = [float(x) for x in line if x!='']
         # last value of p corresponds to last line
         self.r_img = np.array(p,dtype=np.float32)
-    def write_ref(self,dirname,name,pts_img,M,pts_obj):
-        ''' Save reference points positions in file, overwriting old results
-
-            _Parameters_:
-            dirname = directory
-            name = name of file
-            pts_img = np array with image positions of reference points.
-            M = geometric transformation np matrix(3x3) obtained from geometric_transformationN
-            pts_obj = np array with object positions of reference points
-
-            format of pts_img, pts_obj: row i: (pi_x, pi_y) with i going from 1 to m
-            (m = number of reference points)
-
-            _Returns_: Nothing
-        '''
-        print("Writing ref positions to ",dirname+name)
-        with open(dirname+name,"w") as f:# overwrite
-            for pt in pts_img:
-                f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
-            for m in M:
-                f.write(str(m[0,0])+"\t"+str(m[0,1])+"\t"+str(m[0,2])+"\n")
-            for pt in pts_obj:
-                pt = pt*10 #points in mm
-                f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
-    def write_pos(self,dirname,name,p):
-        ''' save robot position (img,obj or real) in file, appending to old results
-
-            _Parameters_:
-            dirname = directory
-            name = name of file
-            p = np array with robot position (x,y)
-
-            _Returns_: Nothing'''
-        with open(dirname+name,"a") as f: # append
-            if p.any():
-                for pt in p:
-                    f.write(str(pt)+'\t')
-                f.write("\n")
     def augment(self,pt,z = ''):
         ''' Add third dimension to points (ones if not specified) '''
         dim = pt.shape[0]
@@ -841,6 +917,8 @@ class Image:
         cam.read(in_dir,fisheye)
         ipts,opts,img_out=cam.get_checkpoints_file(out_dir,w,h,fisheye,self.img)
         plt.close('all')
+        if len(ipts) == 0:
+            return 0
 
         img_org,circ_org,pts_img,__ = persp.imagepoints(self.img,R,3,THRESH,MIN,MAX)
         A = pts_img[0]
@@ -892,8 +970,11 @@ class Image:
         img_flat,M = persp.geometric_transformationN(self.img,pts_obj[:,:2],
                                                      ipts_selec,size)
 
+        ref_obj=opts[0].copy()
+        ref_obj[:,0]+=MARGIN[0]
+        ref_obj[:,1]+=MARGIN[1]
         self.ref_img = ipts_new
-        self.ref_obj = opts[0]
+        self.ref_obj = ref_obj
         self.M = M
 
         if save:
@@ -906,7 +987,7 @@ class Image:
             persp.visualization(imgs,self.n)
             persp.save_open_images(out_dir)
 
-        return pts_img
+        return 1
 
 if __name__ == '__main__':
     import getopt

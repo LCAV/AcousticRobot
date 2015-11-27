@@ -4,7 +4,6 @@ from __future__ import division
 from __future__ import print_function
 
 import calibrate as calib
-import perspective as persp
 import get_image as get
 import marker_calibration as mark
 import numpy as np
@@ -51,19 +50,21 @@ ROBOT_REAL='''Real Robot           :
 Do you want to save the real position? ('y' for yes or 'n' for no)
 '''
 # color frame ƒor robot detection
-MIN = np.array([0,100,0],dtype=np.uint8)
+MIN = np.array([0,150,0],dtype=np.uint8)
 MAX = np.array([10,250,255],dtype=np.uint8)
 # color frame for reference poitn detection
 MIN_REF = np.array([0,150,0],dtype=np.uint8)
 MAX_REF = np.array([10,250,255],dtype=np.uint8)
 R_REF = 8 # radius of referencepoints (in pixels)
-R_ROB = 15 # radius of robot point (in pixels)
-THRESH = 50 # empiric threshold for circle detection
-MARGIN = np.array([10,10],dtype=np.float) #margin from leftmost and downlost ref point to reference (in mm)
-PTS_BASIS = np.array(([145,270],[1240,150])) #position of first and second reference points from wall (in mm)
-R_HEIGHT = 20
+R_ROB = 20 # radius of robot point (in pixels)
+THRESH_ROB = 40 # empiric threshold for circle detection
+THRESH_REF = 20 # empiric threshold for circle detection
+MARGIN = np.array([2000,1000],dtype=np.float) #margin from leftmost and downlost ref point to reference (in mm)
+PTS_BASIS = np.array(([2275,3769],[3128,3713])) #position of first and second reference points from wall (in mm)
+R_HEIGHT = 1650
 NCAMERAS = [139,141,143,145]
-CHECKERBOARD = 1 # weather or not to use checkerboard for extrinsic calculation
+NUMBERS=range(2,4) # number of cameras to loop through
+CHECKERBOARD = 0 # weather or not to use checkerboard for extrinsic calculation
 WIDTH = 7
 HEIGHT = 5
 
@@ -73,10 +74,11 @@ RATE = 44100
 CHUNK = 1024
 def get_param():
     global DEBUG
+    global CHECKERBOARD
     ''' returns parameters from command line '''
     out_dir = ''
     in_dir = ''
-    m = 6
+    m = 0
     fisheye = '00001'
     try:
         opts,args = getopt.getopt(sys.argv[1:],"o:i:m:f:d",
@@ -94,6 +96,9 @@ def get_param():
             in_dir = str(arg)
         if opt in ('--m',"-m"):
             m = int(arg)
+            if m==0: # checkerboard used for extrinsic
+                CHECKERBOARD = 1
+                m=WIDTH*HEIGHT
         if opt in ('--debug',"-d"):
             DEBUG=1
         if opt in ('--fisheye',"-f"):
@@ -110,6 +115,69 @@ def get_param():
     if in_dir[-1]!="/":
         in_dir = in_dir+"/"
     return out_dir,in_dir,m,fisheye
+def leastsquares(choice_ref,pts_ref,cams,errs,img,pts,r_real,loop_counter,TIME):
+    # average error of reference point reprojection
+    errors = np.matrix([round(np.sum(x)/len(x),4) for x in errs.values()])
+
+    # create list of image points of chosen reference point in all cameras.
+    pts_ref_list = []
+    for values in pts_ref.values():
+        pts_ref_list.append(values[choice_ref,:])
+    # Calcualte reference point positions
+    ref_obj = img.ref_obj[choice_ref,:] # real position of reference points
+
+
+    p1,e21,__,arr = calib.get_leastsquares_combinations(NCAMERAS,NUMBERS,cams.values(),
+                                    pts_ref_list,'hz',ref_obj[0,2],ref_obj)
+    p2,e22,e32,__ = calib.get_leastsquares_combinations(NCAMERAS,NUMBERS,cams.values(),
+                                    pts_ref_list,'hz','',ref_obj)
+    # Calculate robot positions
+    p3,e23,__,__ = calib.get_leastsquares_combinations(NCAMERAS,NUMBERS,cams.values(),
+                                    pts.values(),'hz',R_HEIGHT,r_real)
+    p4,e24,e34,__ = calib.get_leastsquares_combinations(NCAMERAS,NUMBERS,cams.values(),
+                                    pts.values(),'hz','',r_real)
+
+    names_errors="{0:5}\t{1:5}\t{2:5}".format("fixed","2D","3D")
+    calib.save_combinations(out_dir,str(loop_counter)+"_combi_ref"+str(choice_ref)+TIME,
+                            arr,p2,(e21,e22,e32),names_errors,
+                            'Reference Point '+str(choice_ref),fisheye)
+    calib.save_combinations(out_dir,str(loop_counter)+"_combi_rob"+TIME
+                            ,arr,p4,(e23,e24,e34),names_errors,
+                            'Robot',fisheye)
+
+    # Pick best combination based on 2D error with fixed height
+    index2,err2 = calib.get_best_combination(e21)
+    p_lq_fix = p3[index2]
+    err1 = e23[index2]
+    p_lq_free = np.matrix(p4[index2])
+    err22 = e24[index2]
+    err32 = e34[index2]
+    print("real position:",r_real)
+
+    # Results visualization and saving
+    msg0="Best combination (based on best reference point 2D error with fixed height):{0}, error: {1:6.0f}".format(arr[index2],err2)
+    msg1="Fixed height [mm]: [{0:5.0f} , {1:5.0f} , {2:5.0f}], error 2D: {3:5.0f}".format(float(p_lq_fix[0]),float(p_lq_fix[1]),float(p_lq_fix[2]),err1)
+    msg2="Free height [mm]:  [{0:5.0f} , {1:5.0f} , {2:5.0f}], error 2D: {3:5.0f} 3D: {4:5.0f}".format(float(p_lq_free[0]),float(p_lq_free[1]),float(p_lq_free[2]),err22,err32)
+    msg3="Real position [mm]:[{0:5.0f} , {1:5.0f} , {2:5.0f}]".format(r_real[0,0],r_real[0,1],r_real[0,2])
+    msg4="Error reference points [px]: {0} ".format(errors)
+    print(msg0)
+    print(msg1)
+    print(msg2)
+    print(msg3)
+    print(msg4)
+    with open(out_dir+str(loop_counter)+"_results_"+
+                str(choice_ref)+'_'+TIME+".txt",'w') as f:
+        f.write(msg0+"\n")
+        f.write(msg1+"\n")
+        f.write(msg2+"\n")
+        f.write(msg3+"\n")
+        f.write(msg4+"\n")
+
+    return p_lq_fix, p_lq_free
+
+
+
+
 def signal_handler(signal, frame):
     ''' Interrupt handler for stopping on KeyInterrupt '''
     print('Program stopped manually')
@@ -117,6 +185,8 @@ def signal_handler(signal, frame):
 
 if __name__ == '__main__':
     robot_connected=False
+    p_real_list = []
+    p_obj_list = []
    # try:
     import sys
     import getopt
@@ -128,9 +198,6 @@ if __name__ == '__main__':
     else:
         print("Running in real mode\n")
 
-    if CHECKERBOARD:
-        NPTS=WIDTH*HEIGHT
-
     TIME = str(int(time.mktime(time.gmtime())))
     input_au =in_dir+"sound.wav"
     input_mov = in_dir+"control.txt"
@@ -140,13 +207,12 @@ if __name__ == '__main__':
     output_au = out_dir+"audio_"+TIME+".wav"
     # Visual localization
     flag = 0 # alorithm for solvepnp
-    numbers=range(2,4) # number of cameras to loop through
     r_wall = np.matrix([0,0,R_HEIGHT]) # real robot position from wall
-    r_real = persp.change_wall_to_ref(PTS_BASIS,MARGIN,r_wall.copy())
+    r_real = calib.change_wall_to_ref(PTS_BASIS,MARGIN,r_wall.copy())
 
     R_HEIGHT = r_real[0,2] #height of robot in mm
     choice_ref = 4 #chosen reference point for error calculation
-    ref_z = 20*np.ones((1,NPTS))
+    ref_z = 1*np.ones((1,NPTS))
     #ref_z = np.array([135,0,230,0]) #height of reference points in mm
     #ref_z = '' #height automatically set to 0
 
@@ -168,28 +234,30 @@ if __name__ == '__main__':
     while True:
         n = raw_input(EXTRINSIC)
         if n != 'q':
+            result=1
             plt.close('all')
             n = int(n)
             cam = calib.Camera(n)
             cam.read(in_dir,fisheye)
             img=calib.Image(n)
             if DEBUG:
-                img.load_image(in_dir+str(loop_counter)+"_image"+str(n)+".png")
+                img.load_image(in_dir+str(loop_counter)+"_image_"+str(n)+".png")
             else:
                 img.take_image()
 
             # save unchanged image
             plt.imsave(out_dir+str(loop_counter)+'_image_'+str(n)+'_'+TIME,img.img)
             if not CHECKERBOARD:
-                img.get_refimage(R_REF,THRESH,MIN_REF,MAX_REF,NPTS,1,out_dir,
+                img.get_refimage(R_REF,THRESH_REF,MIN_REF,MAX_REF,NPTS,1,out_dir,
                                 TIME)
                 img.get_refobject(input_obj,NPTS,MARGIN,1,out_dir,TIME)
             else:
-                img.get_checkerboard(in_dir,fisheye,WIDTH,HEIGHT,MARGIN,
-                                        R_REF,THRESH,MIN_REF,
+                result=img.get_checkerboard(in_dir,fisheye,WIDTH,HEIGHT,MARGIN,
+                                        R_REF,THRESH_REF,MIN_REF,
                                         MAX_REF,1,out_dir,TIME)
-            name='ref_'+str(n)+'_'+TIME+str('.txt')
-            img.write_ref(out_dir,name,img.ref_img,img.M,img.ref_obj)
+            if result!=0:
+                name='ref_'+str(n)+'_'+TIME+str('.txt')
+                calib.write_ref(out_dir,name,img.ref_img,img.M,img.ref_obj)
         else:
             break
 
@@ -208,11 +276,12 @@ if __name__ == '__main__':
                 r_wall[0,0]=x
             if y!='':
                 r_wall[0,1]=y
-            r_real = persp.change_wall_to_ref(PTS_BASIS,MARGIN,r_wall.copy())
+            r_real = calib.change_wall_to_ref(PTS_BASIS,MARGIN,r_wall.copy())
             name='posreal_'+TIME+'.txt'
-            persp.write_pos(out_dir,name,np.array(r_wall)[0])
+            calib.write_pos(out_dir,name,np.array(r_wall)[0])
             name='posreal_ref_'+TIME+'.txt'
-            persp.write_pos(out_dir,name,np.array(r_real)[0])
+            calib.write_pos(out_dir,name,np.array(r_real)[0])
+            p_real_list.append(r_wall.copy())
 
 #--------------------------- 4.1 Visual localization ----------------------#
 #--------------------------- 4.1.a Get Image Points  ----------------------#
@@ -223,6 +292,11 @@ if __name__ == '__main__':
             plt.close('all')
             # save new robot position in file
             if choice == 'y':
+
+                # for debugging only
+                if loop_counter == 1:
+                    NCAMERAS = [139,141]
+
                 for i,n in enumerate(NCAMERAS):
                     img = calib.Image(n)
 
@@ -233,9 +307,10 @@ if __name__ == '__main__':
                     # save unchanged image
                     plt.imsave(out_dir+str(loop_counter)+'_image_'+str(n)+'_'+TIME,img.img)
 
-                    img.get_robotimage(R_ROB,THRESH,MIN,MAX,1,out_dir,TIME,loop_counter)
+                    img.get_robotimage(R_ROB,THRESH_ROB,MIN,MAX,1,out_dir,
+                                       TIME,loop_counter)
                     name='posimg_'+str(n)+'_'+TIME+'.txt'
-                    img.write_pos(out_dir,name,img.r_img)
+                    calib.write_pos(out_dir,name,img.r_img)
 #--------------------------- 4.1.b Calculate Object Point -----------------#
             cams = dict()
             imgs = dict()
@@ -256,70 +331,25 @@ if __name__ == '__main__':
                 cam.reposition(img.ref_obj,img.ref_img,flag)
                 ref, err_img,lamda = cam.check_imagepoints(img.augment(img.ref_obj),
                                                         img.ref_img)
-                ref_obj,err_obj = cam.check_objectpoints(img.augment(img.ref_obj),
-                                                        img.augment(img.ref_img))
                 #--- Individual Robot position ---#
                 img.r_obj,err2,err3 = calib.get_leastsquares([cam],[img.augment(img.r_img)],
                                                         'hz',R_HEIGHT,r_real)
                 imgs[i]=img
                 cams[i]=cam
                 pts[i]=img.augment(img.r_img)
-                pts_ref[i]=img.augment(img.ref_img)[choice_ref,:]
+                pts_ref[i]=img.augment(img.ref_img)
                 errs[i]=err_img
 
-            errors = np.matrix([round(np.sum(x)/len(x),4) for x in errs.values()])
-
-            ref_obj = img.ref_obj[choice_ref,:] # real position of reference points
-            p1,e21,e31,arr1 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
-                                            pts_ref.values(),'hz',ref_obj[0,2],ref_obj)
-            calib.save_combinations(out_dir,"combi_ref_fixed"+str(choice_ref),arr1,p1,(e21,e31))
-            p2,e22,e32,arr2 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
-                                            pts_ref.values(),'hz','',ref_obj)
-            calib.save_combinations(out_dir,"combi_ref_free"+str(choice_ref),arr2,p2,(e22,e32))
-            p3,e23,e33,arr3 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
-                                            pts.values(),'hz',R_HEIGHT,r_real)
-            calib.save_combinations(out_dir,"combi_rob_fixed"+str(choice_ref),arr3,p3,(e23,e33))
-            p4,e24,e34,arr4 = calib.get_leastsquares_combinations(NCAMERAS,numbers,cams.values(),
-                                            pts.values(),'hz','',r_real)
-            calib.save_combinations(out_dir,"combi_rob_free"+str(choice_ref),arr4,p4,(e24,e34))
-            calib.save_combinations(out_dir,"combi_all"+str(choice_ref),arr4,p2,(e21,e22,e32,
-                                                                e23,e24,e34),fisheye)
-            # Pick best combination based on chosen criteria
-            index2,err2 = calib.get_best_combination(e31)
-            p_lq1 = p3[index2]
-            err21 = e23[index2]
-            err31 = e33[index2]
-            p_lq2 = p4[index2]
-            err22 = e24[index2]
-            err32 = e34[index2]
-            print("real position:",r_real)
-
-            # Results visualization and saving
-            msg0="Best combination (based on best 3D error with fixed height):{0},error: {1:6.4f}".format(arr2[index2],err2)
-            msg1="Fixed height [mm]: [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(p_lq1[0]),float(p_lq1[1]),float(p_lq1[2]),err21,err31)
-            msg2="Free height [mm]:  [{0:8.4f} , {1:8.4f} , {2:8.4f}], error 2D: {3:5.2f} 3D: {4:5.2f}".format(float(p_lq2[0]),float(p_lq2[1]),float(p_lq2[2]),err22,err32)
-            msg3="Real position [mm]:[{0:8.4f} , {1:8.4f} , {2:8.4f}]".format(r_real[0,0],r_real[0,1],r_real[0,2])
-            msg4="Error reference points [px]: {0} ".format(errors)
-            print(msg0)
-            print(msg1)
-            print(msg2)
-            print(msg3)
-            print(msg4)
+            p_lq_fix,p_lq_free=leastsquares(choice_ref,pts_ref,cams,errs,img,pts,r_real,loop_counter,TIME)
 
             name='posobj_fix_'+str(choice_ref)+'_'+TIME+'.txt'
-            p_lq1_wall = persp.change_ref_to_wall(PTS_BASIS,MARGIN,p_lq1.T[0])
-            persp.write_pos(out_dir,name,p_lq1_wall)
+            p_lq_fix_wall = calib.change_ref_to_wall(PTS_BASIS,MARGIN,p_lq_fix.T[0])
+            calib.write_pos(out_dir,name,p_lq_fix_wall)
             name='posobj_free_'+str(choice_ref)+'_'+TIME+'.txt'
-            p_lq2_wall = persp.change_ref_to_wall(PTS_BASIS,MARGIN,p_lq2.T)
-            persp.write_pos(out_dir,name,p_lq2_wall)
+            p_lq_free_wall = calib.change_ref_to_wall(PTS_BASIS,MARGIN,p_lq_free.T)
+            calib.write_pos(out_dir,name,p_lq_free_wall)
 
-            with open(out_dir+str(loop_counter)+"_results_"+
-                      str(choice_ref)+'_'+TIME+".txt",'w') as f:
-                f.write(msg0+"\n")
-                f.write(msg1+"\n")
-                f.write(msg2+"\n")
-                f.write(msg3+"\n")
-                f.write(msg4+"\n")
+            p_obj_list.append(p_lq_fix_wall)
 
 #--------------------------- 4.2 Odometry Localization   ------------------#
         choice = raw_input(ROBOT_ODO)
@@ -339,7 +369,7 @@ if __name__ == '__main__':
             print("Acoustic localization")
             out_au = output_au.replace('/','/'+str(loop_counter)+'_')
             Au = Audio.Audio(input_au,out_au,N_CHANNELS,3,RATE,CHUNK)
-            frames=Au.play_and_record()
+            frames=Au.play_and_record_long()
             Au.save_wav_files(frames)
 #--------------------------- 5. Make Robot Move        --------------------#
         choice = raw_input(ROBOT_MOVE)
@@ -356,7 +386,6 @@ if __name__ == '__main__':
 
             print("Activating motors")
             Robot.activate()
-            time.sleep(2)
             print("Moving robot")
             t = times[loop_counter]
             c = commands[loop_counter]
@@ -369,6 +398,14 @@ if __name__ == '__main__':
     if robot_connected:
         Robot.cleanup()
         print("Robot cleaned up successfully")
+
+
+
+    p_real_array = np.array(p_real_list).reshape(len(p_real_list),3)
+    p_obj_array = np.array(p_obj_list).reshape(len(p_obj_list),3)
+    fname=out_dir+'geometry_'+TIME+'.png'
+    calib.plot_geometry(PTS_BASIS,MARGIN,p_real_array,p_obj_array,fname)
+    plt.close('all')
     print("Program terminated")
     '''except: # disconnect robot when an error occurs
         if robot_connected:
