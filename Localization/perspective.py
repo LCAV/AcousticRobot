@@ -348,8 +348,6 @@ def imagepoints(img,r,n,t,col_min,col_max,reduced=0):
     w = r*5
     col_diff = 2
     counter = 1
-    colors= np.zeros((2550,200,3))
-    colors = colors.astype(np.uint8)
     points=0
     if not reduced:
         # Get regions of interest
@@ -373,17 +371,12 @@ def imagepoints(img,r,n,t,col_min,col_max,reduced=0):
     else:
         print("Did not find image points")
 
-    colors[10*(counter-1):10*counter,0:100,:]=col_min
-    colors[10*(counter-1):10*counter,101:200,:]=col_max
-
-    col = colors[0:10*counter,:,:]#Keep only non-zero colors
-    col = cv2.cvtColor(col,cv2.COLOR_HSV2RGB)
-
-    #plt.close(1),plt.figure(1),plt.imshow(col)
-    #plt.show(block=False)
-    #test_pause = raw_input("pause, enter to continue")
-
-    pos_color = restore_order(points,pos_color,img.shape[1]/10)
+    print("before restore:",pos_color)
+    #return points,pos_color,img.shape[1]/10,0
+    #pos_color = restore_order(points,pos_color,img.shape[1]/10)
+    min_dist=30
+    pos_color = restore_order(points,pos_color,min_dist)
+    print("after restore:",pos_color)
 
     # Order of found points has to be reversed.
     if n == 1:
