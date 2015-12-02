@@ -195,7 +195,7 @@ class Audio:
         out_duration = wf_out.getnframes()/wf_out.getnchannels()/wf_out.getframerate()
         in_duration = out_duration + 3 #add 3 seconds of recording in the end.
         data = wf_out.readframes(self.chunk)
-        for i in range(0,int(self.rate/self.chunk*in_duration)):
+        for i in range(0,int(self.rate/self.chunk*in_duration)*self.channels):
             # play
             stream_out.write(data)
             data = wf_out.readframes(self.chunk)
