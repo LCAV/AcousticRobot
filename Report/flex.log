@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.7.25)  28 NOV 2015 13:26
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.7.25)  10 DEC 2015 10:25
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -40,19 +40,19 @@ File: size11.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 \bibindent=\dimen102
 )
 
-./flex.cls:23: LaTeX Error: \usepackage before \documentclass.
+./flex.cls:22: LaTeX Error: \usepackage before \documentclass.
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.23 \usepackage[utf8]{
+l.22 \usepackage[utf8]{
                        inputenc}
 ? 
-./flex.cls:23: Emergency stop.
+./flex.cls:22: Emergency stop.
  ...                                              
                                                   
-l.23 \usepackage[utf8]{
+l.22 \usepackage[utf8]{
                        inputenc}
 \usepackage may only appear in the document preamble, i.e.,
 between \documentclass and \begin{document}.
@@ -66,4 +66,4 @@ Here is how much of TeX's memory you used:
  3940 words of font info for 15 fonts, out of 3000000 for 9000
  957 hyphenation exceptions out of 8191
  21i,0n,21p,135b,36s stack positions out of 5000i,500n,10000p,200000b,50000s
-./flex.cls:23:  ==> Fatal error occurred, no output PDF file produced!
+./flex.cls:22:  ==> Fatal error occurred, no output PDF file produced!

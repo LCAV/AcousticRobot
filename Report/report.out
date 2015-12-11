@@ -11,4 +11,6 @@
 \BOOKMARK [1][-]{section.4}{Robot movement}{}% 11
 \BOOKMARK [2][-]{subsection.4.1}{Control}{section.4}% 12
 \BOOKMARK [2][-]{subsection.4.2}{Odometry}{section.4}% 13
-\BOOKMARK [1][-]{section.5}{Experimental Results}{}% 14
+\BOOKMARK [1][-]{section.5}{Experimental Setup}{}% 14
+\BOOKMARK [2][-]{subsection.5.1}{Router}{section.5}% 15
+\BOOKMARK [2][-]{subsection.5.2}{Camera Setup}{section.5}% 16

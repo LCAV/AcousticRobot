@@ -32,10 +32,10 @@ EXTRINSIC='''Extrinsic calibration:
 Enter camera number or 'q' to skip: '''
 INTRINSIC='''Intrinsic calibration:
 Enter camera number or 'q' to skip: '''
-ROBOT_LOC='''Perform localization? ('y' or 'old' to use new or old measurement, 'n' to quit):
+ROBOT_LOC='''Perform localization? ('y' for yes, 'n' to quit):
 '''
 ROBOT_VIS='''Visual localization :
-Localize robot using cameras?  ('y' for yes or 'n' for no)
+Localize robot using cameras?  ('y' for yes or 'n' for no 'o' for old measurements)
 '''
 ROBOT_ODO='''Odometry localization :
 Localize robot using odometry?  ('y' for yes or 'n' for no)
@@ -63,7 +63,7 @@ MARGIN = np.array([2000,1000],dtype=np.float) #margin from leftmost and downlost
 PTS_BASIS = np.array(([2275,3769],[3128,3713])) #position of first and second reference points from wall (in mm)
 R_HEIGHT = 1650
 NCAMERAS = [139,141,143,145]
-NUMBERS=range(2,4) # number of cameras to loop through
+NUMBERS=range(2,5) # number of cameras to loop through
 CHECKERBOARD = 0 # weather or not to use checkerboard for extrinsic calculation
 WIDTH = 7
 HEIGHT = 5
@@ -288,7 +288,6 @@ if __name__ == '__main__':
 
         choice = raw_input(ROBOT_VIS)
         if choice != 'n':
-            print("Visual localization...")
             plt.close('all')
             # save new robot position in file
             if choice == 'y':

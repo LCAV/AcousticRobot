@@ -14,8 +14,10 @@ and the functions used for calibration.
 The class _Image_ contains all image- and object space positions of the
 reference points and the robot location in the respective images.
 
-All functions using more than one camera are not linked to an object
+All functions using more than one camera are not owned by an object.
 
+created by Frederike Duembgen, August 2015
+last modified: 08.12.2015
 
 '''
 
@@ -1005,7 +1007,6 @@ if __name__ == '__main__':
 
     for n in [139,141]:
         img = Image(n)
-        #TODO: fix image taking
         img.load_image(in_dir+"_image"+str(n)+"_new.png",False)
         imagepoints=img.get_checkerboard(in_dir,fisheye,w,h,MARGIN,
                                R_REF,THRESH,MIN_REF,MAX_REF,1,out_dir,TIME)

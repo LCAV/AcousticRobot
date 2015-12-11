@@ -16,14 +16,16 @@
 %\LoadClass[11pt,onecolumn,a4paper,oneside,final]{article}
 %---- Recto verso ----%
 
-\LoadClass[11pt,onecolumn,a4paper,center]{article}
+\LoadClass[11pt,onecolumn,a4paper,center,twoside]{article}
 
 %fundamental packages
-
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
 \usepackage[T1]{fontenc}
 \usepackage[british,UKenglish,USenglish,english,american]{babel}
+\usepackage[framed]{mcode}
+\usepackage{verbatim}  % Needed for the "comment" environment to make LaTeX comments
+\usepackage{placeins}
 
 %mathematics packages
 \usepackage{array}
@@ -43,30 +45,37 @@
 
 %font-codes package
 \usepackage{color}
-\usepackage{verbatim}
-\usepackage{hyperref}
 \usepackage{comment}
+\usepackage{hyperref}
+
+% code listings
+\usepackage{listings}
+\usepackage{xcolor}
+\lstset{
+numbers=left, 
+frame=lrtb,
+numbersep=5pt,
+frame=single,
+breaklines=true,
+postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{blue}\hookrightarrow\space}}
+}
+\renewcommand{\lstlistingname}{Code}
 
 % Paper size and Layout
 
 \usepackage[dvips, 
 	    a4paper, 
-	    top				=1cm, 
+	    top			=1cm, 
 	    bottom			=2cm, 
 	    left			=2cm, 
 	    right 			=2cm, 
 	    headheight		=6mm, 
-	    headsep			=10mm, 
+	    headsep		=10mm, 
 	    marginparwidth	=2cm, 
 	    marginparsep	=4mm, 
 	    heightrounded, 
 	    includehead]{geometry} 
 
-%Foot and header packages
-
-\usepackage{fancyhdr}
-\pagestyle{fancy}
-\fancyhead[CO,CE]{\scshape\@cours}
 
 %names and informations
 \newcommand\subtitle[1]{\def\@subtitle{#1}}
@@ -82,7 +91,7 @@
 \usepackage{multirow}
 \usepackage{multicol}
 
-%----newcommand----%
+%----Newcommand----%
 
 \newcommand{\figi}[4]{
    \begin{figure}[!ht]
@@ -125,3 +134,12 @@
 \end{flushright}
 \hbox{\raisebox{0.4em}{\vrule depth 0pt height 0.05cm width 17cm}}
 }
+
+%Foot and header
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhead{} % clear all header fields
+\fancyhead[EL,OR]{\slshape \rightmark} % add title left on even pages, right on odd pages
+\fancyhead[ER,OL]{\@cours} %add page number right on even pages, left on odd pages
+\fancyfoot[C]{\thepage}
