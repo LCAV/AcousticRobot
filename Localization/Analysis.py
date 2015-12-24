@@ -25,7 +25,11 @@ T = 10 # seconds of interest for room impulse response
 WIDTH_ROOM = 6500 #in mm
 HEIGHT_ROOM = 6000 #in mm
 N_WALLS = 4
-C = 343200 # speed of sound at 20°C, dry air, in mm/s
+C = 343200 # speed of sound at 20C, dry air, in mm/s
+# CROSS CORRELATION
+MAX_LENGTH = Fs*2
+TLAT = 0.001454 # Latency time, found with 660mm distance test
+
 class Analysis():
     def __init__(self,out_dir,input_wav='', output_wav_list='', output_enc='',
                  output_real='',output_vis=''):
@@ -159,8 +163,11 @@ class Analysis():
         return np.array([t,h_filtered]),np.array([f,H_filtered])
     def get_crosscorr(self):
         ''' Get cross correlation '''
-        corrs = dict()
+        global MAX_LENGTH
+        MAX_L = MAX_LENGTH
+        corrs = []
         Fs,u = wavfile.read(self.input_wav)
+        i=0
         for output_wav in self.output_wav_list:
             print("treating",output_wav)
             channel_number = int(output_wav[-5])
@@ -171,17 +178,30 @@ class Analysis():
                 print("Warning: Sampling rate from input doens't match output:",
                       Fs,Fs2)
             Fs=float(Fs)
-            # Compute cross-correlation
-            corr = np.correlate(u,y,"full")
-
-            plt.figure(1)
-            plt.plot(t,h_filtered[:len(t)]*1000),plt.axis('tight')
-            plt.xlabel('t [s]'),plt.ylabel('h')
-            plt.title('Cross Correlation Channel {1}'.
-                      format(channel_number))
-            plt.savefig(name)
+            # make signals go from 0 to 1 to avoid overflow:
+            bits = 16 # nubmer of bits of wav file.
+            u = u.astype(np.float32)/2**(bits-1)
+            y = y.astype(np.float32)/2**(bits-1)
+            # compute cross-correlation
+            if u.shape[0]<MAX_LENGTH or y.shape[0]<MAX_LENGTH:
+                MAX_L = np.min((u.shape[0],y.shape[0]))
+            corr = np.correlate(u[:MAX_L],y[:MAX_L],"full")
+            kcorr = np.linspace(-MAX_L+1,MAX_L-1,2*(MAX_L-1)+1)
+            corrmax = kcorr[np.argmax(corr)]
+            print('argmax: ',corrmax)
+            print('time lag: ',corrmax/Fs)
+            min
+            plt.close(i)
+            plt.figure(i)
+            plt.plot(kcorr,corr)
+            plt.axvline(corrmax,color='red',linestyle='dashed')
+            plt.xlabel('k'),plt.ylabel('Ruy [k]')
+            plt.title('Cross Correlation Ruy')
+            plt.legend(['Ruy','Maximum at k = {0}'.format(corrmax)],loc=4)
             plt.show(block=False)
+            plt.savefig(name)
             corrs.append(corr)
+            i = i+1
         return corrs
     def save_RIR(self,y_file,h):
         ''' Saves RIR in binary file
