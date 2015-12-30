@@ -1,0 +1,54 @@
+\documentclass[a3paper]{minimal}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{keyval}
+
+\usepackage{geometry}
+\geometry{a3paper, top=0cm, left=0cm, right=0cm, bottom=0cm,
+headsep=0mm, footskip=0mm}
+
+\def\Side{\ChessSide}
+\newcommand\ChessBoxA{%
+  {\fboxsep=0pt\fbox{\color{\ChessColori}\rule{\Side}{\Side}}}}
+\newcommand\ChessBoxB{%
+  {\fboxsep=0pt\fbox{\color{\ChessColorii}\rule{\Side}{\Side}}}}
+
+\makeatletter
+\newcommand\Row[1]{%
+  \par\nobreak\nointerlineskip\vskip-\fboxrule%
+  \@tfor\@tempa:=#1 \do {\csname ChessBox\@tempa\endcsname\kern-\fboxrule}}
+\define@key{chessB}{side}{\def\ChessSide{#1}}
+\define@key{chessB}{colori}{\def\ChessColori{#1}}
+\define@key{chessB}{colorii}{\def\ChessColorii{#1}}
+\setkeys{chessB}{
+  side=5pt,
+  colori=black,
+  colorii=white}
+\makeatother
+
+\newcommand\SMALL[1][]{%
+\begin{Chessboard}[side=10cm]
+	\Row{B,A,B,A}
+	\Row{A,B,A,B}
+	\Row{B,A,B,A}
+	\Row{A,B,A,B}
+\end{Chessboard}
+}
+\newcommand\REVERSED[1][]{%
+\begin{Chessboard}[side=10cm]
+	\Row{A,B,A,B}
+	\Row{B,A,B,A}
+	\Row{A,B,A,B}
+	\Row{B,A,B,A}
+\end{Chessboard}
+}
+
+\newenvironment{Chessboard}[1][]
+  {\setkeys{chessB}{#1}%
+  \par\medskip\setlength\parindent{0pt}}
+  {\par\medskip}
+
+\begin{document}
+\SMALL
+\newpage
+\REVERSED
+\end{document}

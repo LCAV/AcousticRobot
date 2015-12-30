@@ -305,7 +305,7 @@ def extract_color(img,range_min,range_max,r):
         # Check if new best contour
         area = cv2.contourArea(cnt)
         if DEBUG:
-            print("Extract: area:",area)
+            print("Extract: area is ",area)
         if area > max_area:
             #print("Extract: new best area: ",area)
             max_area = area

@@ -1,0 +1,96 @@
+%!TEX root = report.tex
+\subsection{Extrinsic Calibration}
+\label{sec:extrinsic}
+\subsubsection{Reference points}
+
+\paragraph{Points} 
+In a first run, 4 to 6 bright orange circular reference points where used for the extrinsic calibration. The points are numbered and the first 2 points serve as the basis for the reference frame. (see Figure \ref{fig:ref_points}).
+Since the distances between all points can be very accurately measured using a laser pointer, the euclidean distance matrix is set up and the absolute positions in the reference frame are obtained using the classical Multidimensional Scaling (MDS) method. \cite{Wickelmaier2003}
+
+The limitations of this method are little number of reference points that can only hardly be extended since all points need to be numbered manually by the user and the number of laser pointer measurements increases with the square of the used number of reference points.
+Secondly, the radius of the reference points needs to be chosen big enough such that it can be robustly detected from a changing distance. But the bigger the radius, the bigger is the imprecision induced since the points can not be exactly on the ground and are perceived at different heights from different camera angles.
+For these reasons, a checkerboard approach was considered.
+
+\paragraph{Checkerboard}
+A second and more user friendly approach using a checkerboard for reference points was implemented in a second run. 
+Since many robust implementations exist for checkerboard corner detection, its use promises a big number of reference points with minimal effort and high reliability. 
+In addition to that, the checkerboard corners are of much smaller radius than circular reference points and can be placed exactly on the ground.
+
+Particular attention is required for the numbering of the reference points. 
+Since it shall be avoided that the significant number of reference points needs to be numbered manually, an automatic numbering based on three reference points placed in the corners of the checkerboard is definied. 
+The three reference points are detected manually and the numbering starts at the chessboard corner closest to point 1, goes on in direction of point 2 and then up in direction of point 3 (see Figure \ref{fig:ref_checkerboard.png}).
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[b]{0.49\linewidth}
+        \centering
+		\includegraphics[height=0.6\linewidth]{files/ref_points.png}
+		\caption{Reference points reference frame}
+        \label{fig:ref_points}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\linewidth}
+        \centering
+		\includegraphics[height=0.6\linewidth]{files/ref_checkerboard.png}
+		\caption{Checkerboard reference frame and numbering}
+		\label{fig:ref_checkerboard.png}
+	\end{subfigure}
+	\caption{Reference point and checkerboard layout conventions} 
+\end{figure}
+
+\paragraph{Algorithm}
+
+The refeference points are detected as explained in \ref{sec:imageprocessing}. The so-found image-object correspondances can be used to determine the camera position and orientation by solving the following system of equations for $R$ and $t$.
+\begin{align}
+    \mathbf{x_i} = proj(\mathbf{X_i},\mathbf{P})& = \mathbf{C} \quad \mathbf{P} \quad \mathbf{X_i} \\
+    s_i \begin{bmatrix} u_i \\ v_i \\ 1 \end{bmatrix} &= 
+    \mathbf{C} \begin{bmatrix} \mathbf{R} \quad|\quad \mathbf{t} \end{bmatrix}
+    \begin{bmatrix} X_i \\ Y_i \\  Z_i \\ 1 \end{bmatrix} \quad \text{for} \quad i=1\cdots N_{pts}
+    \label{eq:projection}
+\end{align}
+
+Where $N_{pts}$ is the number of points (4 to 6 or number of checkerboard corners), 
+$\begin{bmatrix} u_i & v_i & 1 \end{bmatrix} ^T$ are the homogenous image coordinates with scaling factor $s$ and $\begin{bmatrix} X_i & Y_i &  Z_i & 1 \end{bmatrix} ^T$ are the homogenous object point cooridnates. $C$ is the intrinsic camera matrix, determined as explained in \ref{sec:intrinsic}.
+
+The extrinsic camera matrix $\mathbf{P}$ that one needs to solve for can be decomposed in a rotation and a translation component:
+\begin{align}
+    \mathbf{R} &= \begin{bmatrix} 
+        r_{11} & r_{12} & r_{13} \\
+        r_{21} & r_{22} & r_{23} \\
+        r_{31} & r_{32} & r_{33} \\
+    \end{bmatrix} \quad \text{Camera rotation matrix}\\
+    \mathbf{t} &= \begin{bmatrix} 
+        t_1 & t_2 & t_3
+    \end{bmatrix} ^T \quad \text{Camera translation vector}
+    \label{eq:solvepnp}
+\end{align}
+
+There are 12 unknowns and each new point provides 3 independant equations. Therefore at least 4 points are requried for solving this set of equations. 
+
+Various methods have been proposed for solving this kind of problem, also known as Perspective-$n$-Point or P$n$P problems. 
+The methods can be embedded in a Ransac scheme, which makes them more resistant to outliers. However, outliers will not occur in the present experimental setup because of its deterministic nature: all reference points are precisely defined and need to be detected, as opposed to setups where a undefined amount of feature points are extracted from images.
+%TODO explain how Ransac works 
+
+Three different methods for solving this PnP problem are implemented in OpenCV.
+\textit{P3P} is based on a technique that is limited to 4 points only, so it was immediately rejected. The \textit{EPNP} method \cite{Lepetit2009} provides a non-iterative solution to the problem which is more stable and computationally inexpensive. Since in the present case, the number of points is limited to 40 and the calculation time turned out to be acceptable, the method chosen is the \textit{ITERATIVE} method, based on reprojection error minimization.
+
+:
+The reprojection error is the sum of the squared distances between observed projections $\mathbf{x_i}=[u_i,v_i,1]^T$ and the projected object points ($proj(\mathbf{X_i},\mathbf{P})$), defined as in \eqref{eq:projection} and calculated with the current estimation of the extrinsic camera matrix $\mathbf{P}$. Formally, this means:
+
+\begin{equation}
+S(\boldsymbol\beta) = \sum_{i=1}^{N_{pts}} \| \mathbf{x_i}-proj(\mathbf{X_i},\mathbf{P}(\boldsymbol\beta)) \| ^2
+\end{equation}
+
+And the optimization problem can be written as
+\begin{equation}
+    \hat{\boldsymbol\beta} = \underset{\beta} {\mathrm{argmin}} ~S(\boldsymbol\beta)
+\end{equation}
+
+For an adequate convergence in all directions, this minimization problem is solved with the Levenberg-Marquardt algorithm, also called damped least-squares. The optimization parameters are the entries of the matrix $\mathbf{P}$, which are grouped in the vector $\boldsymbol\beta$. At each minimization step a \"damped\" update of the parameter vector $\boldsymbol\beta=\boldsymbol\beta_{old}+\boldsymbol\delta=$ is used depending on the decent of the optimization function, as defined in \eqref{eq:LMA} \cite{LMA}
+\begin{equation}
+    (\mathbf{J^T}\mathbf{J} + \lambda \mathbf{diag}(\mathbf{J^T}\mathbf{J}))\boldsymbol\delta = \mathbf{J^T}[\mathbf{x}-proj(\mathbf{X},\mathbf{P})]
+\label{eq:LMA}
+\end{equation}
+where $\mathbf{J}$ is the Jacobian matrix of the reprojection function and $\lambda$ is the damping factor. It is tuned such that
+the convergence is moderated in the case of very fast descending functions, preventing from instability, and enhanced for slowly converging problems.
+%TODO Provide a comparison between ITERATIVE and EPNP! 
+

@@ -16,7 +16,7 @@
 %\LoadClass[11pt,onecolumn,a4paper,oneside,final]{article}
 %---- Recto verso ----%
 
-\LoadClass[11pt,onecolumn,a4paper,center,twoside]{article}
+\LoadClass[11pt,onecolumn,a4paper,twoside]{article}
 
 %fundamental packages
 \usepackage[utf8]{inputenc}
@@ -26,6 +26,7 @@
 \usepackage[framed]{mcode}
 \usepackage{verbatim}  % Needed for the "comment" environment to make LaTeX comments
 \usepackage{placeins}
+\usepackage{float}
 
 %mathematics packages
 \usepackage{array}

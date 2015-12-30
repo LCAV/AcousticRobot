@@ -89,11 +89,19 @@ def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
     '''
     Solve least squares problem for point position with or without fixed height
     _Parameters_:
-    cam: array of Camera objects used for triangulation
-    pt: array of points to be measured
+        cam:    nparray of Camera objects used for triangulation
+        pt:     nparray of points to be measured
+        method: 'hz' (default) uses Hartley Zisserman Aglorithm, 'my' uses own
+                algorithm. Only use 'hz' only!
+        r_height:   real height of robot in mm. if specified, the fixed height
+                    algorithm is used.
+        p_real:     nparray of real position of robot (3x1), for error calculation
+                    only. default '' returns err2=err3=0.
 
     _Returns_:
-    real position of robot based on observation with cam1 and cam2
+        x: nparray of real positions of points. Size 3xN_pts
+        err2: nparray of 2D errors. Size 1xN_pts
+        err3: nparray of 3D errors. Size 1xN_pts
     '''
     A_part = dict()
     b_part = dict()
@@ -107,10 +115,10 @@ def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
         '''
 
         # construct A as in p.312
+        f1 = c.Proj[:1]
+        f2 = c.Proj[1:2]
+        f3 = c.Proj[2:3]
         for i,c in enumerate(cam):
-            f1 = c.Proj[:1]
-            f2 = c.Proj[1:2]
-            f3 = c.Proj[2:3]
             p = pt[i]
             x = p[0,0]
             y = p[0,1]
@@ -137,8 +145,11 @@ def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
             x_hat = x_hat/x_hat[3]
             x=x_hat[:3]
     else:
-        ''' Own Method using algebraic transformations '''
-        # Not quite right because scaling factor not taken into account!_part[i] = np.vstack((x*f3-f1,y*f3-f2))
+        ''' Own Method using algebraic transformations
+        Not quite right because scaling factor not taken into account!
+        _part[i] = np.vstack((x*f3-f1,y*f3-f2))
+
+        '''
         if type(r_height)!=str:
             n = len(pt)
             U = np.zeros((3*n,n))
@@ -276,7 +287,7 @@ def save_combinations(out_dir,fname,arrs,pts,errs,errors,title,fisheye=False):
     plt.savefig(out_dir+fname)
 def triangulate(P1,P2,i1,i2,p_real=''):
     '''
-    Performs triangulation with cv2-functioin triangulatePoints.
+    Performs triangulation with cv2-function triangulatePoints.
 
     _Parameters_:
     P1,P2: camera Projection matrixes

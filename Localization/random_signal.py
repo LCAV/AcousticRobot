@@ -11,31 +11,50 @@ fs = 44100.  # Sampling frequency in [Hz]
 Ts = 1./fs   # Sampling period in [s]
 N = np.floor(T/Ts)
 n  = np.arange(0, N, dtype='float64')  # Sample index
-
-x_rand = np.random.randn(N)
-
-#x_exp = 0.99*np.sin(om1*N*Ts / np.log(om2/om1) * (np.exp(n/N*np.log(om2/om1)) - 1))
 bits=16
-# louder signal
 amplification = (2**(bits-1))
 factor = 0.8
-x_rand = factor*amplification*x_rand
 
-x_rand_spectr = np.abs(np.fft.rfft(x_rand, n=int(N)))
+M = 100
+
+x_rand_sum = np.zeros((N/2+1))
+x_rand_sum_amp = np.zeros((N/2+1))
+for i in range(0,M):
+    x_rand = factor*amplification*np.random.randn(N)
+    x_rand_spectr = np.abs(np.fft.rfft(x_rand, n=int(N)))
+    x_rand_sum += np.power(x_rand_spectr,2)/(N*np.std(x_rand)**2)
+x_rand_sum = x_rand_sum/M
+
 x_rand_f = np.fft.rfftfreq(int(N),d=Ts)
 n_bins = 100
 values,bins=np.histogram(x_rand,n_bins)
 
-plt.figure()
-plt.subplot(1,2,1)
-plt.plot(x_rand_f,x_rand_spectr)
-plt.xlabel('Frequency [Hz]'),plt.ylabel('Spectral density')
-plt.title('Spectral Density of Random Signal')
-plt.subplot(1,2,2)
+# make plots
+plt.close(1)
+plt.figure(1)
+plt.plot(x_rand_f,x_rand_spectr,':')
+plt.xlabel('f [Hz]')
+plt.title('Magnitude of FFT of Random Signal')
+plt.savefig('../Report/files/random_fft.png')
+
+plt.close(2)
+plt.figure(2)
 plt.plot(bins[:-1],values)
-plt.xlabel('Lower limit of bin'),plt.ylabel('Number of values in bin')
-plt.title('Histogram of random signal')
+plt.xlabel('Lower limit of bin'),plt.ylabel('Number of elements in bin')
+plt.title('Histogram of Random Signal')
+plt.savefig('../Report/files/random_hist.png')
+
+plt.close(3)
+plt.figure(3)
+plt.plot(x_rand_f,x_rand_sum,':')
+plt.ylim([0,2])
+plt.xlabel('f [Hz]')
+plt.title('Averaged and Normalized DFT Square Magnitude with M = '+str(M))
+plt.savefig('../Report/files/random_M'+str(M)+'.png')
+
 plt.show(block=False)
 
+# save wav file
+x_rand_amp = factor*amplification*x_rand
 x_rand_int = np.array(x_rand, dtype=np.int16)
-wavfile.write('latency_input/random1.wav', fs, x_rand_int)
+#wavfile.write('latency_input/random1.wav', fs, x_rand_int)

@@ -1,4 +1,6 @@
-\documentclass[a4paper]{flex}
+\documentclass{flex}
+
+%\includeonly{}
 
 \cours{\textsc{Master Semester Project LCAV}}
 
@@ -15,13 +17,11 @@
 
 \maketitle
 
-\section{Introduction}
-%\input{chapters/intro.tex}
-
-\input{chapters/visual.tex}
-\input{chapters/audio.tex}
-\input{chapters/movement.tex}
-\input{chapters/experiment.tex}
+\include{introduction}
+\include{visual}
+\include{audio}
+\include{movement}
+\include{experiment}
 
 \newpage
 % Bibliography 

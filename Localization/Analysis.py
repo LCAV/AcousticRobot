@@ -28,7 +28,7 @@ N_WALLS = 4
 C = 343200 # speed of sound at 20C, dry air, in mm/s
 # CROSS CORRELATION
 MAX_LENGTH = Fs*2
-TLAT = 0.001454 # Latency time, found with 660mm distance test
+TLAT = 0.1454 # Latency time, found with 660mm distance test
 
 class Analysis():
     def __init__(self,out_dir,input_wav='', output_wav_list='', output_enc='',
@@ -69,7 +69,7 @@ class Analysis():
             U[1,i]=(WIDTH_ROOM-output_real[i,0])*2/C
             U[2,i]=output_real[i,1]*2/C
             U[3,i]=output_real[i,0]*2/C
-        self.U = U
+        self.U = U+TLAT
         return U
     def get_RIR(self):
         ''' calculates the RIR from self.input_wav and all corresponding
@@ -102,9 +102,29 @@ class Analysis():
             f = np.fft.rfftfreq(N, d=1/Fs)
             Y = np.fft.rfft(y,n=N) # automatically adds 0s until N
             U = np.fft.rfft(u,n=N)
-            H = Y/U
+
+            H = np.zeros((max(len(u),len(y))+1),dtype=np.complex)
+            print(U.shape[0],Y.shape[0],H.shape[0],N)
+            # find the length where U is not 0. (or bigger than 1000)
+            lengthU = U.shape[0]
+            thresh = 1000
+            for i in range(lengthU-1,-1,-1):
+                if abs(U[i])>thresh:
+                    print("non-zero length U", lengthU)
+                    lengthU = i
+                    break
+            # alternative: calculate length of U based on max frequency
+            #freq_max = 20000 # max freq of sine sweep in Hz
+            #lengthU=int(freq_max*U.shape[0]*2/Fs)
+
+            # calculate impulse response
+            lengthU=400000
+            H[:lengthU] = Y[:lengthU]/U[:lengthU]
+
+
             H[:int(50.*N/Fs)]=0
-            H[400000:]=0
+            #H[lengthU:]=0
+            #H[400000:]=0
 
             # Apply window
             #M = int(N*MAX_F/Fs) # k of highest frequency of input signal
@@ -118,16 +138,16 @@ class Analysis():
             # Adjust zooms to TOA if calculated priorily
             if self.U != '':
                 max_time = np.max(self.U)
-                zoom1 = max_time*10
-                zoom2 = max_time*2
+                zoom1 = [0,max_time*10]
+                zoom2 = [3*TLAT/4,max_time*2]
+                zoom3 = [9*TLAT/10,max_time*1.1]
             else:
-                zoom1 = float(T)/10.
-                zoom2 = float(T)/50.
+                zoom1 = [0,float(T)/10.]
+                zoom2 = [3*TLAT/4,float(T)/50.]
+                zoom3 = [3*TLAT/4,float(T)/200.]
 
             # Show and save results
             plt.close('all')
-            plt.figure(10)
-            plt.plot(y)
 
 
             plt.figure(1)
@@ -136,31 +156,40 @@ class Analysis():
             plt.title('RIR step {0} channel {1}'.
                       format(step_number,channel_number))
             plt.savefig(name)
+
             plt.figure(2)
             plt.plot(f,abs(H))
             plt.xlabel('f (Hz)'),plt.ylabel('|H(f)|')
+            plt.xlim([0,int(max(f)/2)])
             plt.title('Raw RIR and filter step {0} channel {1}'.
                       format(step_number,channel_number))
             plt.savefig(name+'_unfiltered')
             i = 1
-            for zoom in [zoom1,zoom2]:
+            for zoom in [zoom1,zoom2,zoom3]:
                 plt.figure(i+2)
                 plt.plot(t,h_filtered[:len(t)]*1000)
+                # plot vertical lines at estimated arrival times
                 if self.U != '':
                     colors = ['red','green','black','orange']
                     j = 0
                     for x_TOA in self.U[:,step_number]:
-                        plt.axvline(x=x_TOA,color=colors[j])
+                        plt.axvline(x=x_TOA,color=colors[j],linestyle='dashed',linewidth=1)
                         j=j+1
-                plt.xlim([0,zoom]),plt.xlabel('t [s]'),plt.ylabel('h')
-                plt.legend(['impulse response','wall 1','wall 2','wall 3','wall 4'],'best')
+                # plot vertical line at latency time
+                plt.axvline(x=TLAT,color='black',linestyle='-',linewidth=2)
+                # plot parameters
+                plt.xlim(zoom),plt.xlabel('t [s]'),plt.ylabel('h')
+                plt.legend(['impulse response','wall 1','wall 2','wall 3','wall 4','latency'],'best')
                 plt.title('RIR step {0} channel {1} zoom {2}'.
                       format(step_number,channel_number,i))
                 plt.savefig(name+'_zoom'+str(i))
                 i = i+1
             plt.show(block=False)
-            self.save_RIR(output_wav,h_filtered)
+            #self.save_RIR(output_wav,h_filtered)
         return np.array([t,h_filtered]),np.array([f,H_filtered])
+    def apply_filter(self,F):
+        #TODO Write this function
+        return F
     def get_crosscorr(self):
         ''' Get cross correlation '''
         global MAX_LENGTH
