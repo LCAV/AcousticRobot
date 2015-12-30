@@ -66,6 +66,9 @@ class Audio:
         self.format_au = format_au
         self.format_np = format_np
     def get_bytes_width(self,wf_out):
+        '''
+        Returns wavfile byte width from its datatype
+        '''
         data_type=wf_out.dtype
         if data_type==np.float64:
             byte_number = 8
@@ -82,24 +85,11 @@ class Audio:
         return byte_number
 
     def play_and_record(self):
-        ''' Plays input file and records output channels.
-        _Parameters_: none
-
-        _Returns_: frames
-        frames is a list with #BUFFER elements
-        (#BUFFER ~= Time of input_file * rate / chunk), each element is one frame
-        with N chunk*channels.
-        the samples for different channels are stored in
-        alternating order.
-        (for channels x and o, one frame would be [xoxo ... xo])
-
-        if self.channels=1, each element of frames is one long string.
-
-        if self.channels>1, each element of frames is a list of format format_np.
+        ''' Plays input file and records output channels. Same as
+        play_and_record_long but recording time is only as long as inputfile.
         '''
         print("Playing sound:",self.input_file)
         wf_out = wave.open(self.input_file,'rb')
-        #wf_rate,wf_out = wavfile.read(self.input_file)
         # create managing PyAudio instances
         p_out = pyaudio.PyAudio()
         p_in = pyaudio.PyAudio()
@@ -166,16 +156,19 @@ class Audio:
 
         if self.channels>1, each element of frames is a list of format format_np.
         '''
+
+        # read output file
         print("Playing sound:",self.input_file)
         wf_out = wave.open(self.input_file,'rb')
-        #wf_rate,wf_out = wavfile.read(self.input_file)
+
         # create managing PyAudio instances
         p_out = pyaudio.PyAudio()
         p_in = pyaudio.PyAudio()
+
+        # let user select device index
         self.get_device_index(p_in)
+
         # initialize streams
-        print(wf_out.getframerate())
-        print(wf_out.getnchannels())
         stream_out = p_out.open(output_device_index=self.index,
                                 format=p_out.get_format_from_width(wf_out.getsampwidth()),
                                 channels=wf_out.getnchannels(),
@@ -188,12 +181,16 @@ class Audio:
                             input=True,
                             frames_per_buffer=self.chunk)
         self.samp_width = p_out.get_sample_size(self.format_au)
+
         # initialize frames (to store recorded data in)
         frames = []
         frames_decoded = []
-        # read data
+
+        # duration of output and input files
         out_duration = wf_out.getnframes()/wf_out.getnchannels()/wf_out.getframerate()
         in_duration = out_duration + 3 #add 3 seconds of recording in the end.
+
+        # read and send data
         data = wf_out.readframes(self.chunk)
         for i in range(0,int(self.rate/self.chunk*in_duration)):
             # play
@@ -201,11 +198,13 @@ class Audio:
             data = wf_out.readframes(self.chunk)
             # record
             data_in = stream_in.read(self.chunk)
-            frames.append(data_in)
-            frames_decoded.append(np.fromstring(data_in,self.format_np))
+            if self_channels > 1:
+                frames_decoded.append(np.fromstring(data_in,self.format_np))
+            else:
+                frames.append(data_in)
         wf_out.close()
 
-        # stop streams
+        # stop and close streams
         stream_out.stop_stream()
         stream_out.close()
         stream_in.stop_stream()
@@ -271,47 +270,12 @@ class Audio:
             print("Index ",i,":\n",p.get_device_info_by_index(i))
 
         self.index = int(input("\nEnter index of Audio device to be used from above list: \n"))
-    def analyze(self,y_file,u_file,number):
-        # Initialization
-        name='RIR_'+str(number)
-        Fs = self.rate # sampling rate
-        T = 20 # seconds of interest
-        t = np.linspace(0,T,T*Fs) # time vector
-        M = 1000 # width Hann window
-        # Read input files
-        ru,u = wavfile.read(u_file)
-        ry,y = wavfile.read(y_file)
-        # Deconvolute signals
-        N=2*max(len(u),len(y))
-        u_long = np.zeros(N)
-        y_long = np.zeros(N)
-        u_long[:len(u)]=u
-        y_long[:len(y)]=y
-        Y = abs(np.fft.rfft(y_long))
-        U = abs(np.fft.rfft(u_long))
-        H = Y/U
-        # Apply window
-        hann=np.zeros(H.shape)
-        hann[:M] = np.hanning(2*M)[M:]
-        hann_half = hann[floor(len(hann))/2-1:]
-        H_filtered=H*hann_half
-        # Create impulse response
-        h_filtered = np.fft.irfft(H_filtered)
-        f = np.fft.rfftfreq(N, d=1/Fs)
-        figure(1),plot(t,h_filtered[:len(t)]),axis('tight')
-        xlabel('t [s]'),ylabel('h'),title('RIR_'+str(number))
-        savefig('analysis/RIR_'+str(n))
-        figure(2),plot(t,h_filtered[:len(t)]),axis([0,2*T/3,-0.00005,0.00005])
-        savefig('analysis/RIR_'+str(n)+'_zoom')
-        xlabel('t [s]'),ylabel('h'),title('RIR_'+str(number)+'_zoom')
-        figure(3),plot(f,H_filtered),xlabel('f (Hz)'),ylabel('|H(f)|')
-        t = np.linspace(0,10,10*Fs)
-        savefig('analysis/H_'+str(n))
 
 if __name__ == "__main__":
     rate = 44100
     chunk = 1024
+    n_channels = 1
     input_file,output_file = get_parameters()
-    Au = Audio(input_file,output_file,1,3,rate,chunk)
+    Au = Audio(input_file,output_file,n_channels,3,rate,chunk)
     frames=Au.play_and_record()
     Au.save_wav_files(frames)
