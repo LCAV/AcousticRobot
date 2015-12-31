@@ -10,6 +10,8 @@ import numpy as np
 from scipy.io import wavfile
 import matplotlib.pyplot as plt
 
+from scipy.signal import firwin, kaiserord, filtfilt
+
 # Odometry
 N = 512 # Counts per revolution
 G = 43/1 # Gear ratio
@@ -187,9 +189,60 @@ class Analysis():
             plt.show(block=False)
             #self.save_RIR(output_wav,h_filtered)
         return np.array([t,h_filtered]),np.array([f,H_filtered])
-    def apply_filter(self,F):
-        #TODO Write this function
-        return F
+    def apply_filter(self,time,freq):
+        t=time[0]
+        h=time[1]
+        f=freq[0]
+        H=freq[1]
+        nyq_rate = Fs/2
+        width = .6/nyq_rate # filter with
+        dip = 21.0 # desired attenuation
+
+        #compute filter coefficints
+        N_kaiser, beta = kaiserord(dip, width)
+        # filter bandpass windows:
+        peaks = []
+        peaks_start = [1031,2387,3960,5208]
+        peaks_number = [6,7,2,2]
+        #peaks_start = [22680,52540,87180,114420]
+        #step = 2390
+        step=108
+        for i,start in enumerate(peaks_start):
+            for j in range(0,peaks_number[i]):
+                peaks.append(start+j*step)
+        #print(peaks)
+        cutoff_nyq = []
+        for p in peaks:
+            cutoff_nyq.append((p-2)/nyq_rate)
+            cutoff_nyq.append((p+2)/nyq_rate)
+        cutoff_nyq.append(0.99)
+        taps = firwin(N_kaiser, cutoff_nyq, window=('kaiser', beta))
+        filtered_h = filtfilt(taps,[1.0],h)
+
+        #fft on filtered data
+        f_filt = np.fft.rfftfreq(N, d=1/Fs)
+        H_filt = np.fft.rfft(filtered_h,n=N)
+
+        #plot the Time Series comparison and the FFT comparison
+        fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, sharex = False, figsize=(12,15))
+
+        ax1.set_title('Original and Notch Filtered Data')
+
+        ax1.plot(t, h, color='r', alpha=1, label='Time Series Original')
+        ax2.plot(t, filtered_h, color='r', alpha=1, label='Time Series Filtered')
+        ax3.plot(f, H, color='b', alpha=1, label='Frequency Spectrum Original')
+        ax4.plot(f, H_filt, color='b', alpha=1, label='Frequency Spectrum Notch Filtered')
+
+        ax1.legend(frameon=False, fontsize=10)
+        ax2.legend(frameon=False, fontsize=10)
+        ax3.legend(frameon=False, fontsize=10)
+        ax4.legend(frameon=False, fontsize=10)
+        ax1.set_ylabel('Amplitude'); ax2.set_ylabel('Amplitude')
+        ax1.set_xlabel('Time (sec)'); ax2.set_xlabel('Time (sec)')
+        ax3.set_xlabel('Frequency (Hz)'); ax4.set_xlabel('Frequency (Hz)')
+        ax3.set_ylabel('Energy'); ax4.set_ylabel('Energy')
+
+        return np.array([t,h_filt]),np.array([f_filt,H_filt])
     def get_crosscorr(self):
         ''' Get cross correlation '''
         global MAX_LENGTH
