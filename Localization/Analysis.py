@@ -10,7 +10,7 @@ import numpy as np
 from scipy.io import wavfile
 import matplotlib.pyplot as plt
 
-from scipy.signal import firwin, kaiserord, filtfilt
+from scipy.signal import firwin, kaiserord, filtfilt, lfilter
 
 # Odometry
 N = 512 # Counts per revolution
@@ -24,8 +24,8 @@ MIN_F = 100 # minimum of sine sweep
 MAX_F = 20000  # maximum of sine sweep
 Fs = 44100. # sampling rate
 T = 10 # seconds of interest for room impulse response
-WIDTH_ROOM = 6500 #in mm
-HEIGHT_ROOM = 6000 #in mm
+WIDTH_ROOM = 7078 #in mm
+HEIGHT_ROOM = 7311 #in mm
 N_WALLS = 4
 C = 343200 # speed of sound at 20C, dry air, in mm/s
 # CROSS CORRELATION
@@ -89,13 +89,13 @@ class Analysis():
             step_number = int(output_wav.partition('/')[-1][0])
             channel_number = int(output_wav[-5])
             # Read input files
-            name=self.out_dir+str(step_number)+'_'+str(channel_number)+'_RIR_'
+            name=self.out_dir+str(step_number)+'_'+str(channel_number)+'_NEW_filtY'
             Fs2,y = wavfile.read(output_wav)
             if Fs2 != Fs:
                 print("Warning: Sampling rate from input doens't match output:",
                       Fs,Fs2)
-            # reshape to one-channel array (can be removed once Audio.py
-            # is fixed
+            # reshape to one-channel array (can be removed once Audio.py is
+            # fixed)
             y = y.reshape((-1))
             Fs=float(Fs)
             # Deconvolute signals
@@ -103,10 +103,11 @@ class Analysis():
             N=2*max(len(u),len(y))
             f = np.fft.rfftfreq(N, d=1/Fs)
             Y = np.fft.rfft(y,n=N) # automatically adds 0s until N
-            U = np.fft.rfft(u,n=N)
 
+            U = np.fft.rfft(u,n=N)
+            # apply filter to Y to filter out harmonic frequencies
+            __,[f,Y] = self.apply_filter([t,y],[f,Y],'Y')
             H = np.zeros((max(len(u),len(y))+1),dtype=np.complex)
-            print(U.shape[0],Y.shape[0],H.shape[0],N)
             # find the length where U is not 0. (or bigger than 1000)
             lengthU = U.shape[0]
             thresh = 1000
@@ -125,6 +126,7 @@ class Analysis():
 
 
             H[:int(50.*N/Fs)]=0
+            #__,[f,H] = self.apply_filter([t,y],[f,H],'H')
             #H[lengthU:]=0
             #H[400000:]=0
 
@@ -189,58 +191,100 @@ class Analysis():
             plt.show(block=False)
             #self.save_RIR(output_wav,h_filtered)
         return np.array([t,h_filtered]),np.array([f,H_filtered])
-    def apply_filter(self,time,freq):
+    def apply_filter(self,time,freq,method='Y'):
+        '''
+        Filters out required frequencies from frequency spectrum of signal.
+
+        _Parameters_:
+            time:   [t,h] nparray of time vector and corresponding time response,
+                    as returned by get_RIR(). Only used in method 'kaiser'
+            freq:   [f,H] nparray of frequency vector and corresponding FFT, as
+                    returned by get_RIR(). Indirectly filtered with 'kaiser',
+                    directly filtered with other methods.
+
+            method: if set to 'kaiser', the Kaiser method from
+                    http://nbviewer.ipython.org/github/LORD-MicroStrain/SensorCloud/blob/master/MathEngine/Example%20Notebooks/LORD%20Notch%20Filter.ipynb
+                    ATTENTION: never tested completely because it always led to
+                    crash because of overloaded software memory.
+                    When set to anything other than 'kaiser', the desired
+                    frequencies are simply set to 0 and the parameter method is
+                    only used for naming the output files.(default: Y)
+        '''
+
         t=time[0]
         h=time[1]
         f=freq[0]
         H=freq[1]
-        nyq_rate = Fs/2
-        width = .6/nyq_rate # filter with
-        dip = 21.0 # desired attenuation
 
-        #compute filter coefficints
-        N_kaiser, beta = kaiserord(dip, width)
         # filter bandpass windows:
         peaks = []
+        #peaks_start = [49]
+        #peaks_number = [50]
         peaks_start = [1031,2387,3960,5208]
         peaks_number = [6,7,2,2]
-        #peaks_start = [22680,52540,87180,114420]
-        #step = 2390
         step=108
+        width_notch = 4 # half width of notch filter
         for i,start in enumerate(peaks_start):
             for j in range(0,peaks_number[i]):
                 peaks.append(start+j*step)
-        #print(peaks)
-        cutoff_nyq = []
-        for p in peaks:
-            cutoff_nyq.append((p-2)/nyq_rate)
-            cutoff_nyq.append((p+2)/nyq_rate)
-        cutoff_nyq.append(0.99)
-        taps = firwin(N_kaiser, cutoff_nyq, window=('kaiser', beta))
-        filtered_h = filtfilt(taps,[1.0],h)
+        if method == 'kaiser':
+            cutoff_nyq = []
+            for p in peaks:
+                cutoff_nyq.append((p-width_notch)/nyq_rate)
+                cutoff_nyq.append((p+width_notch)/nyq_rate)
+            cutoff_nyq.append(0.99)
 
-        #fft on filtered data
-        f_filt = np.fft.rfftfreq(N, d=1/Fs)
-        H_filt = np.fft.rfft(filtered_h,n=N)
+            nyq_rate = Fs/2
+            width = .6/nyq_rate # filter with
+            dip = 21.0 # desired attenuation
+
+            #compute filter coefficints
+            N_kaiser, beta = kaiserord(dip, width)
+            taps = firwin(N_kaiser, cutoff_nyq, window=('kaiser', beta))
+            h_filt = lfilter(taps,[1.0],h)
+            # h_filt = filtfilt(taps,[1.0],h) RAN OUT OF MEMORY!
+            f_filt = np.fft.rfftfreq(N, d=1/Fs)
+            H_filt = np.fft.rfft(filtered_h,n=N)
+        elif method!='kaiser':
+            # set points around peaks to zero.
+            H_filt = H.copy()
+            for p in peaks:
+                notch = (f<p+width_notch)&(f>p-width_notch)
+                H_filt[notch]=0
+            f_filt = f
+            h_filt = h
 
         #plot the Time Series comparison and the FFT comparison
-        fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, sharex = False, figsize=(12,15))
 
-        ax1.set_title('Original and Notch Filtered Data')
+        #fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, sharex = False, figsize=(12,15))
+        fig, (ax3, ax4) = plt.subplots(2, 1, sharex = False, figsize=(6,8))
 
-        ax1.plot(t, h, color='r', alpha=1, label='Time Series Original')
-        ax2.plot(t, filtered_h, color='r', alpha=1, label='Time Series Filtered')
-        ax3.plot(f, H, color='b', alpha=1, label='Frequency Spectrum Original')
-        ax4.plot(f, H_filt, color='b', alpha=1, label='Frequency Spectrum Notch Filtered')
+        #ax1.set_title('Original and Notch Filtered Data')
 
-        ax1.legend(frameon=False, fontsize=10)
-        ax2.legend(frameon=False, fontsize=10)
+        #ax1.plot(t, h[:len(t)], color='r', alpha=1, label='Time Series Original')
+        #ax2.plot(t, h_filt[:len(t)], color='r', alpha=1, label='Time Series Filtered')
+        ax3.plot(f, abs(H), color='b', alpha=1, label='Frequency Spectrum Original')
+        leg=''
+        for p in peaks:
+            if leg=='':
+                leg='Notch Filter Locations'
+                ax3.axvline(x=p,color='red',linestyle='dashed',linewidth=1,label=leg)
+            else:
+                ax3.axvline(x=p,color='red',linestyle='dashed',linewidth=1)
+        ax4.plot(f, abs(H_filt), color='b', alpha=1, label='Frequency Spectrum Notch Filtered')
+        ax3.ticklabel_format(axis='y', style='sci', scilimits=(-2,4))
+        ax4.ticklabel_format(axis='y', style='sci', scilimits=(-2,4))
+        ax3.set_xlim([0,max(peaks)*11/10])
+        ax4.set_xlim([0,max(peaks)*11/10])
+        #ax1.legend(frameon=False, fontsize=10)
+        #ax2.legend(frameon=False, fontsize=10)
         ax3.legend(frameon=False, fontsize=10)
         ax4.legend(frameon=False, fontsize=10)
-        ax1.set_ylabel('Amplitude'); ax2.set_ylabel('Amplitude')
-        ax1.set_xlabel('Time (sec)'); ax2.set_xlabel('Time (sec)')
-        ax3.set_xlabel('Frequency (Hz)'); ax4.set_xlabel('Frequency (Hz)')
-        ax3.set_ylabel('Energy'); ax4.set_ylabel('Energy')
+        #ax1.set_ylabel('Amplitude'); ax2.set_ylabel('Amplitude')
+        #ax1.set_xlabel('Time (sec)'); ax2.set_xlabel('Time (sec)')
+        ax3.set_xlabel('f [Hz]'); ax4.set_xlabel('f [Hz]')
+        plt.show(block=False)
+        plt.savefig('../Report/files/Notch_test'+method+'.png')
 
         return np.array([t,h_filt]),np.array([f_filt,H_filt])
     def get_crosscorr(self):
