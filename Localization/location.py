@@ -174,10 +174,6 @@ def leastsquares(choice_ref,pts_ref,cams,errs,img,pts,r_real,loop_counter,TIME):
         f.write(msg4+"\n")
 
     return p_lq_fix, p_lq_free
-
-
-
-
 def signal_handler(signal, frame):
     ''' Interrupt handler for stopping on KeyInterrupt '''
     print('Program stopped manually')
@@ -206,7 +202,7 @@ if __name__ == '__main__':
     output_tim = out_dir+"timings_"+TIME+".txt"
     output_au = out_dir+"audio_"+TIME+".wav"
     # Visual localization
-    flag = 0 # alorithm for solvepnp
+    flag = 0 # alorithm for solvepnp (ITERATIVE:0, P3P:1, EPNP:2)
     r_wall = np.matrix([0,0,R_HEIGHT]) # real robot position from wall
     r_real = calib.change_wall_to_ref(PTS_BASIS,MARGIN,r_wall.copy())
 
@@ -258,6 +254,11 @@ if __name__ == '__main__':
             if result!=0:
                 name='ref_'+str(n)+'_'+TIME+str('.txt')
                 calib.write_ref(out_dir,name,img.ref_img,img.M,img.ref_obj)
+
+            # save camera center
+            cam.reposition(img.ref_obj,img.ref_img,flag)
+            fname="cameras_"+TIME
+            cam.save_Center(in_dir,fname)
         else:
             break
 

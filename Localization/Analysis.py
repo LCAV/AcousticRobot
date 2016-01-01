@@ -3,14 +3,16 @@
 Analysis.py module
 ==============
 
-Contains functions to analyze room impulse response
+Contains functions to analyze room impulse response, odometry measurements
+and visual localization.
+
 '''
 import sys
 import numpy as np
 from scipy.io import wavfile
 import matplotlib.pyplot as plt
-
 from scipy.signal import firwin, kaiserord, filtfilt, lfilter
+import calibrate as calib
 
 # Odometry
 N = 512 # Counts per revolution
@@ -32,9 +34,12 @@ C = 343200 # speed of sound at 20C, dry air, in mm/s
 MAX_LENGTH = Fs*2
 TLAT = 0.1454 # Latency time, found with 660mm distance test
 
+MARGIN = np.array([2000,1000],dtype=np.float) #MARGIN from leftmost and downlost ref point to reference (in mm)
+PTS_BASIS = np.array(([2275,3769],[3128,3713])) #position of first and second reference points from wall (in mm)
+
 class Analysis():
     def __init__(self,out_dir,input_wav='', output_wav_list='', output_enc='',
-                 output_real='',output_vis=''):
+                 output_real='',output_vis='',output_cam=''):
         '''
         _Parameters_:
         out_dir: folder where results should be saved
@@ -53,6 +58,7 @@ class Analysis():
         self.output_enc = output_enc
         self.output_real = output_real
         self.output_vis = output_vis
+        self.output_cam = output_cam
         self.U=''
     def get_TOA(self):
         '''
@@ -403,6 +409,42 @@ class Analysis():
         plt.title('Odometry precision study')
         plt.axis('equal'),plt.show(block=False)
         plt.savefig(out_dir+'odometry')
+    def plot_geometry(self,fname=''):
+        plt.figure()
+        legend_str=[]
+
+        # plot reference points
+        ax = plt.plot(PTS_BASIS[:,0],PTS_BASIS[:,1],color='k',linestyle='-')
+        legend_str.append('checkerboard base line')
+        # plot reference coordinate system
+        origin=calib.change_ref_to_wall(PTS_BASIS,MARGIN,np.matrix([0,0,0]))
+        xaxis=calib.change_ref_to_wall(PTS_BASIS,MARGIN,np.matrix([MARGIN[1],0,0]))
+        yaxis=calib.change_ref_to_wall(PTS_BASIS,MARGIN,np.matrix([0,MARGIN[1],0]))
+        plt.plot([yaxis[0,0],origin[0,0],xaxis[0,0]],[yaxis[0,1],origin[0,1],xaxis[0,1]],color='b',linestyle=':')
+        legend_str.append('reference basis')
+        # plot robot positions
+        if self.output_real!='':
+            real_array = np.loadtxt(self.output_real,dtype=np.float32)
+            plt.plot(real_array[:,0],real_array[:,1],marker='o',color='g')
+            legend_str.append('robot real positions')
+        if self.output_vis!='':
+            obj_array = np.loadtxt(self.output_vis,dtype=np.float32)
+            plt.plot(obj_array[:,0],obj_array[:,1],marker='o',color='r')
+            legend_str.append('robot visual positions')
+        if self.output_cam!='':
+            cam_centers = np.loadtxt(self.output_cam,dtype=np.float32)
+            colors={139:'blue',141:'red',143:'green',145:'orange'}
+            for i in range(0,cam_centers.shape[0]):
+                plt.plot(cam_centers[i,1],cam_centers[i,2],
+                         marker='o',linestyle='',color=colors[cam_centers[i,0]])
+                legend_str.append(str(int(cam_centers[i,0])))
+        plt.legend(legend_str,'best')
+        # plot properties
+        plt.grid(True)
+        plt.axes().set_aspect('equal','datalim')
+        plt.show(block=False)
+        if fname!='':
+            plt.savefig(fname)
 
 def get_parameters():
     ''' Get parameters from command line '''

@@ -64,6 +64,12 @@ The extrinsic camera matrix $\mathbf{P}$ that one needs to solve for can be deco
     \label{eq:solvepnp}
 \end{align}
 
+The camera center in object space coordinates is then given by
+
+\begin{equation}
+    \begin{bmatrix} x_C y_C z_C \end{bmatrix} = -\mathbf{R}^{-1} \mathbf{t}
+\end{equation}
+
 There are 12 unknowns and each new point provides 3 independant equations. Therefore at least 4 points are requried for solving this set of equations. 
 
 Various methods have been proposed for solving this kind of problem, also known as Perspective-$n$-Point or P$n$P problems. 
@@ -93,4 +99,3 @@ For an adequate convergence in all directions, this minimization problem is solv
 where $\mathbf{J}$ is the Jacobian matrix of the reprojection function and $\lambda$ is the damping factor. It is tuned such that
 the convergence is moderated in the case of very fast descending functions, preventing from instability, and enhanced for slowly converging problems.
 %TODO Provide a comparison between ITERATIVE and EPNP! 
-

@@ -473,6 +473,15 @@ class Camera:
                 for i in range(3):
                     f.write("{0:10.4f}\t".format(self.t.T[j,i]))
                 f.write("\n")
+    def save_Center(self,in_dir,fname):
+        self.update()
+        with open(in_dir+fname+".txt","a") as f:
+            f.write("{0}\t{1:10.4f}\t{2:10.4f}\t{3:10.4f}\t".format(self.n,
+                                                                self.Center[0,0],
+                                                               self.Center[1,0],
+                                                               self.Center[2,0]))
+            f.write("\n")
+
     def get_checkpoints(self,out_dir,w,h,fisheye):
         '''
         gets checkboard points for the intrinsic camera  calibration.

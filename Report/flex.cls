@@ -25,7 +25,7 @@
 \usepackage[british,UKenglish,USenglish,english,american]{babel}
 \usepackage[framed]{mcode}
 \usepackage{verbatim}  % Needed for the "comment" environment to make LaTeX comments
-\usepackage{placeins}
+\usepackage[section]{placeins} % adds float barrier with each section
 \usepackage{float}
 
 %mathematics packages
