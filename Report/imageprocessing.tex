@@ -22,7 +22,7 @@ The proportion of true positives has to lie above a certain threshold $t$ for th
 The resulting binary image is composed of at least $N_{pts}$ contours whose centroids can be obtained by calculating the respective moments $M_{i,j}=\sum_{x} \sum_{y} x^iy^i I(x,y)$ ($x$ and $y$ correspond to pixel coordinates and $I(x,y)$ is the pixel intensity). 
 The centroid coordinates are given by $\bar{x}=\frac{M_{10}}{M_{00}}$ and $\bar{y}=\frac{M_{01}}{M_{00}}$. If two centroids are too close to each other, they are considered a duplicate and repliced by their middle.
 The resulting binary images with the final centroids for each point for reference points and the robot head are shown in Figures \ref{fig:circ_org} and \ref{fig:circ_red} respectively.
-\begin{figure}[H]
+\begin{figure}[htb]
 	\centering
 	\begin{subfigure}[b]{0.49\linewidth}
         \centering

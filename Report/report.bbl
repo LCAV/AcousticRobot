@@ -1,60 +1,57 @@
 \begin{thebibliography}{10}
 
 \bibitem{MTB}
-Jean-Yves Bouguet.
-\newblock Matlab calibration tool.
+{\sc J.-Y. Bouguet}, {\em {MATLAB calibration tool}}.
 \newblock \url{http://www.vision.caltech.edu/bouguetj/calib_doc/}.
 
 \bibitem{Brown1966}
-DC~Brown.
-\newblock {Decentering Distortion of Lenses}.
-\newblock {\em Photometric Engineering}, 32(3):444--462, 1966.
+{\sc D.~Brown}, {\em {Decentering Distortion of Lenses}}, Photometric
+  Engineering, 32 (1966), pp.~444--462.
 
 \bibitem{Conrady1919}
-AE~Conrady.
-\newblock {Decentred Lens-Systems}.
-\newblock {\em Monthly Notices of the Royal Astronomical Soceity}, 79:384--390,
-  1919.
+{\sc A.~Conrady}, {\em {Decentred Lens-Systems}}, Monthly Notices of the Royal
+  Astronomical Soceity, 79 (1919), pp.~384--390.
 
 \bibitem{hz}
-Richard Hartley and Andrew Zisserman.
-\newblock {\em Multiple View Geometry in Computer Vision}.
-\newblock Cambridge University Press, second edition, 2003.
+{\sc R.~Hartley and A.~Zisserman}, {\em Multiple View Geometry in Computer
+  Vision}, Cambridge University Press, second~ed., 2003.
 
 \bibitem{Miranda}
-Miranda Krekovic, Ivan Dokmanic, and Martin Vetterli.
-\newblock {EchoSLAM : SIMULTANEOUS LOCALIZATION AND MAPPING WITH ACOUSTIC
-  ECHOES}.
-\newblock {\em LCAV}, 2015.
+{\sc M.~Krekovic, I.~Dokmanic, and M.~Vetterli}, {\em {EchoSLAM : SIMULTANEOUS
+  LOCALIZATION AND MAPPING WITH ACOUSTIC ECHOES}}, LCAV,  (2015).
 
 \bibitem{Lepetit2009}
-Vincent Lepetit, Francesc Moreno-Noguer, and Pascal Fua.
-\newblock {EPnP: An Accurate O(n) Solution to the PnP Problem}.
-\newblock {\em International Journal of Computer Vision}, 81(2):155--166, 2009.
+{\sc V.~Lepetit, F.~Moreno-Noguer, and P.~Fua}, {\em {EPnP: An Accurate O(n)
+  Solution to the PnP Problem}}, International Journal of Computer Vision, 81
+  (2009), pp.~155--166.
+
+\bibitem{Notch}
+{\sc D.~O'Neil}, {\em {How to Remove Signal Data Artifacts}}.
+\newblock
+  \url{http://www.microstrain.com/news/how-remove-signal-data-artifacts}.
+\newblock Accessed December 31, 2015.
 
 \bibitem{calib3d}
-OpenCV.
-\newblock Camera calibration and 3d reconstruction.
+{\sc OpenCV}, {\em {Camera Calibration and 3D Reconstruction}}.
 \newblock
   \url{http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html}.
 \newblock Accessed December 30, 2015.
 
+\bibitem{Vetterli}
+{\sc P.~Prandoni and M.~Vetterli}, {\em Signal processing for communications},
+  EPFL Press, first~ed., 2008.
+
 \bibitem{Wickelmaier2003}
-Florian Wickelmaier.
-\newblock {An introduction to MDS}.
-\newblock {\em Reports from the Sound Quality Research Unit, {\ldots}},
-  page~26, 2003.
+{\sc F.~Wickelmaier}, {\em {An introduction to MDS}}, Reports from the Sound
+  Quality Research Unit,  (2003), p.~26.
 
 \bibitem{LMA}
-Wikipedia.
-\newblock Levenberg-marquardt algorithm.
+{\sc Wikipedia}, {\em {Levenberg - Marquardt algorithm}}.
 \newblock \url{https://en.wikipedia.org/wiki/Levenberg-Marquardt_algorithm}.
 \newblock Accessed December 31, 2015.
 
 \bibitem{Zhang2000}
-Zhengyou Zhang.
-\newblock {A Flexible New Technique for Camera Calibration}.
-\newblock {\em IEEE Trans. Pattern Anal. Mach. Intell.}, 22(11):1330--1334,
-  2000.
+{\sc Z.~Zhang}, {\em {A Flexible New Technique for Camera Calibration}}, IEEE
+  Trans. Pattern Anal. Mach. Intell., 22 (2000), pp.~1330--1334.
 
 \end{thebibliography}

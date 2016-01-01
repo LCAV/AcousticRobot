@@ -2,26 +2,10 @@
 \newpage
 \section{Experimental Setup}
 
-% Router
-\subsection{Router}
-
-The Router used is a TP\_LINK TL\_MR3020
-up to 150 Mbps 
-
-computer to router: (when connected to internet upload: 45, download: 50)
-sending 11MB, 11536384 (test10.zip)
-raspberry to router:
-1.57 MB/s, (in 7.0s)
-computer to router:
-1.73 MB/s (in 6.4s)
-
-
-
-
 % Camera
 \subsection{Camera Setup}
 
-\paragraph{Hardware} The camera is made of a Raspberry Pi 2 Model B with the corresponding Raspi-Camera module. The OS loaded to the camera is the common Raspian WHEEZY system with a few scripts running on startup in the background. The camera connected is the Raspi-Camera module.
+\paragraph{Hardware} The camera is made of a Raspberry Pi 2 Model B with the corresponding Raspi-Camera module. The OS loaded to the camera is the common Raspian WHEEZY system with 3 scripts running on startup in the background. The camera connected is the Raspi-Camera module.
 
 \paragraph{Webcam setup} In order to connect to the LAN on startup, a few lines need to be added in $/etc/network/interfaces$: 
 
@@ -64,27 +48,26 @@ LD_LIBRARY_PATH=/usr/local/lib mjpg_streamer -i "input_file.so -f /tmp/stream -n
 \end{minipage}
 \end{center}
 
-Line 6 tells the camera to take a picture of resolution $w \times h = 1280 \times 720$ of quality 50\%, 100\% meaning no compression at all, at a time interval of $tl = 100ms$ until the maximum time of $t = 2147483647ms$ is reached, which is the maximum for a 32-bit signed integer.
-Other parameters like the exposure (set to backlit, so that background is enhanced: TRY FIXEDFPS for constant lighting? ), and the metering mode (what is this???) can be set. 
-With these settings, the resulting picture size is not more than $N_{pic}=803kB$ (779412). (Apparent size: 786kB)
-As this size is much too high, the quality is set down to 10, which is equivalent to a quality of around 85 for most applications. This leads to a size of around 100kB. In addition to that, the thumbnail, which is a bitmap that also takes up unnecessary storage space, is deleted and a final image size of 80kB is obtained.
+Line 6 tells the camera to take a picture of resolution $w \times h = 1280 \times 720$ of quality 50\% (100\% would mean no compression at all), at a time interval of $tl = 100ms$ until the time $t = 2147483647ms = 24 \text{d} 19 \text{h}$ is reached, which is the maximum for a 32-bit signed integer.
+Other parameters like the exposure, set to backligh, and the metering mode can be set. 
+With these settings, the resulting picture size is of about $N_{pic}=455kB$, to compared with a size of around $N_{pic}=533$ for 100\% quality. The way the image compression is implemented, there is nearly no difference in size down to a quality of around 20\% and the loss in quality is negligible (see Figure \ref{fig:quality}).
+This size is just too big for the chosen Router with capacity of about 150 Mbps, considering that in the worst case, the images from the 4 cameras are required simultaneously. Therefore the quality is set down to 10, which is a good trade off between image quality (see Figure \ref{fig:quality}) and size (100 kB). Indeed, this quality is said to be equivalent to a quality of around 85\% for most applications by Raspberry Pi users. %TODO add citation?
+In addition to that, the thumbnail, which is a bitmap that also takes up unnecessary storage space, is deleted and a final image size of 80 kB is obtained. This is an acceptable size since we have:
 
- $N_{pic}=803kB$ 
-qual	size
-100	533 kB
-50	455 kB
-10	74
-5	37
-png  1549kB
-bmp 2773kB
- The network speed that needs to be provided to avoid idle times or image distortion is therefore:
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{files/quality.png}
+    \caption{Quality vs. image size considerations}
+    \label{fig:quality}
+\end{figure}
 
-Line 7 starts the mjpg streamer from where the picture has been stored and sends it to the local network. 
 \begin{equation}
-	S_{network} \geq \frac{N_{pic}}{tl}  = \frac{1.1MB}{0.1s}= \frac{1.05Mbits}{0.1s} = 10.5 Mbps
+    S_{network} = 150 \text{ Mbps} = 18.75 \text{ MB/s} \geq \frac{N_{pic}}{tl}  = \frac{80/1024 MB}{0.1\text{s}}= 0.78 \text{ MB/s}
 \end{equation}
 
-The router capacity is ??? which would be 
+This leads to a reasonable security margin, which is desirbale since the declared maximum capacity is largely overestimated in comparison with practical measurements, indicating a capacity of only 1.5-1.7 MB/s.
+
+Line 7 starts the mjpg streamer from where the picture has been stored and serves them on a webpage. The mjpg streamer is a Linux-UVC streaming application which streams JPGs from wecams, filesystems or other input plugins via as M-JPEG, which is a common video compression format, via HTTP to webbrowsers.
 
 \paragraph{Button}
 
@@ -146,13 +129,15 @@ sudo python /home/pi/switchoff.py &
 \end{minipage}
 \end{center}
 
+\subsection{Audio Setup}
 
-picture quality and compression:
-\url{www.raspberrypi.org/forum/viewtopic.php?f=43&t=73174&p=527300#p527300}
-wget:
-\url{https://www.maketecheasier.com/test-internet-connection-speed-from-terminal/}
-speedtest:
-http://www.speedtest.net/
+
+%picture quality and compression:
+%\url{www.raspberrypi.org/forum/viewtopic.php?f=43&t=73174&p=527300#p527300}
+%wget:
+%\url{https://www.maketecheasier.com/test-internet-connection-speed-from-terminal/}
+%speedtest:
+%http://www.speedtest.net/
 
 %%% Local Variables:
 %%% mode: latex

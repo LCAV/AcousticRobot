@@ -1,0 +1,34 @@
+\select@language {american}
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}
+\contentsline {subsection}{\numberline {1.1}Acoustic-based SLAM}{3}{subsection.1.1}
+\contentsline {subsection}{\numberline {1.2}Experimental setup}{3}{subsection.1.2}
+\contentsline {section}{\numberline {2}Visual Localisation}{4}{section.2}
+\contentsline {subsection}{\numberline {2.1}Intrinsic Calibration}{4}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Image Processing}{4}{subsection.2.2}
+\contentsline {subsection}{\numberline {2.3}Extrinsic Calibration}{5}{subsection.2.3}
+\contentsline {subsubsection}{\numberline {2.3.1}Reference points}{5}{subsubsection.2.3.1}
+\contentsline {paragraph}{Points}{5}{section*.4}
+\contentsline {paragraph}{Checkerboard}{5}{section*.5}
+\contentsline {paragraph}{Algorithm}{5}{section*.7}
+\contentsline {subsection}{\numberline {2.4}Triangulation}{6}{subsection.2.4}
+\contentsline {paragraph}{Introduction}{6}{section*.8}
+\contentsline {paragraph}{DLT fixed height}{7}{section*.9}
+\contentsline {paragraph}{DLT free height}{7}{section*.10}
+\contentsline {subsection}{\numberline {2.5}Experimental Results}{7}{subsection.2.5}
+\contentsline {section}{\numberline {3}Echo-SLAM}{10}{section.3}
+\contentsline {subsection}{\numberline {3.1}Sine Sweep Generation}{10}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}Recording}{10}{subsection.3.2}
+\contentsline {subsection}{\numberline {3.3}Experimental Results}{11}{subsection.3.3}
+\contentsline {subsubsection}{\numberline {3.3.1}Calibration}{11}{subsubsection.3.3.1}
+\contentsline {subsubsection}{\numberline {3.3.2}Echo SLAM}{11}{subsubsection.3.3.2}
+\contentsline {section}{\numberline {4}Robot movement}{15}{section.4}
+\contentsline {subsection}{\numberline {4.1}Control}{15}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}Odometry}{15}{subsection.4.2}
+\contentsline {subsection}{\numberline {4.3}Experimental Results}{16}{subsection.4.3}
+\contentsline {section}{\numberline {5}Experimental Setup}{17}{section.5}
+\contentsline {subsection}{\numberline {5.1}Camera Setup}{17}{subsection.5.1}
+\contentsline {paragraph}{Hardware}{17}{section*.18}
+\contentsline {paragraph}{Webcam setup}{17}{section*.19}
+\contentsline {paragraph}{Button}{18}{section*.21}
+\contentsline {paragraph}{Setup}{19}{section*.22}
+\contentsline {subsection}{\numberline {5.2}Audio Setup}{19}{subsection.5.2}

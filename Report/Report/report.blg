@@ -1,0 +1,51 @@
+This is BibTeX, Version 0.99d (TeX Live 2012)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: report.aux
+A level-1 auxiliary file: introduction.aux
+A level-1 auxiliary file: visual.aux
+A level-1 auxiliary file: audio.aux
+A level-1 auxiliary file: movement.aux
+A level-1 auxiliary file: experiment.aux
+The style file: siam.bst
+Database file #1: bibliography.bib
+You've used 12 entries,
+            2030 wiz_defined-function locations,
+            581 strings with 5375 characters,
+and the built_in function-call counts, 3415 in all, are:
+= -- 324
+> -- 118
+< -- 0
++ -- 48
+- -- 36
+* -- 230
+:= -- 539
+add.period$ -- 19
+call.type$ -- 12
+change.case$ -- 54
+chr.to.int$ -- 0
+cite$ -- 12
+duplicate$ -- 166
+empty$ -- 289
+format.name$ -- 36
+if$ -- 730
+int.to.chr$ -- 0
+int.to.str$ -- 12
+missing$ -- 10
+newline$ -- 46
+num.names$ -- 24
+pop$ -- 70
+preamble$ -- 1
+purify$ -- 42
+quote$ -- 0
+skip$ -- 129
+stack$ -- 0
+substring$ -- 200
+swap$ -- 62
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 44
+warning$ -- 0
+while$ -- 37
+width$ -- 14
+write$ -- 111

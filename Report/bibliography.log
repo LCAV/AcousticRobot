@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.7.25)  28 DEC 2015 17:31
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.7.25)  31 DEC 2015 16:56
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -18,20 +18,20 @@ kurmanji, latin, latvian, lithuanian, mongolian, mongolianlmc, bokmal, nynorsk,
 lovak, slovenian, spanish, swedish, turkish, turkmen, ukrainian, uppersorbian, 
 welsh, loaded.
 
-./bibliography.bib:3: LaTeX Error: Missing \begin{document}.
+./bibliography.bib:2: LaTeX Error: Missing \begin{document}.
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.3 @
-     book{hz,
+l.2 @
+     article{Miranda,
 ? 
-./bibliography.bib:3: Emergency stop.
+./bibliography.bib:2: Emergency stop.
  ...                                              
                                                   
-l.3 @
-     book{hz,
+l.2 @
+     article{Miranda,
 You're in trouble here.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
@@ -43,5 +43,5 @@ Here is how much of TeX's memory you used:
  3412 multiletter control sequences out of 15000+200000
  3640 words of font info for 14 fonts, out of 3000000 for 9000
  957 hyphenation exceptions out of 8191
- 5i,0n,4p,83b,14s stack positions out of 5000i,500n,10000p,200000b,50000s
-./bibliography.bib:3:  ==> Fatal error occurred, no output PDF file produced!
+ 5i,0n,4p,63b,14s stack positions out of 5000i,500n,10000p,200000b,50000s
+./bibliography.bib:2:  ==> Fatal error occurred, no output PDF file produced!
