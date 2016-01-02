@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.7.25)  1 JAN 2016 15:56
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.7.25)  2 JAN 2016 14:44
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -975,8 +975,11 @@ Package: multicol 2011/06/27 v1.7a multicolumn formatting (FMi)
 \f@ncyO@olf=\skip77
 \f@ncyO@orf=\skip78
 ))
-(./report.aux (./introduction.aux) (./visual.aux) (./audio.aux) (./movement.aux
-) (./experiment.aux))
+(./report.aux (./introduction.aux) (./visual.aux
+
+LaTeX Warning: Label `fig:experiment1' multiply defined.
+
+) (./audio.aux) (./movement.aux) (./experiment.aux))
 \openout1 = `report.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
@@ -1217,96 +1220,175 @@ File: files/ref_checkerboard.png Graphic file (type png)
 Package pdftex.def Info: files/ref_checkerboard.png used on input line 33.
 (pdftex.def)             Requested size: 225.60773pt x 142.20992pt.
  [5]) (./triangulation.tex [6])
-(./results_visual.tex)) [7] [8 <./files/_img139_cvt.png (PNG copy)> <./files/_i
-mg_org139.png> <./files/_img_h139.png> <./files/_img_s139.png> <./files/_circ_o
-rg139.png> <./files/_circ_red139.png>] [9 <./files/ref_points.png> <./files/ref
-_checkerboard.png>]
+(./results_visual.tex <files/res0_img139.png, id=234, 578.16pt x 433.62pt>
+File: files/res0_img139.png Graphic file (type png)
+
+<use files/res0_img139.png>
+Package pdftex.def Info: files/res0_img139.png used on input line 8.
+(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+
+<files/res0_combi_4.png, id=235, 578.16pt x 433.62pt>
+File: files/res0_combi_4.png Graphic file (type png)
+
+<use files/res0_combi_4.png>
+Package pdftex.def Info: files/res0_combi_4.png used on input line 12.
+(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [7]
+<files/res1_img141.png, id=250, 803.0pt x 602.25pt>
+File: files/res1_img141.png Graphic file (type png)
+
+<use files/res1_img141.png>
+Package pdftex.def Info: files/res1_img141.png used on input line 22.
+(pdftex.def)             Requested size: 237.01411pt x 177.76329pt.
+
+<files/res1_combi_4.png, id=251, 578.16pt x 433.62pt>
+File: files/res1_combi_4.png Graphic file (type png)
+
+<use files/res1_combi_4.png>
+Package pdftex.def Info: files/res1_combi_4.png used on input line 26.
+(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+
+<files/res1_room.png, id=252, 578.16pt x 433.62pt>
+File: files/res1_room.png Graphic file (type png)
+ <use files/res1_room.png>
+Package pdftex.def Info: files/res1_room.png used on input line 30.
+(pdftex.def)             Requested size: 290.22107pt x 217.663pt.
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [8 <./files/res0_img139.png> <./files/res0_combi_4.png>]
+<files/res2_image_143.png, id=260, 925.056pt x 520.344pt>
+File: files/res2_image_143.png Graphic file (type png)
+
+<use files/res2_image_143.png>
+Package pdftex.def Info: files/res2_image_143.png used on input line 40.
+(pdftex.def)             Requested size: 237.01411pt x 133.31717pt.
+
+<files/res2_image_145.png, id=261, 925.056pt x 520.344pt>
+File: files/res2_image_145.png Graphic file (type png)
+
+<use files/res2_image_145.png>
+Package pdftex.def Info: files/res2_image_145.png used on input line 44.
+(pdftex.def)             Requested size: 237.01411pt x 133.31717pt.
+
+<files/res2_0_image_141.png, id=262, 925.056pt x 520.344pt>
+File: files/res2_0_image_141.png Graphic file (type png)
+
+<use files/res2_0_image_141.png>
+Package pdftex.def Info: files/res2_0_image_141.png used on input line 48.
+(pdftex.def)             Requested size: 237.01411pt x 133.31717pt.
+
+<files/res2_combi_rob.png, id=263, 578.16pt x 433.62pt>
+File: files/res2_combi_rob.png Graphic file (type png)
+
+<use files/res2_combi_rob.png>
+Package pdftex.def Info: files/res2_combi_rob.png used on input line 52.
+(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+
+<files/res2_room.png, id=264, 578.16pt x 433.62pt>
+File: files/res2_room.png Graphic file (type png)
+ <use files/res2_room.png>
+Package pdftex.def Info: files/res2_room.png used on input line 56.
+(pdftex.def)             Requested size: 290.22107pt x 217.663pt.
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [9 <./files/res1_img141.png (PNG copy)> <./files/res1_combi_4.png> <./files/re
+s1_room.png>])) [10 <./files/res2_image_143.png> <./files/res2_image_145.png> <
+./files/res2_0_image_141.png> <./files/res2_combi_rob.png> <./files/res2_room.p
+ng>]
+[11 <./files/_img139_cvt.png (PNG copy)> <./files/_img_org139.png> <./files/_im
+g_h139.png> <./files/_img_s139.png> <./files/_circ_org139.png> <./files/_circ_r
+ed139.png>] [12 <./files/ref_points.png> <./files/ref_checkerboard.png>]
 \openout2 = `audio.aux'.
 
- (./audio.tex
-<files/sweep_spectrogram.png, id=266, 763.85374pt x 344.28625pt>
+
+(./audio.tex <files/sweep_spectrogram.png, id=301, 763.85374pt x 344.28625pt>
 File: files/sweep_spectrogram.png Graphic file (type png)
 
 <use files/sweep_spectrogram.png>
 Package pdftex.def Info: files/sweep_spectrogram.png used on input line 22.
 (pdftex.def)             Requested size: 386.95897pt x 174.41216pt.
 
-<files/sweep_fft.png, id=267, 578.16pt x 433.62pt>
+<files/sweep_fft.png, id=302, 578.16pt x 433.62pt>
 File: files/sweep_fft.png Graphic file (type png)
  <use files/sweep_fft.png>
 Package pdftex.def Info: files/sweep_fft.png used on input line 28.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
-<files/sweep_start.png, id=268, 578.16pt x 433.62pt>
+<files/sweep_start.png, id=303, 578.16pt x 433.62pt>
 File: files/sweep_start.png Graphic file (type png)
 
 <use files/sweep_start.png>
 Package pdftex.def Info: files/sweep_start.png used on input line 34.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
- [10
+ [13
 
 
  <./files/sweep_spectrogram.png> <./files/sweep_fft.png> <./files/sweep_start.p
 ng>]
-<files/random_hist.png, id=282, 578.16pt x 433.62pt>
+<files/random_hist.png, id=318, 578.16pt x 433.62pt>
 File: files/random_hist.png Graphic file (type png)
 
 <use files/random_hist.png>
 Package pdftex.def Info: files/random_hist.png used on input line 67.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
-<files/random_fft.png, id=283, 578.16pt x 433.62pt>
+<files/random_fft.png, id=319, 578.16pt x 433.62pt>
 File: files/random_fft.png Graphic file (type png)
  <use files/random_fft.png>
 Package pdftex.def Info: files/random_fft.png used on input line 73.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
-<files/random_M1000.png, id=284, 578.16pt x 433.62pt>
+<files/random_M1000.png, id=320, 578.16pt x 433.62pt>
 File: files/random_M1000.png Graphic file (type png)
 
 <use files/random_M1000.png>
 Package pdftex.def Info: files/random_M1000.png used on input line 79.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
-<files/audio_ruy.png, id=285, 578.16pt x 433.62pt>
+<files/audio_ruy.png, id=321, 578.16pt x 433.62pt>
 File: files/audio_ruy.png Graphic file (type png)
  <use files/audio_ruy.png>
 Package pdftex.def Info: files/audio_ruy.png used on input line 96.
 (pdftex.def)             Requested size: 290.22107pt x 217.663pt.
 
-[11] <files/0_1_RIR_zoom2.png, id=300, 578.16pt x 433.62pt>
+[14] <files/0_1_RIR_zoom2.png, id=337, 578.16pt x 433.62pt>
 File: files/0_1_RIR_zoom2.png Graphic file (type png)
 
 <use files/0_1_RIR_zoom2.png>
 Package pdftex.def Info: files/0_1_RIR_zoom2.png used on input line 129.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
-<files/0_1_RIR_zoom3.png, id=301, 578.16pt x 433.62pt>
+<files/0_1_RIR_zoom3.png, id=338, 578.16pt x 433.62pt>
 File: files/0_1_RIR_zoom3.png Graphic file (type png)
 
 <use files/0_1_RIR_zoom3.png>
 Package pdftex.def Info: files/0_1_RIR_zoom3.png used on input line 133.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
- <files/NotchY.png, id=305, 433.62pt x 578.16pt>
+ <files/NotchY.png, id=342, 433.62pt x 578.16pt>
 File: files/NotchY.png Graphic file (type png)
 
 <use files/NotchY.png>
 Package pdftex.def Info: files/NotchY.png used on input line 147.
 (pdftex.def)             Requested size: 241.84843pt x 322.47055pt.
- [12 <./files/random_hist.png> <./files/random_fft.png> <./files/random_M1000.p
-ng>]) [13 <./files/audio_ruy.png> <./files/0_1_RIR_zoom2.png> <./files/0_1_RIR_
-zoom3.png>] [14 <./files/NotchY.png>]
+ [15 <./files/random_hist.png> <./files/random_fft.png> <./files/random_M1000.p
+ng>]) [16 <./files/audio_ruy.png> <./files/0_1_RIR_zoom2.png> <./files/0_1_RIR_
+zoom3.png>] [17 <./files/NotchY.png>]
 \openout2 = `movement.aux'.
 
  (./movement.tex
-<files/Acceleration.png, id=331, 1019.81pt x 533.995pt>
+<files/Acceleration.png, id=366, 1019.81pt x 533.995pt>
 File: files/Acceleration.png Graphic file (type png)
 
 <use files/Acceleration.png>
 Package pdftex.def Info: files/Acceleration.png used on input line 14.
 (pdftex.def)             Requested size: 241.84843pt x 126.63773pt.
 
-<files/Odometry.png, id=332, 498.86375pt x 440.64626pt>
+<files/Odometry.png, id=367, 498.86375pt x 440.64626pt>
 File: files/Odometry.png Graphic file (type png)
 
 <use files/Odometry.png>
@@ -1314,13 +1396,13 @@ Package pdftex.def Info: files/Odometry.png used on input line 23.
 (pdftex.def)             Requested size: 241.84843pt x 213.62576pt.
 
 
-LaTeX Warning: Citation `Borenstein1996' on page 15 undefined on input line 28.
+LaTeX Warning: Citation `Borenstein1996' on page 18 undefined on input line 28.
 
 
-[15
+[18
 
 
- <./files/Acceleration.png> <./files/Odometry.png>]) [16]
+ <./files/Acceleration.png> <./files/Odometry.png>]) [19]
 \openout2 = `experiment.aux'.
 
  (./experiment.tex
@@ -1335,11 +1417,11 @@ File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <9> on input line 15.
- [17
+ [20
 
 
 ]
-<files/quality.png, id=390, 803.0pt x 468.75125pt>
+<files/quality.png, id=426, 803.0pt x 468.75125pt>
 File: files/quality.png Graphic file (type png)
  <use files/quality.png>
 Package pdftex.def Info: files/quality.png used on input line 59.
@@ -1355,7 +1437,7 @@ File: ts1pcr.fd 2001/06/04 font definitions for TS1/pcr.
 )
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [18 <./files/quality.png>]) [19] (./report.bbl
+ [21 <./files/quality.png>]) [22] (./report.bbl
 LaTeX Font Info:    Try loading font information for T1+lmtt on input line 5.
 
 (/usr/local/texlive/2012/texmf-dist/tex/latex/lm/t1lmtt.fd
@@ -1376,7 +1458,7 @@ g - Mar-quardt al-go-rithm\T1/lmr/m/n/10.95 .  []$\T1/lmtt/m/n/10.95 https : /
 
 )
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 35.
- [20
+ [23
 
 ]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 35.
@@ -1390,13 +1472,16 @@ Package rerunfilecheck Info: File `report.out' has not changed.
 
 LaTeX Warning: There were undefined references.
 
+
+LaTeX Warning: There were multiply-defined labels.
+
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 35.
  ) 
 Here is how much of TeX's memory you used:
- 12702 strings out of 493488
- 185210 string characters out of 3141326
- 470497 words of memory out of 3000000
- 15496 multiletter control sequences out of 15000+200000
+ 12762 strings out of 493488
+ 186579 string characters out of 3141326
+ 471288 words of memory out of 3000000
+ 15539 multiletter control sequences out of 15000+200000
  120041 words of font info for 89 fonts, out of 3000000 for 9000
  957 hyphenation exceptions out of 8191
  49i,14n,45p,698b,1562s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -1426,10 +1511,10 @@ t/fonts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2012/texmf-dist/fonts/ty
 pe1/public/lm/lmsy8.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/
 lm/lmsy9.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmtt10.p
 fb></usr/local/texlive/2012/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb>
-Output written on report.pdf (20 pages, 3207963 bytes).
+Output written on report.pdf (23 pages, 7683948 bytes).
 PDF statistics:
- 580 PDF objects out of 1000 (max. 8388607)
- 484 compressed objects within 5 object streams
- 172 named destinations out of 1000 (max. 500000)
- 300 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 616 PDF objects out of 1000 (max. 8388607)
+ 498 compressed objects within 5 object streams
+ 179 named destinations out of 1000 (max. 500000)
+ 350 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -1,0 +1,9 @@
+0	g l NOM_SPEED
+3 	g r NOM_SPEED
+4	s
+0	p l NOM_SPEED 30
+1	g l NOM_SPEED
+2	s
+0	p l NOM_SPEED 40
+3	g l NOM_SPEED
+4	s

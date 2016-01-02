@@ -1,0 +1,71 @@
+	server.cc (drive)	server.cc (robot)
+
+OK	f 	forward
+OK	b 	backward
+OK	l	left
+OK	r	right
+
+OK	i	init neck 
+
+e 	read encoders
+v	read speed
+
+OK	u 	neck left
+OK	d	neck right
+OK	a	move neck to switch low % (or defined angle??? )
+OK	o	move robot to origin
+
+OK	c 	move neck to center
+
+OK	sh	shut down
+OK	sa	save settings
+NO!!!! 	s 	stop robot
+
+OK	pl	pan left
+OK	pr	pan right
+
+NO!!!!  g 	go to defined position
+
+OK	tu 	tilt up
+OK	td	tilt down
+
+OK	z 	stop pan/tilt
+
+WORKING COMMANDS: 
+
+p MOT PARAM value	set parameters
+g MOT PARAM 		get parameters
+
+g,p ACC_DIV (l,r,n)
+g,p ACC_INC (l,r,n)
+
+g,p ACT_SPEED = SPEED (l,r,n)
+g,p NOM_SPEED (l,r)
+g,p ACT_POS(l,r,n) % Actual encoder position 
+g,p POS (l,r,n) % Encoder position to achieve in position control. 
+g,p ON_TRGT (l,r,n)
+
+g o TILT_NOM_SPEED
+
+g,p PWM (l,r,n)
+
+g,p CONTROL (l,r,n)
+
+g,p SPEED_POS (l,r,n) 
+
+g,p POS_MARG (l,r,n) %
+
+g,p MIN_SPEED (l,r,n)
+
+g,p KI, KP, KD (l,r,n)
+
+g,p REVISION(l,r,n)
+
+g,p SW1, SW2 (l,r,n)
+
+
+
+
+
+
+

@@ -5,10 +5,5 @@
 *.pyc
 
 # Result files
-Localisation/pos/
-*.png
-*.jpeg
-*.jpg
-*.txt
-*.wav
+Localization/results/
 *.swp

@@ -1,0 +1,15 @@
+0	i
+1	g l KP
+2	p l KP 40
+3	g l KP
+3.5	p l KP 20
+4	s
+
+0	i
+1	g l KI
+2	p l KI 3
+3	g l KI
+3.5 	p l KI 3
+4	s
+
+

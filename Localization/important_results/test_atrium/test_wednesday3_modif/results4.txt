@@ -1,0 +1,5 @@
+Best combination (based on best 3D error with free height):[[139 141 145]],error: 5.9346
+Fixed height [mm]: [1818.1830 , 1519.0395 , 182.0000], error 2D:  4.88 3D:  4.88
+Free height [mm]:  [1818.1830 , 1519.0251 , 182.0997], error 2D:  4.87 3D:  4.87
+Real position [mm]:[1822.0000 , 1516.0000 , 182.0000]
+Error reference poitns [px]: [[ 3.887   2.279   6.5919  3.2874]] 
