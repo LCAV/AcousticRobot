@@ -26,45 +26,46 @@ The distortion coefficients are indifferent to the camera resolution \cite{calib
 An algorithm for finding the intrinsic parameters including the radial distortion coefficients was suggested by Zhang \cite{Zhang2000}. 
 Its implementation in the Matlab Camera Calbiration Toolbox added an estimation algorithm for two tangential distortion coefficients. \cite{MTB}
 The OpenCV implementation used in this project is based on the Matlab Toolbox. It is implemented for the first 6 radial distortion coefficients $r_i$ and the first 2 tangential distortion coefficients $p_i$ \cite{calib3d}.
+
+The principle of the algorithm is two find the position of chessboard corners in an image and to match them to their object coordinates. For good functioning, this needs to be repeated for various postions of the checkerboard, as shown in Figures \ref{fig:checkerboard}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.24\linewidth}
+        \includegraphics[width=\linewidth]{files/output145_1.jpg}
+    \end{subfigure} 
+    \begin{subfigure}{0.24\linewidth}
+        \includegraphics[width=\linewidth]{files/output145_2.jpg}
+    \end{subfigure}
+    \begin{subfigure}{0.24\linewidth}
+        \includegraphics[width=\linewidth]{files/output145_3.jpg}
+    \end{subfigure}
+    \begin{subfigure}{0.24\linewidth}
+        \includegraphics[width=\linewidth]{files/output145_4.jpg}
+    \end{subfigure} \\
+    \begin{subfigure}{0.24\linewidth}
+        \includegraphics[width=\linewidth]{files/output145_5.jpg}
+    \end{subfigure}
+    \begin{subfigure}{0.24\linewidth}
+        \includegraphics[width=\linewidth]{files/output145_6.jpg}
+    \end{subfigure}
+    \begin{subfigure}{0.24\linewidth}
+        \includegraphics[width=\linewidth]{files/output145_7.jpg}
+    \end{subfigure}
+    \begin{subfigure}{0.24\linewidth}
+        \includegraphics[width=\linewidth]{files/output145_8.jpg}
+    \end{subfigure}
+    \caption{Checkerboard images used for intrinsic calibration. }
+    \label{fig:checkerboard}
+\end{figure}
+
+To insure correct results, it is tested whether the obtained results are close enough to what is given by the manufacturer. We have the following relation between the focal length, the image resolution and the Sensor size:
+
+\begin{equation}
+    f_x = \frac{w \times f_{x,mm}}{w_{CCD}} = \frac{1280\text{ px} \times 3.6\text{ mm}}{3.67\text{ mm}} = 1255 \text{ px}
+\end{equation}
+
+where $f_{x,mm}$ is the focal width in mm and $w_{CCD}$ is the width of hte CCD sensor, given by the manufacturer.
+The obtained pixel value is allowed to be 100 px off this reference value.
 % QUESTION: where does the opencv implementation come from??
 %$\quad k(r) &=\frac{1+k_1r^2+k_2r^4+k_3r^6}{1+k_4r^2+k_5r^4+k_6r^6} $
-
-
-%\begin{lstlisting}[caption=Listing]
-%\end{lstlisting}
-
-%\begin{figure}[htb]
-%	\centering
-%	\begin{subfigure}[b]{0.49\linewidth}
-%		\includegraphics[width=\linewidth]{../files/img_org139.png}
-%		\caption{Regions of interest chosen by user and extracted colors}
-%		\label{feat_step0}
-%	\end{subfigure}
-%	\begin{subfigure}[b]{0.49\linewidth}
-%		\includegraphics[width=\linewidth]{../files/img_h139.png}
-%		\caption{\textit{Hue} representation of original image}
-%		\label{feat_step1}
-%	\end{subfigure}
-%	\begin{subfigure}[b]{0.49\linewidth}
-%		\includegraphics[width=\linewidth]{../files/img_s139.png}
-%		\caption{\textit{Saturation} representation of original image}
-%		\label{feat_step2}
-%	\end{subfigure}
-%	\begin{subfigure}[b]{0.49\linewidth}
-%		\includegraphics[width=\linewidth]{../files/circ_org139.png}
-%		\caption{Regions of interest chosen by user and extracted colors}
-%		\label{feat_step3}
-%	\end{subfigure}
-%	
-%	
-%	\begin{subfigure}[b]{0.49\linewidth}
-%		\includegraphics[width=\linewidth]{../files/zdot_RefTrackNL.png}
-%	\end{subfigure}
-%	\begin{subfigure}[b]{0.49\linewidth}
-%		\includegraphics[width=\linewidth]{../files/speeds_RefTrackNL.png}
-%	\end{subfigure}
-%	\begin{subfigure}[b]{0.49\linewidth}
-%		\includegraphics[width=\linewidth]{../files/xyz_RefTrackNL.png}
-%	\end{subfigure}
-%	\caption{Procedure for feature extraction} 
-%\end{figure}

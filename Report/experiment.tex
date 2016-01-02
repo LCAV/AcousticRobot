@@ -6,6 +6,20 @@
 \subsection{Camera Setup}
 
 \paragraph{Hardware} The camera is made of a Raspberry Pi 2 Model B with the corresponding Raspi-Camera module. The OS loaded to the camera is the common Raspian WHEEZY system with 3 scripts running on startup in the background. The camera connected is the Raspi-Camera module.
+The camera has the following key parameters: \cite{RaspiDoc}
+\begin{itemize}
+    \item Pixel Count: 2592 x 1944
+    \item Pixel size 1.4 x 1.4 $\mu m$
+    \item Focal width and length: f=3.6mm
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\linewidth]{files/RaspiCam.png}
+    \caption{Raspberry Pi with camera module used for visual localization}
+    \label{fig:camera}
+\end{figure}
+
 
 \paragraph{Webcam setup} In order to connect to the LAN on startup, a few lines need to be added in $/etc/network/interfaces$: 
 
@@ -56,7 +70,7 @@ In addition to that, the thumbnail, which is a bitmap that also takes up unneces
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=\linewidth]{files/quality.png}
+    \includegraphics[width=.8\linewidth]{files/quality.png}
     \caption{Quality vs. image size considerations}
     \label{fig:quality}
 \end{figure}
@@ -115,7 +129,6 @@ GPIO.cleanup()
 \end{minipage}
 \end{center}
 
-\paragraph{Setup}
 
 Both scripts above need to be started on startup of the camera. Therefore, the following lines are put in the file /etc/rc.local:
 \begin{center}
@@ -129,7 +142,54 @@ sudo python /home/pi/switchoff.py &
 \end{minipage}
 \end{center}
 
+\newpage
 \subsection{Audio Setup}
+The tools used for the audio recording are two wireless audio transmitters with their corresponding 
+receivers (see Figure \ref{fig:audio}). The transmitters are connected to microphones placed in the Robot ears and the receivers are connected to two channels of the soundcard.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.25\linewidth}
+        \includegraphics[width=\linewidth]{files/Receiver.png}
+    \end{subfigure}
+    \begin{subfigure}{0.25\linewidth}
+        \includegraphics[width=\linewidth]{files/Transmitter.png}
+    \end{subfigure}
+    \caption{Wireless audio receiver (left) and transmitter (right)}
+    \label{fig:audio}
+\end{figure}
+
+A conventional speaker is fixed on the robot and operated via the same soundcard. 
+
+\subsection{Robot}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.3\linewidth}
+        \centering
+        \includegraphics[height=0.3\textheight]{files/Robot.png}
+        \caption{at rest}
+    \end{subfigure}
+    \begin{subfigure}{0.3\linewidth}
+        \centering
+        \includegraphics[height=0.3\textheight]{files/Robot2.png}
+        \caption{in action - side view}
+    \end{subfigure}
+    \begin{subfigure}{0.3\linewidth}
+        \centering
+        \includegraphics[height=0.3\textheight]{files/Robot3.png}
+        \caption{in action - front view}
+    \end{subfigure}
+    \caption{Robot designed by Gigatec S.A. for Echo SLAM}
+\label{fig:robot}
+\end{figure}
+
+The robot used for these experiments was designed by Gigatec S.A. It is shown in Figure \ref{fig:robot}.
+It comes with already implemented code for its movement control. 
+Two wheels can be actuated for displacement (see \par \ref{sec:movement}) and the acoustic head can be rolled, pitched and yawed independently. 
+For the present setup, the head always stays in the standard (straight) position.
+
+For good autonomy, the robot is actuated via a socket interface and the AF\_INET protocol. All commands are sent via a simple python script. For manual operation of the robot, some commands can also be sent via ssh.
 
 
 %picture quality and compression:
@@ -138,8 +198,3 @@ sudo python /home/pi/switchoff.py &
 %\url{https://www.maketecheasier.com/test-internet-connection-speed-from-terminal/}
 %speedtest:
 %http://www.speedtest.net/
-
-%%% Local Variables:
-%%% mode: latex
-%%% TeX-master: "report"
-%%% End:

@@ -2,8 +2,6 @@
 \subsection{Triangulation}
 \label{sec:triangulation}
 
-\paragraph{Introduction}
-
 The basics for the triangulation technique are the camera projection equations \eqref{eq:projection}.
 The difference is that in this case, one wants to find the real position of one point given its image points in images from multiple cameras. The governing equation is thus given by:
 
@@ -26,7 +24,7 @@ where $f_k=Proj(k,:)$ denotes the $k$th row of the projection matrix and $u_j$,$
 The matrix $\mathbf{A}$ is then composed of all rows $\mathbf{A_j}$, vertically stacked. It is of size $4\times(2 N_{cameras}$).
 %TODO is this right??
 
-\paragraph{DLT fixed height} 
+
 If the height is specified, then finding the solution to \eqref{eq:triangulation} comes back to solving
 
 \begin{align}
@@ -37,7 +35,6 @@ If the height is specified, then finding the solution to \eqref{eq:triangulation
 Where $f_k$ denotes the $k$th row of the matrix $\mathbf{A}$
 This system of equations can be solved in the least-squares sense, which leads to the solution $\mathbf{\hat{x}}=(\mathbf{A}^T\mathbf{A})^{-1}\mathbf{A}^T\mathbf{b}^T$. Adding the third component Z to $\mathbf{\hat{x}}$, the solution is obtained.
 
-\paragraph{DLT free height}
 
 If the height is not specified, one can simply use a single value decomposition of $\mathbf{A}$. The eigenvector with biggest eigenvalue corresponds to the solution of \eqref{eq:triangulation} in the least squares sense.
 

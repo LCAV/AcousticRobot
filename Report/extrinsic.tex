@@ -67,7 +67,7 @@ The extrinsic camera matrix $\mathbf{P}$ that one needs to solve for can be deco
 The camera center in object space coordinates is then given by
 
 \begin{equation}
-    \begin{bmatrix} x_C y_C z_C \end{bmatrix} = -\mathbf{R}^{-1} \mathbf{t}
+    \begin{bmatrix} x_C & y_C & z_C \end{bmatrix}^T = -\mathbf{R}^{-1} \mathbf{t}
 \end{equation}
 
 There are 12 unknowns and each new point provides 3 independant equations. Therefore at least 4 points are requried for solving this set of equations. 
@@ -79,7 +79,6 @@ The methods can be embedded in a Ransac scheme, which makes them more resistant 
 Three different methods for solving this PnP problem are implemented in OpenCV.
 \textit{P3P} is based on a technique that is limited to 4 points only, so it was immediately rejected. The \textit{EPNP} method \cite{Lepetit2009} provides a non-iterative solution to the problem which is more stable and computationally inexpensive. Since in the present case, the number of points is limited to 40 and the calculation time turned out to be acceptable, the method chosen is the \textit{ITERATIVE} method, based on reprojection error minimization.
 
-:
 The reprojection error is the sum of the squared distances between observed projections $\mathbf{x_i}=[u_i,v_i,1]^T$ and the projected object points ($proj(\mathbf{X_i},\mathbf{P})$), defined as in \eqref{eq:projection} and calculated with the current estimation of the extrinsic camera matrix $\mathbf{P}$. Formally, this means:
 
 \begin{equation}

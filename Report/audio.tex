@@ -1,4 +1,5 @@
 %!TEX root = report.tex
+\newpage
 \section{Echo-SLAM}
 
 \subsection{Sine Sweep Generation}
@@ -17,7 +18,7 @@ To avoid a too abrupt start of which the speakers would not be capable, a hannin
 
 \begin{figure}[htb]
 	\centering		
-	\begin{subfigure}[b]{0.8\linewidth}
+	\begin{subfigure}[b]{0.7\linewidth}
         \centering
 		\includegraphics[width=\linewidth]{files/sweep_spectrogram.png}
         \caption{Spectogram of sine sweep}
@@ -39,7 +40,6 @@ To avoid a too abrupt start of which the speakers would not be capable, a hannin
 	\label{fig:sweep}
 \end{figure}
 
-
 \subsection{Recording}
 
 The recording of the impulse response is implemented in a python script using the library \textit{PyAudio}. For a duration of $T_{out}=T_{in} + \Delta T (= 3\text{s})$, frames read from the input wav-file are sent out through the output stream and simulataneously, the data is read on the input stream. 
@@ -58,8 +58,7 @@ For this purpose, the speaker is placed at a well known position with respect to
 It is then sufficient to get the total delay of the signal, $\Delta t_{tot}$ which is composed of the physical delay and the latency ($\Delta t_{tot}=\Delta t_{ph}+\Delta t_{l}$). 
 The total delay is found by sending a reference signal $u_{N1}$ (in this case, a approximation of white noise) and recording the response of the microphone, $y_{N2}$. 
 The white noise is generated with a randomn signal of length $T=1\text{s}$. Its histogram and fourier transform are shown in Figures \ref{fig:random_hist} and \ref{fig:random_fft} respectively. 
-The power spectral density $P(k)=E(|X_N[k]|^2/N)$ of this signal should be equal to the standard deviation $\sigma^2$ if it is indeed a perfect randomn signal, meaning that its frequency is equally distributed over all frequencies. \cite{Vetterli}.
-Indeed, when averaging over 1000 iterations of randomn signal generation, the obtained averaged squared magnitude, normalized by the standard variance, is close to 1 for all frequencies (see Figure \ref{fig:random_M1000}).
+
 \begin{figure}[htb]
 	\centering		
 	\begin{subfigure}[b]{0.49\linewidth}
@@ -80,9 +79,18 @@ Indeed, when averaging over 1000 iterations of randomn signal generation, the ob
         \caption{Averaged Squared Magnitude of FFT with M=1000}
         \label{fig:random_M1000}
     \end{subfigure}
-	\caption{Characteristics of random signal used for calibration} 
+    \begin{subfigure}[b]{0.49\linewidth}
+        \includegraphics[width=\linewidth]{files/audio_ruy.png}
+        \caption{Cross correlation for latency estimation}
+        \label{fig:audio_ruy}
+    \end{subfigure}
+    \caption{Characteristics of random signal used for calibration} 
 	\label{fig:random}
 \end{figure}
+
+The power spectral density $P(k)=E(|X_N[k]|^2/N)$ of this signal should be equal to the standard deviation $\sigma^2$ if it is indeed a perfect randomn signal, meaning that its frequency is equally distributed over all frequencies. \cite{Vetterli}.
+Indeed, when averaging over 1000 iterations of randomn signal generation, the obtained averaged squared magnitude, normalized by the standard variance, is close to 1 for all frequencies (see Figure \ref{fig:random_M1000}).
+
 The response is a scaled and delayed noisy version of the input. Finding the delay comes back to laying the output signal over the input signal with different phase lags until one gets a maximum similarity. The lag corresponding to this maximum is the total delay between the input and the output. The tool that performs these steps is the cross-correlation, which, for discrete signals can be written as: 
 
 \begin{equation}
@@ -90,13 +98,6 @@ The response is a scaled and delayed noisy version of the input. Finding the del
 \end{equation}
 
 As the cross-correlation is quite computationally expensive, only the first $N_{max}$ samples of both input and output signals are correlated, which is sufficient $N_{max}$ is chosen significantly bigger than the sample index of the expected delay (for example, $N_{max}=2  \text{ s} \times F_s = 88200$)
-
-\begin{figure}[htb]
-	\centering
-	\includegraphics[width=0.6\linewidth]{files/audio_ruy.png}
-	\caption{Cross correlation of white noise for latency estimation}
-	\label{fig:audio_ruy}
-\end{figure}
 
 From Figure \ref{fig:audio_ruy}, one can see that the maximum occurs at sample $k_{max}=-6496$, which corresponds to a delay of $\Delta t_{tot}=k_{max}/F_s=147.3 \text{ ms}$. The distance between microphone and speaker being $d=660mm$, one finds $\Delta t_{ph} = d/c=1.9  \text{ ms}$, so the estimated latency of the sound system is about $\Delta t_{l}=145.4 \text{ ms}$.
 
@@ -119,9 +120,6 @@ The estimated times of arrivals can then be found from the robot position and st
 
 where $d_{n,k}$ denotes the distance between wall $k$ and the robot at position $n$, $\tau_{n,k}$ denotes the corresponding time of arrival and $\tilde{\mathbf{s}}_{n,k}$ and $\mathbf{r}_{n}$ denote the position of the virtual source and the robot respectively. 
 
-These times are superimposed with the obtained impulse response to find out whether peaks occur where expected (see Figure \ref{fig:RIR_zooms}).
-One can observe that there are indeed peaks around the expected times, however they are hard to differentiate from other side peaks or noise.
-
 \begin{figure}[htb]
 	\centering		
 	\begin{subfigure}[b]{0.49\linewidth}
@@ -136,18 +134,22 @@ One can observe that there are indeed peaks around the expected times, however t
 	\label{fig:RIR_zooms}
 \end{figure}
 
+These times are superimposed with the obtained impulse response to find out whether peaks occur where expected (see Figure \ref{fig:RIR_zooms}).
+One can observe that there are indeed peaks around the expected times, however they are hard to differentiate from other side peaks or noise.
+
+
 Looking at the frequency spectrum of the recorded response, many peaks at multiples of 108 Hz can be detected (Figure \ref{fig:RIR_filtered}, top plot). 
-These peaks might be the source of unwanted noise and side peaks, which is why an attempt is done to filter them out by applying notch filters on the extraneous frequencies, trying to touch the pertinent frequencies as little as possible. A Finite Impulse Response filter (FIR) using a Kaiser Window was first implemented following \cite{Notch}, leading to few off frequency ripples and a narrow transient region. The filter is applied in forward direction and backward direction to avoid a phase shift with the filtered data. This leads to a problem too computationnally expensive in terms of memory which is not solvable by the available computers. 
-The problem persists when only one forward filter is applied. 
-
-Therefore, a more basic approach is applied, where the unwanted peaks are simply filtered out by setting the response to zero in their neighborhood. The resulting frequency response is shown in Figure \ref{fig:RIR_filtered}, bottom plot). 
-
-\begin{figure}[htb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=.5\linewidth]{files/NotchY.png}
     \caption{Frequency spectrum of recorded response, unfiltered (top) and with applied Notch filter(bottom)}
     \label{fig:RIR_filtered}
 \end{figure}
+These peaks might be the source of unwanted noise and side peaks, which is why an attempt is done to filter them out by applying notch filters on the extraneous frequencies, trying to touch the pertinent frequencies as little as possible. A Finite Impulse Response filter (FIR) using a Kaiser Window was first implemented following \cite{Notch}, leading to few off frequency ripples and a narrow transient region. The filter is applied in forward direction and backward direction to avoid a phase shift with the filtered data. This leads to a problem too computationnally expensive in terms of memory which is not solvable by the available computers. 
+The problem persists when only one forward filter is applied. 
+
+Therefore, a more basic approach is applied, where the unwanted peaks are simply filtered out by setting the response to zero in their neighborhood. The resulting frequency response is shown in Figure \ref{fig:RIR_filtered}, bottom plot). 
+
 
 Unfortunately, this has no significant effect on the room imuplse response.
 The reason why the walls are not well detected has to lie somehwere else. 

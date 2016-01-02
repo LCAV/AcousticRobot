@@ -1,6 +1,7 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.7.25)  2 JAN 2016 14:44
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.7.25)  3 JAN 2016 00:39
 entering extended mode
  restricted \write18 enabled.
+ file:line:error style messages enabled.
  %&-line parsing enabled.
 **report.tex
 (./report.tex
@@ -975,11 +976,11 @@ Package: multicol 2011/06/27 v1.7a multicolumn formatting (FMi)
 \f@ncyO@olf=\skip77
 \f@ncyO@orf=\skip78
 ))
-(./report.aux (./introduction.aux) (./visual.aux
+(./report.aux (./introduction.aux) (./experiment.aux) (./visual.aux
 
 LaTeX Warning: Label `fig:experiment1' multiply defined.
 
-) (./audio.aux) (./movement.aux) (./experiment.aux))
+) (./audio.aux) (./movement.aux))
 \openout1 = `report.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
@@ -1094,13 +1095,13 @@ LaTeX Info: Redefining \nameref on input line 16.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-<files/LCAV.png, id=96, 579.16376pt x 344.28625pt>
+<files/LCAV.png, id=108, 579.16376pt x 344.28625pt>
 File: files/LCAV.png Graphic file (type png)
  <use files/LCAV.png>
 Package pdftex.def Info: files/LCAV.png used on input line 19.
 (pdftex.def)             Requested size: 79.73909pt x 47.40208pt.
 
-<files/EPFL.png, id=98, 945.5325pt x 457.71pt>
+<files/EPFL.png, id=110, 945.5325pt x 457.71pt>
 File: files/EPFL.png Graphic file (type png)
  <use files/EPFL.png>
 Package pdftex.def Info: files/EPFL.png used on input line 19.
@@ -1110,38 +1111,38 @@ Non-PDF special ignored!
 
 {/usr/local/texlive/2012/texmf-var/fonts/map/pdftex/updmap/pdftex.map} <./files
 /LCAV.png> <./files/EPFL.png>] (./report.toc
-LaTeX Font Info:    Try loading font information for OT1+lmr on input line 3.
+LaTeX Font Info:    Try loading font information for OT1+lmr on input line 4.
 
 (/usr/local/texlive/2012/texmf-dist/tex/latex/lm/ot1lmr.fd
 File: ot1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OML+lmm on input line 3.
+LaTeX Font Info:    Try loading font information for OML+lmm on input line 4.
 
 (/usr/local/texlive/2012/texmf-dist/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OMS+lmsy on input line 3.
+LaTeX Font Info:    Try loading font information for OMS+lmsy on input line 4.
 
 (/usr/local/texlive/2012/texmf-dist/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OMX+lmex on input line 3.
+LaTeX Font Info:    Try loading font information for OMX+lmex on input line 4.
 
 (/usr/local/texlive/2012/texmf-dist/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 3.
+(Font)              <10.95> on input line 4.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 3.
+(Font)              <8> on input line 4.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 3.
-LaTeX Font Info:    Try loading font information for U+msa on input line 3.
+(Font)              <6> on input line 4.
+LaTeX Font Info:    Try loading font information for U+msa on input line 4.
 
 (/usr/local/texlive/2012/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 3.
+LaTeX Font Info:    Try loading font information for U+msb on input line 4.
 
 (/usr/local/texlive/2012/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
@@ -1153,56 +1154,208 @@ File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 \openout2 = `introduction.aux'.
 
 
-(./introduction.tex) [3
+(./introduction.tex <files/Setup.png, id=157, 598.235pt x 347.2975pt>
+File: files/Setup.png Graphic file (type png)
 
-]
-\openout2 = `visual.aux'.
+<use files/Setup.png>
+Package pdftex.def Info: files/Setup.png used on input line 11.
+(pdftex.def)             Requested size: 290.22107pt x 168.48677pt.
+) [3
 
- (./visual.tex (./intrinsic.tex) (./imageprocessing.tex <files/_img139_cvt.png,
- id=161, 803.0pt x 602.25pt>
-File: files/_img139_cvt.png Graphic file (type png)
+ <./files/Setup.png>]
+\openout2 = `experiment.aux'.
 
-<use files/_img139_cvt.png>
-Package pdftex.def Info: files/_img139_cvt.png used on input line 29.
-(pdftex.def)             Requested size: 237.01411pt x 177.76329pt.
+ (./experiment.tex
+LaTeX Font Info:    Try loading font information for TS1+lmr on input line 11.
 
-<files/_img_org139.png, id=162, 578.16pt x 433.62pt>
-File: files/_img_org139.png Graphic file (type png)
+(/usr/local/texlive/2012/texmf-dist/tex/latex/lm/ts1lmr.fd
+File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
+)
+<files/RaspiCam.png, id=166, 90.0966pt x 129.6042pt>
+File: files/RaspiCam.png Graphic file (type png)
+ <use files/RaspiCam.png>
+Package pdftex.def Info: files/RaspiCam.png used on input line 18.
+(pdftex.def)             Requested size: 145.11053pt x 208.74733pt.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <10> on input line 28.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <7> on input line 28.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <5> on input line 28.
+LaTeX Font Info:    Try loading font information for T1+pcr on input line 28.
 
-<use files/_img_org139.png>
-Package pdftex.def Info: files/_img_org139.png used on input line 35.
-(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
- <files/_img_h139.png, id=163, 578.16pt x 433.62pt>
-File: files/_img_h139.png Graphic file (type png)
-
-<use files/_img_h139.png>
-Package pdftex.def Info: files/_img_h139.png used on input line 41.
-(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
- <files/_img_s139.png, id=164, 578.16pt x 433.62pt>
-File: files/_img_s139.png Graphic file (type png)
-
-<use files/_img_s139.png>
-Package pdftex.def Info: files/_img_s139.png used on input line 47.
-(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
-
-<files/_circ_org139.png, id=165, 578.16pt x 433.62pt>
-File: files/_circ_org139.png Graphic file (type png)
-
-<use files/_circ_org139.png>
-Package pdftex.def Info: files/_circ_org139.png used on input line 53.
-(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
-
-<files/_circ_red139.png, id=166, 578.16pt x 433.62pt>
-File: files/_circ_red139.png Graphic file (type png)
-
-<use files/_circ_red139.png>
-Package pdftex.def Info: files/_circ_red139.png used on input line 59.
-(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+(/usr/local/texlive/2012/texmf-dist/tex/latex/psnfss/t1pcr.fd
+File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
+)
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <9> on input line 29.
  [4
 
 
-]) (./extrinsic.tex
-<files/ref_points.png, id=194, 706.64pt x 419.5675pt>
+ <./files/RaspiCam.png>] <files/quality.png, id=200, 803.0pt x 468.75125pt>
+File: files/quality.png Graphic file (type png)
+
+<use files/quality.png>
+Package pdftex.def Info: files/quality.png used on input line 73.
+(pdftex.def)             Requested size: 386.95897pt x 225.8921pt.
+ [5 <./files/quality.png>]
+(/usr/local/texlive/2012/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2004/09/05 1.3 listings language file
+)
+LaTeX Font Info:    Try loading font information for TS1+pcr on input line 94.
+
+(/usr/local/texlive/2012/texmf-dist/tex/latex/psnfss/ts1pcr.fd
+File: ts1pcr.fd 2001/06/04 font definitions for TS1/pcr.
+) [6]
+<files/Receiver.png, id=266, 229.85875pt x 229.85875pt>
+File: files/Receiver.png Graphic file (type png)
+
+<use files/Receiver.png>
+Package pdftex.def Info: files/Receiver.png used on input line 153.
+(pdftex.def)             Requested size: 120.92421pt x 120.92665pt.
+
+<files/Transmitter.png, id=267, 184.69pt x 231.86626pt>
+File: files/Transmitter.png Graphic file (type png)
+
+<use files/Transmitter.png>
+Package pdftex.def Info: files/Transmitter.png used on input line 156.
+(pdftex.def)             Requested size: 120.92421pt x 151.81158pt.
+ <files/Robot.png, id=268, 220.825pt x 386.44376pt>
+File: files/Robot.png Graphic file (type png)
+
+<use files/Robot.png>
+Package pdftex.def Info: files/Robot.png used on input line 170.
+(pdftex.def)             Requested size: 123.12202pt x 215.46228pt.
+ <files/Robot2.png, id=269, 316.18124pt x 631.35875pt>
+File: files/Robot2.png Graphic file (type png)
+
+<use files/Robot2.png>
+Package pdftex.def Info: files/Robot2.png used on input line 175.
+(pdftex.def)             Requested size: 107.90063pt x 215.46228pt.
+ <files/Robot3.png, id=270, 202.7575pt x 467.7475pt>
+File: files/Robot3.png Graphic file (type png)
+
+<use files/Robot3.png>
+Package pdftex.def Info: files/Robot3.png used on input line 180.
+(pdftex.def)             Requested size: 93.39952pt x 215.46228pt.
+) [7 <./files/Receiver.png> <./files/Transmitter.png> <./files/Robot.png> <./fi
+les/Robot2.png> <./files/Robot3.png>]
+\openout2 = `visual.aux'.
+
+ (./visual.tex
+<files/Visual.png, id=290, 583.4598pt x 148.8762pt>
+File: files/Visual.png Graphic file (type png)
+ <use files/Visual.png>
+Package pdftex.def Info: files/Visual.png used on input line 11.
+(pdftex.def)             Requested size: 290.22107pt x 74.054pt.
+
+(./intrinsic.tex <files/output145_1.jpg, id=298, 1284.8pt x 722.7pt>
+File: files/output145_1.jpg Graphic file (type jpg)
+
+<use files/output145_1.jpg>
+Package pdftex.def Info: files/output145_1.jpg used on input line 35.
+(pdftex.def)             Requested size: 116.0899pt x 65.29382pt.
+
+<files/output145_2.jpg, id=299, 1284.8pt x 722.7pt>
+File: files/output145_2.jpg Graphic file (type jpg)
+
+<use files/output145_2.jpg>
+Package pdftex.def Info: files/output145_2.jpg used on input line 38.
+(pdftex.def)             Requested size: 116.0899pt x 65.29382pt.
+
+<files/output145_3.jpg, id=300, 1284.8pt x 722.7pt>
+File: files/output145_3.jpg Graphic file (type jpg)
+
+<use files/output145_3.jpg>
+Package pdftex.def Info: files/output145_3.jpg used on input line 41.
+(pdftex.def)             Requested size: 116.0899pt x 65.29382pt.
+
+<files/output145_4.jpg, id=301, 1284.8pt x 722.7pt>
+File: files/output145_4.jpg Graphic file (type jpg)
+
+<use files/output145_4.jpg>
+Package pdftex.def Info: files/output145_4.jpg used on input line 44.
+(pdftex.def)             Requested size: 116.0899pt x 65.29382pt.
+
+<files/output145_5.jpg, id=302, 1284.8pt x 722.7pt>
+File: files/output145_5.jpg Graphic file (type jpg)
+
+<use files/output145_5.jpg>
+Package pdftex.def Info: files/output145_5.jpg used on input line 47.
+(pdftex.def)             Requested size: 116.0899pt x 65.29382pt.
+
+<files/output145_6.jpg, id=303, 1284.8pt x 722.7pt>
+File: files/output145_6.jpg Graphic file (type jpg)
+
+<use files/output145_6.jpg>
+Package pdftex.def Info: files/output145_6.jpg used on input line 50.
+(pdftex.def)             Requested size: 116.0899pt x 65.29382pt.
+
+<files/output145_7.jpg, id=304, 1284.8pt x 722.7pt>
+File: files/output145_7.jpg Graphic file (type jpg)
+
+<use files/output145_7.jpg>
+Package pdftex.def Info: files/output145_7.jpg used on input line 53.
+(pdftex.def)             Requested size: 116.0899pt x 65.29382pt.
+
+<files/output145_8.jpg, id=305, 1284.8pt x 722.7pt>
+File: files/output145_8.jpg Graphic file (type jpg)
+
+<use files/output145_8.jpg>
+Package pdftex.def Info: files/output145_8.jpg used on input line 56.
+(pdftex.def)             Requested size: 116.0899pt x 65.29382pt.
+ [8
+
+
+ <./files/Visual.png>]) (./imageprocessing.tex
+<files/_img_h139.png, id=326, 578.16pt x 433.62pt>
+File: files/_img_h139.png Graphic file (type png)
+ <use files/_img_h139.png>
+Package pdftex.def Info: files/_img_h139.png used on input line 10.
+(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+
+<files/_img_s139.png, id=327, 578.16pt x 433.62pt>
+File: files/_img_s139.png Graphic file (type png)
+ <use files/_img_s139.png>
+Package pdftex.def Info: files/_img_s139.png used on input line 16.
+(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+
+[9 <./files/output145_1.jpg> <./files/output145_2.jpg> <./files/output145_3.jpg
+> <./files/output145_4.jpg> <./files/output145_5.jpg> <./files/output145_6.jpg>
+ <./files/output145_7.jpg> <./files/output145_8.jpg> <./files/_img_h139.png> <.
+/files/_img_s139.png>] <files/_img139_cvt.png, id=341, 803.0pt x 602.25pt>
+File: files/_img139_cvt.png Graphic file (type png)
+
+<use files/_img139_cvt.png>
+Package pdftex.def Info: files/_img139_cvt.png used on input line 40.
+(pdftex.def)             Requested size: 237.01411pt x 177.76329pt.
+
+<files/_img_org139.png, id=342, 578.16pt x 433.62pt>
+File: files/_img_org139.png Graphic file (type png)
+
+<use files/_img_org139.png>
+Package pdftex.def Info: files/_img_org139.png used on input line 46.
+(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+
+<files/_circ_org139.png, id=345, 578.16pt x 433.62pt>
+File: files/_circ_org139.png Graphic file (type png)
+
+<use files/_circ_org139.png>
+Package pdftex.def Info: files/_circ_org139.png used on input line 62.
+(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+
+<files/_circ_red139.png, id=346, 578.16pt x 433.62pt>
+File: files/_circ_red139.png Graphic file (type png)
+
+<use files/_circ_red139.png>
+Package pdftex.def Info: files/_circ_red139.png used on input line 68.
+(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+) (./extrinsic.tex
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [10 <./files/_img139_cvt.png (PNG copy)> <./files/_img_org139.png> <./files/_c
+irc_org139.png> <./files/_circ_red139.png>]
+<files/ref_points.png, id=359, 706.64pt x 419.5675pt>
 File: files/ref_points.png Graphic file (type png)
 
 <use files/ref_points.png>
@@ -1213,244 +1366,216 @@ Overfull \hbox (2.49632pt too wide) in paragraph at lines 27--28
  [][] 
  []
 
-<files/ref_checkerboard.png, id=195, 681.54625pt x 429.605pt>
+<files/ref_checkerboard.png, id=360, 681.54625pt x 429.605pt>
 File: files/ref_checkerboard.png Graphic file (type png)
 
 <use files/ref_checkerboard.png>
 Package pdftex.def Info: files/ref_checkerboard.png used on input line 33.
 (pdftex.def)             Requested size: 225.60773pt x 142.20992pt.
- [5]) (./triangulation.tex [6])
-(./results_visual.tex <files/res0_img139.png, id=234, 578.16pt x 433.62pt>
+ [11 <./files/ref_points.png> <./files/ref_checkerboard.png>]) (./triangulation
+.tex [12]) (./results_visual.tex [13]
+<files/res0_img139.png, id=420, 578.16pt x 433.62pt>
 File: files/res0_img139.png Graphic file (type png)
 
 <use files/res0_img139.png>
-Package pdftex.def Info: files/res0_img139.png used on input line 8.
-(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+Package pdftex.def Info: files/res0_img139.png used on input line 27.
+(pdftex.def)             Requested size: 193.47578pt x 145.10646pt.
 
-<files/res0_combi_4.png, id=235, 578.16pt x 433.62pt>
+<files/res0_img141.png, id=421, 578.16pt x 433.62pt>
+File: files/res0_img141.png Graphic file (type png)
+
+<use files/res0_img141.png>
+Package pdftex.def Info: files/res0_img141.png used on input line 32.
+(pdftex.def)             Requested size: 193.47578pt x 145.10646pt.
+
+<files/res0_combi_4.png, id=422, 578.16pt x 433.62pt>
 File: files/res0_combi_4.png Graphic file (type png)
 
 <use files/res0_combi_4.png>
-Package pdftex.def Info: files/res0_combi_4.png used on input line 12.
-(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+Package pdftex.def Info: files/res0_combi_4.png used on input line 42.
+(pdftex.def)             Requested size: 386.95897pt x 290.21953pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [7]
-<files/res1_img141.png, id=250, 803.0pt x 602.25pt>
+ [14 <./files/res0_img139.png> <./files/res0_img141.png>] [15 <./files/res0_com
+bi_4.png>]
+<files/res1_img141.png, id=442, 803.0pt x 602.25pt>
 File: files/res1_img141.png Graphic file (type png)
 
 <use files/res1_img141.png>
-Package pdftex.def Info: files/res1_img141.png used on input line 22.
+Package pdftex.def Info: files/res1_img141.png used on input line 65.
 (pdftex.def)             Requested size: 237.01411pt x 177.76329pt.
 
-<files/res1_combi_4.png, id=251, 578.16pt x 433.62pt>
+<files/res1_img145.png, id=443, 578.16pt x 433.62pt>
+File: files/res1_img145.png Graphic file (type png)
+
+<use files/res1_img145.png>
+Package pdftex.def Info: files/res1_img145.png used on input line 71.
+(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+
+<files/res1_combi_4.png, id=444, 578.16pt x 433.62pt>
 File: files/res1_combi_4.png Graphic file (type png)
 
 <use files/res1_combi_4.png>
-Package pdftex.def Info: files/res1_combi_4.png used on input line 26.
-(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
+Package pdftex.def Info: files/res1_combi_4.png used on input line 76.
+(pdftex.def)             Requested size: 338.58632pt x 253.93465pt.
 
-<files/res1_room.png, id=252, 578.16pt x 433.62pt>
+<files/res1_room.png, id=445, 578.16pt x 433.62pt>
 File: files/res1_room.png Graphic file (type png)
  <use files/res1_room.png>
-Package pdftex.def Info: files/res1_room.png used on input line 30.
-(pdftex.def)             Requested size: 290.22107pt x 217.663pt.
+Package pdftex.def Info: files/res1_room.png used on input line 86.
+(pdftex.def)             Requested size: 435.32422pt x 326.49118pt.
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [8 <./files/res0_img139.png> <./files/res0_combi_4.png>]
-<files/res2_image_143.png, id=260, 925.056pt x 520.344pt>
+[16 <./files/res1_img141.png (PNG copy)> <./files/res1_img145.png> <./files/res
+1_combi_4.png>] <files/res2_image_143.png, id=458, 925.056pt x 520.344pt>
 File: files/res2_image_143.png Graphic file (type png)
 
 <use files/res2_image_143.png>
-Package pdftex.def Info: files/res2_image_143.png used on input line 40.
+Package pdftex.def Info: files/res2_image_143.png used on input line 123.
 (pdftex.def)             Requested size: 237.01411pt x 133.31717pt.
 
-<files/res2_image_145.png, id=261, 925.056pt x 520.344pt>
+<files/res2_image_145.png, id=459, 925.056pt x 520.344pt>
 File: files/res2_image_145.png Graphic file (type png)
 
 <use files/res2_image_145.png>
-Package pdftex.def Info: files/res2_image_145.png used on input line 44.
+Package pdftex.def Info: files/res2_image_145.png used on input line 128.
 (pdftex.def)             Requested size: 237.01411pt x 133.31717pt.
 
-<files/res2_0_image_141.png, id=262, 925.056pt x 520.344pt>
+<files/res2_0_image_141.png, id=460, 925.056pt x 520.344pt>
 File: files/res2_0_image_141.png Graphic file (type png)
 
 <use files/res2_0_image_141.png>
-Package pdftex.def Info: files/res2_0_image_141.png used on input line 48.
+Package pdftex.def Info: files/res2_0_image_141.png used on input line 133.
 (pdftex.def)             Requested size: 237.01411pt x 133.31717pt.
 
-<files/res2_combi_rob.png, id=263, 578.16pt x 433.62pt>
+<files/res2_combi_rob.png, id=461, 578.16pt x 433.62pt>
 File: files/res2_combi_rob.png Graphic file (type png)
 
 <use files/res2_combi_rob.png>
-Package pdftex.def Info: files/res2_combi_rob.png used on input line 52.
+Package pdftex.def Info: files/res2_combi_rob.png used on input line 138.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
-<files/res2_room.png, id=264, 578.16pt x 433.62pt>
+<files/res2_room.png, id=462, 578.16pt x 433.62pt>
 File: files/res2_room.png Graphic file (type png)
  <use files/res2_room.png>
-Package pdftex.def Info: files/res2_room.png used on input line 56.
-(pdftex.def)             Requested size: 290.22107pt x 217.663pt.
+Package pdftex.def Info: files/res2_room.png used on input line 144.
+(pdftex.def)             Requested size: 435.32422pt x 326.49118pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [9 <./files/res1_img141.png (PNG copy)> <./files/res1_combi_4.png> <./files/re
-s1_room.png>])) [10 <./files/res2_image_143.png> <./files/res2_image_145.png> <
-./files/res2_0_image_141.png> <./files/res2_combi_rob.png> <./files/res2_room.p
-ng>]
-[11 <./files/_img139_cvt.png (PNG copy)> <./files/_img_org139.png> <./files/_im
-g_h139.png> <./files/_img_s139.png> <./files/_circ_org139.png> <./files/_circ_r
-ed139.png>] [12 <./files/ref_points.png> <./files/ref_checkerboard.png>]
+ [17 <./files/res1_room.png>]))
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [18 <./files/res2_image_143.png> <./files/res2_image_145.png> <./files/res2_0_
+image_141.png> <./files/res2_combi_rob.png> <./files/res2_room.png>]
 \openout2 = `audio.aux'.
 
-
-(./audio.tex <files/sweep_spectrogram.png, id=301, 763.85374pt x 344.28625pt>
+ (./audio.tex
+<files/sweep_spectrogram.png, id=482, 763.85374pt x 344.28625pt>
 File: files/sweep_spectrogram.png Graphic file (type png)
 
 <use files/sweep_spectrogram.png>
-Package pdftex.def Info: files/sweep_spectrogram.png used on input line 22.
-(pdftex.def)             Requested size: 386.95897pt x 174.41216pt.
+Package pdftex.def Info: files/sweep_spectrogram.png used on input line 23.
+(pdftex.def)             Requested size: 338.58632pt x 152.60538pt.
 
-<files/sweep_fft.png, id=302, 578.16pt x 433.62pt>
+<files/sweep_fft.png, id=483, 578.16pt x 433.62pt>
 File: files/sweep_fft.png Graphic file (type png)
  <use files/sweep_fft.png>
-Package pdftex.def Info: files/sweep_fft.png used on input line 28.
+Package pdftex.def Info: files/sweep_fft.png used on input line 29.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
-<files/sweep_start.png, id=303, 578.16pt x 433.62pt>
+<files/sweep_start.png, id=484, 578.16pt x 433.62pt>
 File: files/sweep_start.png Graphic file (type png)
 
 <use files/sweep_start.png>
-Package pdftex.def Info: files/sweep_start.png used on input line 34.
+Package pdftex.def Info: files/sweep_start.png used on input line 35.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
- [13
+ [19
 
 
  <./files/sweep_spectrogram.png> <./files/sweep_fft.png> <./files/sweep_start.p
 ng>]
-<files/random_hist.png, id=318, 578.16pt x 433.62pt>
+<files/random_hist.png, id=498, 578.16pt x 433.62pt>
 File: files/random_hist.png Graphic file (type png)
 
 <use files/random_hist.png>
-Package pdftex.def Info: files/random_hist.png used on input line 67.
+Package pdftex.def Info: files/random_hist.png used on input line 66.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
-<files/random_fft.png, id=319, 578.16pt x 433.62pt>
+<files/random_fft.png, id=499, 578.16pt x 433.62pt>
 File: files/random_fft.png Graphic file (type png)
  <use files/random_fft.png>
-Package pdftex.def Info: files/random_fft.png used on input line 73.
+Package pdftex.def Info: files/random_fft.png used on input line 72.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
-<files/random_M1000.png, id=320, 578.16pt x 433.62pt>
+<files/random_M1000.png, id=500, 578.16pt x 433.62pt>
 File: files/random_M1000.png Graphic file (type png)
 
 <use files/random_M1000.png>
-Package pdftex.def Info: files/random_M1000.png used on input line 79.
+Package pdftex.def Info: files/random_M1000.png used on input line 78.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
-<files/audio_ruy.png, id=321, 578.16pt x 433.62pt>
+<files/audio_ruy.png, id=501, 578.16pt x 433.62pt>
 File: files/audio_ruy.png Graphic file (type png)
  <use files/audio_ruy.png>
-Package pdftex.def Info: files/audio_ruy.png used on input line 96.
-(pdftex.def)             Requested size: 290.22107pt x 217.663pt.
+Package pdftex.def Info: files/audio_ruy.png used on input line 83.
+(pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
-[14] <files/0_1_RIR_zoom2.png, id=337, 578.16pt x 433.62pt>
+[20 <./files/random_hist.png> <./files/random_fft.png> <./files/random_M1000.pn
+g> <./files/audio_ruy.png>]
+<files/0_1_RIR_zoom2.png, id=516, 578.16pt x 433.62pt>
 File: files/0_1_RIR_zoom2.png Graphic file (type png)
 
 <use files/0_1_RIR_zoom2.png>
-Package pdftex.def Info: files/0_1_RIR_zoom2.png used on input line 129.
+Package pdftex.def Info: files/0_1_RIR_zoom2.png used on input line 127.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
-<files/0_1_RIR_zoom3.png, id=338, 578.16pt x 433.62pt>
+<files/0_1_RIR_zoom3.png, id=517, 578.16pt x 433.62pt>
 File: files/0_1_RIR_zoom3.png Graphic file (type png)
 
 <use files/0_1_RIR_zoom3.png>
-Package pdftex.def Info: files/0_1_RIR_zoom3.png used on input line 133.
+Package pdftex.def Info: files/0_1_RIR_zoom3.png used on input line 131.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
- <files/NotchY.png, id=342, 433.62pt x 578.16pt>
+ [21 <./files/0_1_RIR_zoom2.png> <./files/0_1_RIR_zoom3.png>] <files/NotchY.png
+, id=531, 433.62pt x 578.16pt>
 File: files/NotchY.png Graphic file (type png)
 
 <use files/NotchY.png>
-Package pdftex.def Info: files/NotchY.png used on input line 147.
+Package pdftex.def Info: files/NotchY.png used on input line 144.
 (pdftex.def)             Requested size: 241.84843pt x 322.47055pt.
- [15 <./files/random_hist.png> <./files/random_fft.png> <./files/random_M1000.p
-ng>]) [16 <./files/audio_ruy.png> <./files/0_1_RIR_zoom2.png> <./files/0_1_RIR_
-zoom3.png>] [17 <./files/NotchY.png>]
+) [22 <./files/NotchY.png>]
 \openout2 = `movement.aux'.
 
  (./movement.tex
-<files/Acceleration.png, id=366, 1019.81pt x 533.995pt>
+<files/Acceleration.png, id=542, 1019.81pt x 533.995pt>
 File: files/Acceleration.png Graphic file (type png)
 
 <use files/Acceleration.png>
-Package pdftex.def Info: files/Acceleration.png used on input line 14.
+Package pdftex.def Info: files/Acceleration.png used on input line 15.
 (pdftex.def)             Requested size: 241.84843pt x 126.63773pt.
 
-<files/Odometry.png, id=367, 498.86375pt x 440.64626pt>
+<files/Odometry.png, id=543, 498.86375pt x 440.64626pt>
 File: files/Odometry.png Graphic file (type png)
 
 <use files/Odometry.png>
-Package pdftex.def Info: files/Odometry.png used on input line 23.
+Package pdftex.def Info: files/Odometry.png used on input line 24.
 (pdftex.def)             Requested size: 241.84843pt x 213.62576pt.
+ [23
 
 
-LaTeX Warning: Citation `Borenstein1996' on page 18 undefined on input line 28.
-
-
-[18
-
-
- <./files/Acceleration.png> <./files/Odometry.png>]) [19]
-\openout2 = `experiment.aux'.
-
- (./experiment.tex
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 14.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 14.
-LaTeX Font Info:    Try loading font information for T1+pcr on input line 14.
-
-(/usr/local/texlive/2012/texmf-dist/tex/latex/psnfss/t1pcr.fd
-File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
-)
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <9> on input line 15.
- [20
-
-
-]
-<files/quality.png, id=426, 803.0pt x 468.75125pt>
-File: files/quality.png Graphic file (type png)
- <use files/quality.png>
-Package pdftex.def Info: files/quality.png used on input line 59.
-(pdftex.def)             Requested size: 483.69687pt x 282.36156pt.
-
-(/usr/local/texlive/2012/texmf-dist/tex/latex/listings/lstlang1.sty
-File: lstlang1.sty 2004/09/05 1.3 listings language file
-)
-LaTeX Font Info:    Try loading font information for TS1+pcr on input line 80.
-
-(/usr/local/texlive/2012/texmf-dist/tex/latex/psnfss/ts1pcr.fd
-File: ts1pcr.fd 2001/06/04 font definitions for TS1/pcr.
-)
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [21 <./files/quality.png>]) [22] (./report.bbl
-LaTeX Font Info:    Try loading font information for T1+lmtt on input line 5.
-
-(/usr/local/texlive/2012/texmf-dist/tex/latex/lm/t1lmtt.fd
+ <./files/Acceleration.png> <./files/Odometry.png>]) [24] (./report.bbl
+LaTeX Font Info:    Try loading font information for T1+lmtt on input line 9.
+ (/usr/local/texlive/2012/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-Underfull \hbox (badness 2035) in paragraph at lines 35--39
+Underfull \hbox (badness 2035) in paragraph at lines 42--45
 []\T1/lmr/m/sc/10.95 OpenCV\T1/lmr/m/n/10.95 , \T1/lmr/m/it/10.95 Cam-era Cal-i
 -bra-tion and 3D Re-con-struc-tion\T1/lmr/m/n/10.95 .  []$\T1/lmtt/m/n/10.95 ht
 tp : / / docs . opencv . org / 2 . 4 /
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 49--52
+Underfull \hbox (badness 10000) in paragraph at lines 55--57
 []\T1/lmr/m/sc/10.95 Wikipedia\T1/lmr/m/n/10.95 , \T1/lmr/m/it/10.95 Lev-en-ber
 g - Mar-quardt al-go-rithm\T1/lmr/m/n/10.95 .  []$\T1/lmtt/m/n/10.95 https : / 
 / en . wikipedia . org / wiki /
@@ -1458,19 +1583,16 @@ g - Mar-quardt al-go-rithm\T1/lmr/m/n/10.95 .  []$\T1/lmtt/m/n/10.95 https : /
 
 )
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 35.
- [23
+ [25
 
 ]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 35.
- (./report.aux (./introduction.aux) (./visual.aux) (./audio.aux)
-(./movement.aux) (./experiment.aux))
+ (./report.aux (./introduction.aux) (./experiment.aux) (./visual.aux)
+(./audio.aux) (./movement.aux))
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 35.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 35.
 Package rerunfilecheck Info: File `report.out' has not changed.
-(rerunfilecheck)             Checksum: 10866820814FCF1E8C57402C442550BF;1445.
-
-
-LaTeX Warning: There were undefined references.
+(rerunfilecheck)             Checksum: 8E8D09347D1DE57EE58D753DFCD38C3B;1684.
 
 
 LaTeX Warning: There were multiply-defined labels.
@@ -1478,43 +1600,44 @@ LaTeX Warning: There were multiply-defined labels.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 35.
  ) 
 Here is how much of TeX's memory you used:
- 12762 strings out of 493488
- 186579 string characters out of 3141326
- 471288 words of memory out of 3000000
- 15539 multiletter control sequences out of 15000+200000
- 120041 words of font info for 89 fonts, out of 3000000 for 9000
+ 12931 strings out of 493488
+ 190226 string characters out of 3141326
+ 471830 words of memory out of 3000000
+ 15673 multiletter control sequences out of 15000+200000
+ 111574 words of font info for 87 fonts, out of 3000000 for 9000
  957 hyphenation exceptions out of 8191
  49i,14n,45p,698b,1562s stack positions out of 5000i,500n,10000p,200000b,50000s
 {/usr/local/texlive/2012/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/usr/local/
-texlive/2012/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/local/texlive/20
-12/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/local/texlive/2012/texmf-d
-ist/fonts/enc/dvips/base/8r.enc}{/usr/local/texlive/2012/texmf-dist/fonts/enc/d
-vips/lm/lm-rm.enc}{/usr/local/texlive/2012/texmf-dist/fonts/enc/dvips/lm/lm-mat
-hex.enc}</usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></
-usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></usr/local/
-texlive/2012/texmf-dist/fonts/type1/public/lm/lmbx8.pfb></usr/local/texlive/201
-2/texmf-dist/fonts/type1/public/lm/lmbxi10.pfb></usr/local/texlive/2012/texmf-d
-ist/fonts/type1/public/lm/lmcsc10.pfb></usr/local/texlive/2012/texmf-dist/fonts
-/type1/public/lm/lmex10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/pub
-lic/lm/lmmi10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmm
-i6.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></us
-r/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmmi9.pfb></usr/local/tex
-live/2012/texmf-dist/fonts/type1/public/lm/lmmib10.pfb></usr/local/texlive/2012
-/texmf-dist/fonts/type1/public/lm/lmr10.pfb></usr/local/texlive/2012/texmf-dist
-/fonts/type1/public/lm/lmr12.pfb></usr/local/texlive/2012/texmf-dist/fonts/type
-1/public/lm/lmr17.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm
-/lmr6.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmr8.pfb></
-usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmr9.pfb></usr/local/te
-xlive/2012/texmf-dist/fonts/type1/public/lm/lmri10.pfb></usr/local/texlive/2012
-/texmf-dist/fonts/type1/public/lm/lmro10.pfb></usr/local/texlive/2012/texmf-dis
-t/fonts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2012/texmf-dist/fonts/ty
-pe1/public/lm/lmsy8.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/
-lm/lmsy9.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmtt10.p
-fb></usr/local/texlive/2012/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb>
-Output written on report.pdf (23 pages, 7683948 bytes).
+texlive/2012/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/local/texlive/2012/t
+exmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/local/texlive/2012/texmf-dist/
+fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/local/texlive/2012/texmf-dist/fonts/enc/
+dvips/lm/lm-mathex.enc}{/usr/local/texlive/2012/texmf-dist/fonts/enc/dvips/base
+/8r.enc}{/usr/local/texlive/2012/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}</usr
+/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></usr/local/tex
+live/2012/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></usr/local/texlive/2012/
+texmf-dist/fonts/type1/public/lm/lmbx8.pfb></usr/local/texlive/2012/texmf-dist/
+fonts/type1/public/lm/lmbxi10.pfb></usr/local/texlive/2012/texmf-dist/fonts/typ
+e1/public/lm/lmcsc10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public
+/lm/lmex10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmmi10
+.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmmi6.pfb></usr/
+local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></usr/local/texli
+ve/2012/texmf-dist/fonts/type1/public/lm/lmmi9.pfb></usr/local/texlive/2012/tex
+mf-dist/fonts/type1/public/lm/lmmib10.pfb></usr/local/texlive/2012/texmf-dist/f
+onts/type1/public/lm/lmr10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/
+public/lm/lmr12.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/l
+mr17.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmr6.pfb></u
+sr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmr8.pfb></usr/local/tex
+live/2012/texmf-dist/fonts/type1/public/lm/lmr9.pfb></usr/local/texlive/2012/te
+xmf-dist/fonts/type1/public/lm/lmri10.pfb></usr/local/texlive/2012/texmf-dist/f
+onts/type1/public/lm/lmro10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1
+/public/lm/lmsy10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm
+/lmsy8.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmsy9.pfb>
+</usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmtt10.pfb></usr/loca
+l/texlive/2012/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb>
+Output written on report.pdf (25 pages, 11414447 bytes).
 PDF statistics:
- 616 PDF objects out of 1000 (max. 8388607)
- 498 compressed objects within 5 object streams
- 179 named destinations out of 1000 (max. 500000)
- 350 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 711 PDF objects out of 1000 (max. 8388607)
+ 562 compressed objects within 6 object streams
+ 193 named destinations out of 1000 (max. 500000)
+ 464 words of extra memory for PDF output out of 10000 (max. 10000000)
 
