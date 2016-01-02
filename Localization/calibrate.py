@@ -922,7 +922,7 @@ class Image:
             plt.close('all')
     def get_refobject(self,input_obj,NPTS,MARGIN,save=0,out_dir='',TIME=0):
         pts_obj,M = persp.objectpoints(NPTS,input_obj)
-        __,pts_obj,size = persp.format_points(pts_obj,MARGIN/10)
+        __,pts_obj,size = persp.format_points(pts_obj,MARGIN)
         img_flat,M = persp.geometric_transformationN(self.img,pts_obj,self.ref_img,size)
         self.ref_obj = pts_obj
         self.M = M

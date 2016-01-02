@@ -34,8 +34,12 @@ C = 343200 # speed of sound at 20C, dry air, in mm/s
 MAX_LENGTH = Fs*2
 TLAT = 0.1454 # Latency time, found with 660mm distance test
 
+# res2:
 MARGIN = np.array([2000,1000],dtype=np.float) #MARGIN from leftmost and downlost ref point to reference (in mm)
 PTS_BASIS = np.array(([2275,3769],[3128,3713])) #position of first and second reference points from wall (in mm)
+# res1:
+#MARGIN = np.array([1000,1000],dtype=np.float) #MARGIN from leftmost and downlost ref point to reference (in mm)
+#PTS_BASIS = np.array(([2500,3000],[4000,1500])) #position of first and second reference points from wall (in mm)
 
 class Analysis():
     def __init__(self,out_dir,input_wav='', output_wav_list='', output_enc='',
@@ -348,7 +352,7 @@ class Analysis():
         wav_file = wav_file.split('/')[-1]
         wav_file = self.out_dir+wav_file
         wavfile.write(wav_file,Fs,h)
-    def odometry(position_0,encoders):
+    def odometry(self,position_0,encoders):
         '''
         Calculates positions based on encoder measures and start position.
 
@@ -365,31 +369,42 @@ class Analysis():
         positions = []
         rs=[]
         dthetas=[]
-        positions.append(position_0)
+        pos_old = position_0
+        print(pos_old)
+        positions.append(pos_old)
         enc_old=encoders[0]
         for i in range(len(encoders)-1):
             enc = encoders[i+1]-encoders[i]
 
-            x1 = positions[i][0]
-            y1 = positions[i][1]
-            theta1 = positions[i][2]
+            x1 = pos_old[0]
+            y1 = pos_old[1]
+            theta1 = pos_old[2]
             # conversion in mm
             l_left = enc[0]/N_tot*2*np.pi*R_wheels
+            print(l_left)
             l_right = -enc[1]/N_tot*2*np.pi*R_wheels
-
+            print(l_right)
             dtheta=(l_left-l_right)/D
             theta2 = dtheta+theta1
             r=D/2*(l_left+l_right)/(l_left-l_right)
 
             # calculate new positions
-            # TODO: Check the sign of these for cos(theta2-theta1 negative)
-            y2 = y1 + abs(r)*(np.cos(theta2-theta1)-1)
+            y2 = y1 + r*(np.sin(theta1)-np.sin(theta2))
             x2 = x1 + r*(np.sin(theta2-theta1))
-            positions.append(np.array([round(x2),round(y2),round(theta2,4)]))
+            # res 2:
+            pos_old=np.array([round(x2),round(y2),round(theta2,4)])
+            positions.append(pos_old)
+            # res 1:
+
+            #pos_old=np.array(calib.change_ref_to_wall(PTS_BASIS,MARGIN,
+            #    np.array([round(x2),round(y2),round(theta2,4)]).reshape(1,3)))[0]
+            #positions.append(pos_old)
+
+            print(pos_old)
             dthetas.append(dtheta)
             rs.append(r)
         return np.array(positions)
-    def plot_odometry(odometry, real,fname):
+    def plot_odometry(self,odometry, real,fname):
         '''
         Plots the positions of the real positions and the positions calculated with
         odoemtry.
@@ -410,41 +425,86 @@ class Analysis():
         plt.axis('equal'),plt.show(block=False)
         plt.savefig(out_dir+'odometry')
     def plot_geometry(self,fname=''):
+        ''' Reads results from files of specified output file names (if not empty)
+        and plots everything in the wall reference frame i
+        _Parameters_:
+            fname:   file name (with path) where resulting image is saved
+        _Returns_:
+            nothing
+        '''
         plt.figure()
         legend_str=[]
 
-        # plot reference points
-        ax = plt.plot(PTS_BASIS[:,0],PTS_BASIS[:,1],color='k',linestyle='-')
-        legend_str.append('checkerboard base line')
+        # plot line between frist two reference points
+        if PTS_BASIS != '':
+            ax = plt.plot(PTS_BASIS[:,0],PTS_BASIS[:,1],color='k',linestyle='-')
+            legend_str.append('ref basis')
         # plot reference coordinate system
         origin=calib.change_ref_to_wall(PTS_BASIS,MARGIN,np.matrix([0,0,0]))
         xaxis=calib.change_ref_to_wall(PTS_BASIS,MARGIN,np.matrix([MARGIN[1],0,0]))
         yaxis=calib.change_ref_to_wall(PTS_BASIS,MARGIN,np.matrix([0,MARGIN[1],0]))
         plt.plot([yaxis[0,0],origin[0,0],xaxis[0,0]],[yaxis[0,1],origin[0,1],xaxis[0,1]],color='b',linestyle=':')
-        legend_str.append('reference basis')
+        legend_str.append('ref origin')
+        # plot wall
+        x=[0,WIDTH_ROOM,WIDTH_ROOM,0,0]
+        y=[0,0,HEIGHT_ROOM,HEIGHT_ROOM,0]
+        plt.plot(x,y,linestyle='dashed',color='k')
+        legend_str.append('walls')
         # plot robot positions
         if self.output_real!='':
             real_array = np.loadtxt(self.output_real,dtype=np.float32)
-            plt.plot(real_array[:,0],real_array[:,1],marker='o',color='g')
-            legend_str.append('robot real positions')
+            # for results of 22.11. (not yet in wall reference)
+            #array_wall = []
+            #for c in real_array:
+            #    res=calib.change_ref_to_wall(PTS_BASIS,MARGIN,c.reshape(1,3))
+            #    array_wall.append(res)
+            #real_array = np.array(array_wall).reshape(3,3)
+            plt.plot(real_array[:,0],real_array[:,1],marker='x',color='g')
+            legend_str.append('real')
+        # plot visual positions
         if self.output_vis!='':
             obj_array = np.loadtxt(self.output_vis,dtype=np.float32)
-            plt.plot(obj_array[:,0],obj_array[:,1],marker='o',color='r')
-            legend_str.append('robot visual positions')
+            if len(obj_array.shape) > 1:
+                plt.plot(obj_array[:,0],obj_array[:,1],marker='x',color='r')
+            else:
+                # for results of 22.11. (not yet in wall reference)
+                #obj_array = calib.change_ref_to_wall(PTS_BASIS,MARGIN,obj_array.reshape(1,3))
+                #plt.plot(obj_array[0,0],obj_array[0,1],marker='x',color='r')
+
+                plt.plot(obj_array[0],obj_array[1],marker='x',color='r')
+
+            legend_str.append('visual')
+        # plot odometry positions
+        if self.output_enc!='':
+            enc_array = np.loadtxt(self.output_enc,dtype=np.float32)
+            array_wall = []
+            pos_0 = [round(real_array[0,0]),round(real_array[0,1]),round(np.pi/4,4)]
+            odo_array = self.odometry(pos_0,enc_array)
+            plt.plot(odo_array[:,0],odo_array[:,1],marker='x',color='k')
+            legend_str.append('odometry')
+        # plot camera positions
         if self.output_cam!='':
             cam_centers = np.loadtxt(self.output_cam,dtype=np.float32)
+            cam_centers_wall = []
+            for c in cam_centers:
+                res=calib.change_ref_to_wall(PTS_BASIS,MARGIN,c[1:].reshape(1,3))
+                c[1:]=res[0]
+                cam_centers_wall.append(c)
+            cam_centers = np.array(cam_centers_wall)
             colors={139:'blue',141:'red',143:'green',145:'orange'}
             for i in range(0,cam_centers.shape[0]):
-                plt.plot(cam_centers[i,1],cam_centers[i,2],
-                         marker='o',linestyle='',color=colors[cam_centers[i,0]])
-                legend_str.append(str(int(cam_centers[i,0])))
+                plt.plot(cam_centers[i,1],cam_centers[i,2],marker='o',linestyle='',color=colors[cam_centers[i,0]])
+                #legend_str.append(str(int(cam_centers[i,0])))
         plt.legend(legend_str,'best')
         # plot properties
         plt.grid(True)
         plt.axes().set_aspect('equal','datalim')
+        plt.xlabel('x [mm]'),plt.ylabel('y [mm]')
+        plt.title('Experimental Results in Room Reference Frame \n')
         plt.show(block=False)
         if fname!='':
             plt.savefig(fname)
+        return cam_centers
 
 def get_parameters():
     ''' Get parameters from command line '''
@@ -455,16 +515,4 @@ def get_parameters():
     y_files = sys.argv[2:-1]
     out_dir = sys.argv[-1]
     return u_file,y_files,out_dir
-if __name__ == "__main__":
-    # Odometry
-    # calculate odometry positions.
-    theta1 = np.pi
-    encoders = np.array([[0.,0.],[-6825.,6699.],[-12957.,13392.]])
-    position_0 = [round(pos_real[0][0]),round(pos_real[0][1]),round(theta1,4)]
-    pos_odometry = odometry(position_0,encoders)
-    # plot and save results
-    pos_real = np.array([[2118,1975],[1829,1948],[1544,1935]])
-    plot_odometry(pos_odometry, pos_real, out_dir+'odometry')
-
-    # Plot Summary
 

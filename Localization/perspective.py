@@ -550,7 +550,7 @@ def objectpoints(m,name):
     M1 = mark.MarkerSet(m=m,dim=dim,diameter=marker_diameter)
     M1.fromEDM(D**2)
     M1.normalize()
-    pts_obj = M1.X.T*100 # pts in cm.
+    pts_obj = M1.X.T*1000 # pts in mm
     return pts_obj,M1
 def geometric_transformationN(img,pts_obj,pts_img,size):
     ''' Find Homography for 4 points from pts_obj to pts_img.
