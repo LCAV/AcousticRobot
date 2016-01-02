@@ -72,6 +72,9 @@ NUMBERS=range(2,5) # number of cameras to loop through
 CHECKERBOARD = 0 # weather or not to use checkerboard for extrinsic calculation
 WIDTH = 7
 HEIGHT = 5
+WIDTH_SENSOR = 3.67 #CCD sensor width in mm
+FOCAL_MM = 3.6 #focal width in mm
+WIDTH_IMG=1280#width of image in pixels
 
 # Audio
 N_CHANNELS=2
@@ -210,7 +213,6 @@ if __name__ == '__main__':
     flag = 0 # alorithm for solvepnp (ITERATIVE:0, P3P:1, EPNP:2)
     r_wall = np.matrix([0,0,R_HEIGHT]) # real robot position from wall
     r_real = calib.change_wall_to_ref(PTS_BASIS,MARGIN,r_wall.copy())
-
     R_HEIGHT = r_real[0,2] #height of robot in mm
     choice_ref = 4 #chosen reference point for error calculation
     ref_z = 1*np.ones((1,NPTS))
@@ -229,6 +231,17 @@ if __name__ == '__main__':
         cam = calib.Camera(n)
         img_points,obj_points,size = cam.get_checkpoints(out_dir,5,8,fisheye)
         cam.calibrate(obj_points,img_points,size)
+        f_theo=WIDTH_IMG*FOCAL_MM/WIDTH_SENSOR
+        if (abs(cam.C[0,0]-f_theo)>100):
+            choice = raw_input("focal width obtained ({0}) far from theory {1}. Continue? (yes=y, no=n)".
+                               format(int(cam.C[0,0]),f_theoretical))
+            if choice == 'n':
+                sys.exit(2)
+        if (abs(cam.C[1,1]-f_theo)>100):
+            choice = raw_input("focal height obtained ({0}) far from theory {1}. Continue? (yes=y, no=n)".
+                               format(int(cam.C[1,1]),f_theoretical))
+            if choice == 'n':
+                sys.exit(2)
         cam.save(in_dir,fisheye[i])
 #--------------------------- 3. Extrinsic Calibration   -------------------#
     n = ''
