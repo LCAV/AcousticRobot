@@ -1,3 +1,4 @@
-test TEST
+test §
 [t]
-
+\paragraph
+§ bla

@@ -7,27 +7,28 @@
 \contentsline {paragraph}{Button}{6}{section*.8}
 \contentsline {subsection}{\numberline {2.2}Audio Setup}{7}{subsection.2.2}
 \contentsline {subsection}{\numberline {2.3}Robot}{7}{subsection.2.3}
-\contentsline {section}{\numberline {3}Visual Localisation}{8}{section.3}
-\contentsline {subsection}{\numberline {3.1}Intrinsic Calibration}{8}{subsection.3.1}
-\contentsline {subsection}{\numberline {3.2}Image Processing}{9}{subsection.3.2}
-\contentsline {subsection}{\numberline {3.3}Extrinsic Calibration}{11}{subsection.3.3}
-\contentsline {subsubsection}{\numberline {3.3.1}Reference points}{11}{subsubsection.3.3.1}
-\contentsline {paragraph}{Points}{11}{section*.16}
-\contentsline {paragraph}{Checkerboard}{11}{section*.17}
-\contentsline {paragraph}{Algorithm}{11}{section*.19}
-\contentsline {subsection}{\numberline {3.4}Triangulation}{13}{subsection.3.4}
-\contentsline {subsection}{\numberline {3.5}Experimental Results}{13}{subsection.3.5}
-\contentsline {subsubsection}{\numberline {3.5.1}Performance measure}{13}{subsubsection.3.5.1}
-\contentsline {subsubsection}{\numberline {3.5.2}Reference frames}{14}{subsubsection.3.5.2}
-\contentsline {subsubsection}{\numberline {3.5.3}Atrium}{14}{subsubsection.3.5.3}
-\contentsline {subsubsection}{\numberline {3.5.4}BC329 with reference points}{16}{subsubsection.3.5.4}
-\contentsline {subsubsection}{\numberline {3.5.5}BC329 with checkerboard}{17}{subsubsection.3.5.5}
-\contentsline {section}{\numberline {4}Echo-SLAM}{19}{section.4}
-\contentsline {subsection}{\numberline {4.1}Sine Sweep Generation}{19}{subsection.4.1}
-\contentsline {subsection}{\numberline {4.2}Recording}{19}{subsection.4.2}
-\contentsline {subsection}{\numberline {4.3}Experimental Results}{20}{subsection.4.3}
-\contentsline {subsubsection}{\numberline {4.3.1}Calibration}{20}{subsubsection.4.3.1}
-\contentsline {subsubsection}{\numberline {4.3.2}Echo SLAM}{21}{subsubsection.4.3.2}
-\contentsline {section}{\numberline {5}Robot movement}{23}{section.5}
-\contentsline {subsection}{\numberline {5.1}Control}{23}{subsection.5.1}
-\contentsline {subsection}{\numberline {5.2}Odometry}{23}{subsection.5.2}
+\contentsline {section}{\numberline {3}Robot movement}{8}{section.3}
+\contentsline {subsection}{\numberline {3.1}Control}{8}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}Odometry}{9}{subsection.3.2}
+\contentsline {section}{\numberline {4}Echo-SLAM}{10}{section.4}
+\contentsline {subsection}{\numberline {4.1}Sine Sweep Generation}{10}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}Recording}{10}{subsection.4.2}
+\contentsline {subsection}{\numberline {4.3}Experimental Results}{11}{subsection.4.3}
+\contentsline {subsubsection}{\numberline {4.3.1}Calibration}{11}{subsubsection.4.3.1}
+\contentsline {subsubsection}{\numberline {4.3.2}Echo SLAM}{12}{subsubsection.4.3.2}
+\contentsline {section}{\numberline {5}Visual Localisation}{14}{section.5}
+\contentsline {subsection}{\numberline {5.1}Intrinsic Calibration}{14}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}Image Processing}{15}{subsection.5.2}
+\contentsline {subsection}{\numberline {5.3}Extrinsic Calibration}{17}{subsection.5.3}
+\contentsline {subsubsection}{\numberline {5.3.1}Reference points}{17}{subsubsection.5.3.1}
+\contentsline {paragraph}{Points}{17}{section*.21}
+\contentsline {paragraph}{Checkerboard}{17}{section*.22}
+\contentsline {paragraph}{Algorithm}{17}{section*.24}
+\contentsline {subsection}{\numberline {5.4}Triangulation}{18}{subsection.5.4}
+\contentsline {subsection}{\numberline {5.5}Experimental Results}{20}{subsection.5.5}
+\contentsline {subsubsection}{\numberline {5.5.1}Performance measure}{20}{subsubsection.5.5.1}
+\contentsline {subsubsection}{\numberline {5.5.2}Reference frames}{20}{subsubsection.5.5.2}
+\contentsline {subsubsection}{\numberline {5.5.3}Atrium}{20}{subsubsection.5.5.3}
+\contentsline {subsubsection}{\numberline {5.5.4}BC329 with reference points}{21}{subsubsection.5.5.4}
+\contentsline {subsubsection}{\numberline {5.5.5}BC329 with checkerboard}{23}{subsubsection.5.5.5}
+\contentsline {section}{\numberline {6}Conclusion}{25}{section.6}

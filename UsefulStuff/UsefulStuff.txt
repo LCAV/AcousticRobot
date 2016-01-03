@@ -1,9 +1,11 @@
-Terminal0. Find and replace string in multiple tex files
+Terminal========
+0. Find and replace string in multiple tex files
 
 find ./ -name "*.tex" -exec sed -i '' 's/stilts/struts/g' {} +
 output all lines containing stilts in all files.
 grep stilts *
-1.Add paths for terminal WindowsControl Panel\System and Security\System(Or right-click on Computer in start menu, -> Properties)Advanced system settingsEnvironment VariablesAdd path to “python.exe” with ; as delimitershow current folder instead of username: 
+1.Add paths for terminal Windows
+=================================Control Panel\System and Security\System(Or right-click on Computer in start menu, -> Properties)Advanced system settingsEnvironment VariablesAdd path to “python.exe” with ; as delimitershow current folder instead of username: 
 in ~/.bashrc: $ export PS1=“\w> “ for current working directory. Other options: see http://www.ibm.com/developerworks/linux/library/l-tip-prompt/
 add sublime to terminal commands: 
 https://gist.github.com/olivierlacan/1195304
@@ -20,7 +22,9 @@ du --block-size=KB --apparent-size /tmp/stream/pic.jpg
 test speed from terminal
 wget -O /dev/null http://speedtest.wdc01.softlayer.com/downloads/test10.zip
 _____________
-2.Robot Robot gitAddress: https://duembgen@git.epfl.ch/repo/robot.gitSSH Key: roboT2015Fingerprint: c8:c2:71:99:5a:1b:6e:58:ea:41:5b:52:0f:92:74:63 3.GIT useful commands
+2.Robot 
+==========Robot gitAddress: https://duembgen@git.epfl.ch/repo/robot.gitSSH Key: roboT2015Fingerprint: c8:c2:71:99:5a:1b:6e:58:ea:41:5b:52:0f:92:74:63 3.GIT useful commands
+=====================
 
 COMMITING ETC:
 
@@ -36,8 +40,10 @@ git branch -v -> show last commits of each branch
 git branch —-merged -> show which branches are currently merged
 git branch —-no-merged -> … unmarked
 
-
-git branch --set-upstream-to=origin/<branch> gh-pages (connect local and remote branch)
-
-git log HEAD..origin/master (to review differences when branches have diverted)git cherry-pick some_ID (add all changes done in some_ID to current branch)files & directories:grep <searchword> <filename> # search for given word in filewc <filename> # file info (how many lines, words, characters)pwd #current pathwhich python or which bash -> find out what to put in #!/usr/bin/python at beginning of file.more: displays textfile in terminal without opening it (good for large files) top (Task Manager)script: (saves terminal history)script –a –q output.txt #-a name –q no terminal messages(can be put in ~/.bash_profile)users / hd/ etc.change user: sudo susu – kikiinformation on monuted volumessudo blkid/dev/mmcblk0p1: SEC_TYPE="msdos" LABEL="boot" UUID="15CD-3B79" TYPE="vfat"vfat: file allocation table (windows 95+) ext4: linux fourth extended filesystemuuid : universally unique identifierfirst partition of sd card, /boot is mounted on there (boot partition)boot loader (booting the OS) mounted at /boot/  DON’T CHANGE THIS ONE!system partition: contains operating system folder (system root) mounted at /change permisisons for added usb / sd cards, etc. : in /etc/fstab add new line with permisisons uid=usr-number, gid = group-numberfidn user- and group-number in /etc/passwd and /etc/groupundo when somehow everything is “read-only”: (example)sudo mount -n -o remount -t ext4 /dev/mmcblk0p2 /change permissions for folders:sudo chmod 777 .folderPythonGeneralAdd # -*- coding: utf-8 -*- to beginning of file!Opencvimg = cv2.imread(path, flags) or (image in memory)img = cv2.imdecode(buf, flags)flags: colors of imageall following are equivalent: (give uint8, 1-channel picture)src = cv2.imread(fn,cv2.IMREAD_GRAYSCALE)src2 = cv2.imread(fn,cv2.CV_LOAD_IMAGE_GRAYSCALE)src3 = cv2.imread(fn,cv.CV_LOAD_IMAGE_GRAYSCALE)cv2.imshow(‘title’,img)cv2.imwrite(‘name’,img)cv2.waitKey(0) #waits long for any keyNumpy np. fromstring(jpg,dtype=np.uint8) Anaconda add python: conda create --name python python=2.7conda create –name python3 python=3.4source activate python2check: conda info --envsVIMfile with settings: ~./vimrc:PluginInstall! to install plugins:PluginClear!to uninstall (remove the entry from ~./vimrc first):retab fixes many indent errorsIPythonI have 
+git branch --set-upstream-to=origin/<branch> gh-pages (connect local and remote branch)git log HEAD..origin/master (to review differences when branches have diverted)git cherry-pick some_ID (add all changes done in some_ID to current branch)files & directories:
+====================
+grep <searchword> <filename> # search for given word in filewc <filename> # file info (how many lines, words, characters)pwd #current pathwhich python or which bash -> find out what to put in #!/usr/bin/python at beginning of file.more: displays textfile in terminal without opening it (good for large files) top (Task Manager)script: (saves terminal history)script –a –q output.txt #-a name –q no terminal messages(can be put in ~/.bash_profile)users / hd/ etc.change user: sudo susu – kikiinformation on monuted volumessudo blkid/dev/mmcblk0p1: SEC_TYPE="msdos" LABEL="boot" UUID="15CD-3B79" TYPE="vfat"vfat: file allocation table (windows 95+) ext4: linux fourth extended filesystemuuid : universally unique identifierfirst partition of sd card, /boot is mounted on there (boot partition)boot loader (booting the OS) mounted at /boot/  DON’T CHANGE THIS ONE!system partition: contains operating system folder (system root) mounted at /change permisisons for added usb / sd cards, etc. : in /etc/fstab add new line with permisisons uid=usr-number, gid = group-numberfidn user- and group-number in /etc/passwd and /etc/groupundo when somehow everything is “read-only”: (example)sudo mount -n -o remount -t ext4 /dev/mmcblk0p2 /change permissions for folders:sudo chmod 777 .folderPython========
+Add # -*- coding: utf-8 -*- to beginning of file!Opencv
+========img = cv2.imread(path, flags) or (image in memory)img = cv2.imdecode(buf, flags)flags: colors of imageall following are equivalent: (give uint8, 1-channel picture)src = cv2.imread(fn,cv2.IMREAD_GRAYSCALE)src2 = cv2.imread(fn,cv2.CV_LOAD_IMAGE_GRAYSCALE)src3 = cv2.imread(fn,cv.CV_LOAD_IMAGE_GRAYSCALE)cv2.imshow(‘title’,img)cv2.imwrite(‘name’,img)cv2.waitKey(0) #waits long for any keyAnaconda =========add python: conda create --name python python=2.7conda create –name python3 python=3.4source activate python2check: conda info --envsVIM
+=====file with settings: ~./vimrc:PluginInstall! to install plugins:PluginClear!to uninstall (remove the entry from ~./vimrc first):retab fixes many indent errorsIPythonI have 
 c.InteractiveShellApp.extensions = ['autoreload'] and c.InteractiveShellApp.exec_lines = ['%autoreload 2'] in my ~/.ipython/profile_default/ipython_config

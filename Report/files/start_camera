@@ -1,0 +1,11 @@
+#!/bin/bash
+echo "Start camera stream"
+
+mkdir -p /tmp/stream
+raspistill -w 1280 -h 720 -q 50 -ex backlight -mm backlit -o /tmp/stream/pic.jpg -tl 100 -t 9999999 -$
+LD_LIBRARY_PATH=/usr/local/lib mjpg_streamer -i "input_file.so -f /tmp/stream -n pic.jpg" -o "output_h$
+
+
+
+
+
