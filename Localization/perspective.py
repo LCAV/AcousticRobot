@@ -569,10 +569,7 @@ def geometric_transformationN(img,pts_obj,pts_img,size):
     pts_img = pts_img.astype(np.float32)
     M,__ = cv2.findHomography(pts_img,pts_obj)
     if M[M==np.inf].any() or M[M==np.nan].any():
-        print('''
-Geometric_transformationN:
-Error, could not find valid homography.
-Check if objet and image points are valid.''')
+        print("Geometric_transformationN: Error, could not find valid homography.")
     img_flat = cv2.warpPerspective(img,M,size)
     return img_flat, np.matrix(M)
 def restore_order(original,moved,min_dist):
