@@ -59,7 +59,7 @@ The white crosses mark the area where the robot is allowed to move.
 </p>
 
 <h3> Place and measure reference points </h3>
-
+<h4> Reference points </h4>
 <p> 
 Place 4 to 6 reference points in the visible area. For later processing, the reference points are numbered. 
 Use following numbers only and place them such that all reference points are above an imaginary 
@@ -99,25 +99,48 @@ Figure 6 - How to measure and save the distances between points.)
 </figure>
 </p>
 
+<h4> Checkerboard </h4>
+
+<p>
+If you are using the checkerboard for extrinsic calbiration, place the checkerboard on a white support and place reference points 1 in the 3 corners as shown in Figure 7. 
+
+</p>
+
+
+<figure>
+<img src="../images/ref_checkerboard.png" width=500px>
+<figcaption> 
+Figure 7 - How to place checkerboard and reference points and the resulting numbering.)
+</figcaption>    
+</figure>
+</p>
+
 <p> 
 While the program is still in its test phase, it is useful to also store the real position of the robot. 
 As it is easier to measure the robot position with respect to the walls than with respect to the reference points, 
 the coordinates of the robot are entered in the wall reference frame and converted by the program to the reference point frame. 
-Measure the x and y position of the first two reference points and store the results in PTS_BASIS in the program. 
-(SHOULD BE READ IN FROM FILE TOO!)
 </p>
 
+<h3> Wall reference frame </h3>
+
+<p> 
+Measure the x and y position of the first two reference points and store the results as PTS_BASIS in the program location.py.
+For the checkerboard, PTS_BASIS should correspond the two checkerboard points closest to 1 and 2 respectively.
+</p>
+<p> 
+For visualization, an x and y margin is addded to the basis reference. It can be defined in the code as MARGIN.
+</p>
 
 <h3> Extrinsic calibration </h3>
-<p>
 
+<p>
 You can now run the program. Make sure that you have created an output folder (called "output" here) where you will to store all results
-of this session. Make sure that all parameters are available in the input folder (called "input" here), see Figure 7
+of this session. Make sure that all parameters are available in the input folder (called "input" here), see Figure 8.
 
 <figure>
 <img src="../images/filestructure.png" width=500px>
 <figcaption> 
-Figure 7 - File structure. X corresponds to camera number (139, 141, etc.) and N to iteration number. TIME is the time when the program is started.
+Figure 8 - File structure. X corresponds to camera number (139, 141, etc.) and N to iteration number. TIME is the time when the program is started.
 </figcaption>    
 </figure>
 </p>
@@ -129,10 +152,22 @@ It is possible that you have to adjust the following parameters:
 <li>R_ROB (radius in pixels of robot head)</li>
 <li>THRESH (threshold for circle detection)</li>
 </ul>
+
 They depend on the camera location and the image resolution. The terminal output indicates what parameter probably need to be changed. 
 
-A first thing to check is weather the projection works. All reference points should be projected to the good location. (see output/summaryX.png)
-If this is not correct, there could be several reasons: 
+</p>
+<h3> Verification </h3>
+
+<p> 
+Some verification is recommended before going on with the experiments.
+</p>
+
+<h4> Reprojection of reference points </h4>
+<p>
+A first thing to check is weather the projection works. 
+The reprojection corresponds to the red dots in output/summaryX.png.
+They need to be superimposed with the image of the respective positions.
+There can be several reasons for bad matches:
 
 <ul style="list-style-type:disc">
 <li>camera parameters (from calibration) not correct. Solution: recalibrate</li>
@@ -141,4 +176,16 @@ If this is not correct, there could be several reasons:
 (MIN_REF and MAX_REF for reference points,
 (MIN, MAX for robot) are correct. </li>
 </ul>
+
+If the reprojection is completely off because of wrong numbering of the reference points, a warning appears and you should not continue with the experiments before fixing the problem.
+
 </p>
+
+<h4> Camera centers </h4>
+
+<p>
+It is recommended to check weather the cameras are placed approximately at the correct positions. 
+The camera centers are found in output/cameraX.png, and they are stored with respect to the reference point frame.
+See <a href="analysis.html">Analysis</a> for how to get a visualization of the camera centers in the room reference frame.
+</p>
+
