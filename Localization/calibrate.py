@@ -115,10 +115,10 @@ def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
         '''
 
         # construct A as in p.312
-        f1 = c.Proj[:1]
-        f2 = c.Proj[1:2]
-        f3 = c.Proj[2:3]
         for i,c in enumerate(cam):
+            f1 = c.Proj[:1]
+            f2 = c.Proj[1:2]
+            f3 = c.Proj[2:3]
             p = pt[i]
             x = p[0,0]
             y = p[0,1]
@@ -397,10 +397,15 @@ def write_pos(dirname,name,p):
 
         _Returns_: Nothing'''
     with open(dirname+name,"a") as f: # append
+        # if p.any():
+            # for pt in p:
+                # f.write(str(pt)+'\t')
+            # f.write("\n")
         if p.any():
-            for pt in p:
-                f.write(str(pt)+'\t')
-            f.write("\n")
+            if p.shape[0]==2:
+                f.write("{0}\t{1}\n".format(p[0,0],p[1,0]))
+            else:
+                f.write("{0}\t{1}\t{2}\n".format(p[0,0],p[0,1],p[0,2]))
 
 class Camera:
     def __init__(self,n,rms=0,C=0,dist=0,r=0,t=0):
@@ -889,9 +894,9 @@ class Image:
         img_red,circ_red,p,__ = persp.imagepoints(self.img,R,1,THRESH,MIN,MAX)
         self.r_img=p
         if save:
-            imgs={'img_red_'+str(self.n)+'_'+TIME:img_red,
-                  'circ_red_'+str(self.n)+'_'+TIME:circ_red,
-                  'img_'+str(self.n)+'_'+TIME:self.img}
+            imgs={'img_red_'+str(self.n)+'_'+TIME:img_red}
+                  #'circ_red_'+str(self.n)+'_'+TIME:circ_red}
+                  #'img_'+str(self.n)+'_'+TIME:self.img}
             persp.visualization(imgs,self.n)
             persp.save_open_images(out_dir,loop)
             plt.close('all')

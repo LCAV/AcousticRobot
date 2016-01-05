@@ -266,8 +266,8 @@ if __name__ == '__main__':
     R.get_position(output_odo)
     # Execute commands (in blocks)
     for i,c in commands.iteritems():
-        print("activate motors")
-        R.activate()
+        #print("activate motors")
+        #R.activate()
 
         print("starting new movement")
         t=times[i]

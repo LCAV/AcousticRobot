@@ -50,8 +50,11 @@ ROBOT_REAL='''Real Robot           :
 Do you want to save the real position? ('y' for yes or 'n' for no)
 '''
 # color frame ƒor robot detection
-MIN = np.array([0,150,0],dtype=np.uint8)
+MIN = np.array([150,100,0],dtype=np.uint8)
 MAX = np.array([10,250,255],dtype=np.uint8)
+# res2:
+#MIN = np.array([0,150,0],dtype=np.uint8)
+#MAX = np.array([10,250,255],dtype=np.uint8)
 # color frame for reference poitn detection
 MIN_REF = np.array([0,150,0],dtype=np.uint8)
 MAX_REF = np.array([10,250,255],dtype=np.uint8)
@@ -304,9 +307,9 @@ if __name__ == '__main__':
                 r_wall[0,1]=y
             r_real = calib.change_wall_to_ref(PTS_BASIS,MARGIN,r_wall.copy())
             name='posreal_'+TIME+'.txt'
-            calib.write_pos(out_dir,name,np.array(r_wall)[0])
+            calib.write_pos(out_dir,name,np.matrix(np.array(r_wall)[0]).reshape(((1,3))))
             name='posreal_ref_'+TIME+'.txt'
-            calib.write_pos(out_dir,name,np.array(r_real)[0])
+            calib.write_pos(out_dir,name,np.matrix(np.array(np.array(r_real)[0]).reshape((1,3))))
             p_real_list.append(r_wall.copy())
 
 #--------------------------- 4.1 Visual localization ----------------------#
@@ -317,11 +320,6 @@ if __name__ == '__main__':
             plt.close('all')
             # save new robot position in file
             if choice == 'y':
-
-                # for debugging only
-                if loop_counter == 1:
-                    NCAMERAS = [139,141]
-
                 for i,n in enumerate(NCAMERAS):
                     img = calib.Image(n)
 
@@ -335,7 +333,7 @@ if __name__ == '__main__':
                     img.get_robotimage(R_ROB,THRESH_ROB,MIN,MAX,1,out_dir,
                                        TIME,loop_counter)
                     name='posimg_'+str(n)+'_'+TIME+'.txt'
-                    calib.write_pos(out_dir,name,img.r_img)
+                    calib.write_pos(out_dir,name,np.matrix(img.r_img).reshape((2,1)))
 #--------------------------- 4.1.b Calculate Object Point -----------------#
             cams = dict()
             imgs = dict()
@@ -369,10 +367,10 @@ if __name__ == '__main__':
 
             name='posobj_fix_'+str(choice_ref)+'_'+TIME+'.txt'
             p_lq_fix_wall = calib.change_ref_to_wall(PTS_BASIS,MARGIN,p_lq_fix.T[0])
-            calib.write_pos(out_dir,name,p_lq_fix_wall)
+            calib.write_pos(out_dir,name,p_lq_fix_wall[0])
             name='posobj_free_'+str(choice_ref)+'_'+TIME+'.txt'
             p_lq_free_wall = calib.change_ref_to_wall(PTS_BASIS,MARGIN,p_lq_free.T)
-            calib.write_pos(out_dir,name,p_lq_free_wall)
+            calib.write_pos(out_dir,name,p_lq_free_wall[0])
 
             p_obj_list.append(p_lq_fix_wall)
 
@@ -409,8 +407,8 @@ if __name__ == '__main__':
                 print("End of control input file reached.")
                 break
 
-            print("Activating motors")
-            Robot.activate()
+            #print("Activating motors")
+            #Robot.activate()
             print("Moving robot")
             t = times[loop_counter]
             c = commands[loop_counter]

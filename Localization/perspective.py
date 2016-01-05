@@ -319,6 +319,7 @@ def extract_color(img,range_min,range_max,r):
         cv2.circle(img,(cx,cy),20,(0,255,255),2)
     except: # no contours found
         cx,cy = 0
+    #plt.imshow(img_diff),plt.show(block=False)
     return img,contours_big,(cx,cy),img_diff
 def manual_calibration(img,n,R):
     ''' Get points of interest in image and create mask leaving only
@@ -493,7 +494,6 @@ def imagepoints(img,r,n,t,col_min,col_max,reduced=0):
     col_min,col_max,col_clean = automatic_calibration(img_reduced,col_min,
                                                       col_max,zvalue)
     #hist_h, hist_s = get_histograms(img,img_mask,n*10)
-
     # color
     img_color,cont_color,pos,th = extract_color(img_reduced,col_min,col_max,r)
 

@@ -198,7 +198,7 @@ class Audio:
             data = wf_out.readframes(self.chunk)
             # record
             data_in = stream_in.read(self.chunk)
-            if self_channels > 1:
+            if self.channels > 1:
                 frames_decoded.append(np.fromstring(data_in,self.format_np))
             else:
                 frames.append(data_in)
