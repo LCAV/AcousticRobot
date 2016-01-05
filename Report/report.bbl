@@ -21,8 +21,8 @@
 \newblock \url{http://elinux.org/Rpi_Camera_Module}.
 
 \bibitem{hz}
-{\sc R.~Hartley and A.~Zisserman}, {\em Multiple View Geometry in Computer
-  Vision}, Cambridge University Press, second~ed., 2003.
+{\sc R.~Hartley and A.~Zisserman}, {\em {Multiple View Geometry in Computer
+  Vision}}, Cambridge University Press, second~ed., 2003.
 
 \bibitem{Miranda}
 {\sc M.~Krekovic, I.~Dokmanic, and M.~Vetterli}, {\em {EchoSLAM : SIMULTANEOUS
@@ -44,8 +44,8 @@
   \url{http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html}.
 
 \bibitem{Vetterli}
-{\sc P.~Prandoni and M.~Vetterli}, {\em Signal processing for communications},
-  EPFL Press, first~ed., 2008.
+{\sc P.~Prandoni and M.~Vetterli}, {\em {Signal processing for
+  communications}}, EPFL Press, first~ed., 2008.
 
 \bibitem{Wickelmaier2003}
 {\sc F.~Wickelmaier}, {\em {An introduction to MDS}}, Reports from the Sound

@@ -17,7 +17,7 @@ The implemented procedure to detect the image of the robot head and the referenc
 		\caption{\textbf{Saturation} representation of original image}
 		\label{fig:img_s}
 	\end{subfigure}
-    \caption{HSV components used for color extraction}
+    \caption{HSV components used for color extraction.}
 \end{figure}
 Examining the picture's HSV representation (Figures \ref{fig:img_h} and \ref{fig:img_s}), one can see that a combination of the H and S values gives a good criteria for the extraction of the bright colored points. 
 
@@ -48,7 +48,7 @@ First, the area within the contour has to lie above a empirically found minimum 
 		\caption{Regions of interest and extracted colors}
 		\label{fig:img_org}
 	\end{subfigure}
-    \caption{Extraction of regions of interest for reference points} 
+    \caption{Extraction of regions of interest for reference points.} 
 \end{figure}
 
 Secondly, the circular shape is tested by placing a circular filter of an approximate radius onto the contours and counting the white pixels that lie inside the circle and outside the circle respectively (true positives and false positives). 
@@ -71,7 +71,7 @@ The resulting binary images with the final centroids for each point of both refe
 		\caption{Extracted colours, robot head}
 		\label{fig:circ_red}
 	\end{subfigure}
-	\caption{Final results of image processing for feature extraction} 
+	\caption{Final results of image processing for feature extraction.} 
 \end{figure}
 
 %\begin{lstlisting}[caption=Listing]

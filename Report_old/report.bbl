@@ -1,0 +1,62 @@
+\begin{thebibliography}{10}
+
+\bibitem{Borenstein1996}
+{\sc J.~Borenstein, H.~R. Everett, and L.~Feng}, {\em {Navigating Mobile
+  Robots}}, A.K. Peters, Ltd., Wellesley, MA, first~ed., 1996.
+
+\bibitem{MTB}
+{\sc J.-Y. Bouguet}, {\em {MATLAB calibration tool}}.
+\newblock \url{http://www.vision.caltech.edu/bouguetj/calib_doc/}.
+
+\bibitem{Brown1966}
+{\sc D.~Brown}, {\em {Decentering Distortion of Lenses}}, Photometric
+  Engineering, 32 (1966), pp.~444--462.
+
+\bibitem{Conrady1919}
+{\sc A.~Conrady}, {\em {Decentred Lens-Systems}}, Monthly Notices of the Royal
+  Astronomical Soceity, 79 (1919), pp.~384--390.
+
+\bibitem{RaspiDoc}
+{\sc elinux.org}, {\em {Rpi Camera Module}}.
+\newblock \url{http://elinux.org/Rpi_Camera_Module}.
+
+\bibitem{hz}
+{\sc R.~Hartley and A.~Zisserman}, {\em Multiple View Geometry in Computer
+  Vision}, Cambridge University Press, second~ed., 2003.
+
+\bibitem{Miranda}
+{\sc M.~Krekovic, I.~Dokmanic, and M.~Vetterli}, {\em {EchoSLAM : SIMULTANEOUS
+  LOCALIZATION AND MAPPING WITH ACOUSTIC ECHOES}}, LCAV,  (2015).
+
+\bibitem{Lepetit2009}
+{\sc V.~Lepetit, F.~Moreno-Noguer, and P.~Fua}, {\em {EPnP: An Accurate O(n)
+  Solution to the PnP Problem}}, International Journal of Computer Vision, 81
+  (2009), pp.~155--166.
+
+\bibitem{Notch}
+{\sc D.~O'Neil}, {\em {How to Remove Signal Data Artifacts}}.
+\newblock
+  \url{http://www.microstrain.com/news/how-remove-signal-data-artifacts}.
+
+\bibitem{calib3d}
+{\sc OpenCV}, {\em {Camera Calibration and 3D Reconstruction}}.
+\newblock
+  \url{http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html}.
+
+\bibitem{Vetterli}
+{\sc P.~Prandoni and M.~Vetterli}, {\em Signal processing for communications},
+  EPFL Press, first~ed., 2008.
+
+\bibitem{Wickelmaier2003}
+{\sc F.~Wickelmaier}, {\em {An introduction to MDS}}, Reports from the Sound
+  Quality Research Unit,  (2003), p.~26.
+
+\bibitem{LMA}
+{\sc Wikipedia}, {\em {Levenberg - Marquardt algorithm}}.
+\newblock \url{https://en.wikipedia.org/wiki/Levenberg-Marquardt_algorithm}.
+
+\bibitem{Zhang2000}
+{\sc Z.~Zhang}, {\em {A Flexible New Technique for Camera Calibration}}, IEEE
+  Trans. Pattern Anal. Mach. Intell., 22 (2000), pp.~1330--1334.
+
+\end{thebibliography}

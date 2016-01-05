@@ -1,0 +1,79 @@
+%!TEX root = report.tex
+\subsection{Image Processing}
+\label{sec:imageprocessing}
+
+The implemented procedure to detect the image of the robot head and the reference points is based on bright colored, circular reference points and is semi-automatic.
+
+\begin{figure}[htb]
+	\begin{subfigure}[b]{0.49\linewidth}
+        \centering
+		\includegraphics[width=\linewidth]{files/_img_h139.png}
+		\caption{\textbf{Hue} representation of original image}
+		\label{fig:img_h}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\linewidth}
+        \centering
+		\includegraphics[width=\linewidth]{files/_img_s139.png}
+		\caption{\textbf{Saturation} representation of original image}
+		\label{fig:img_s}
+	\end{subfigure}
+    \caption{HSV components used for color extraction}
+\end{figure}
+Examining the picture's HSV representation (Figures \ref{fig:img_h} and \ref{fig:img_s}), one can see that a combination of the H and S values gives a good criteria for the extraction of the bright colored points. 
+
+The user defines the regions of interest and the relative position of the reference points by clicking on these points in the order of their numbering.
+The colors in these regions of interest are extracted in two steps: first a rough filter is applied to the image which filters out any pixels that lie outside of a certain color range and sets their values to 0.
+The color distribution of the left over pixels is then characterized by its mean $\mu$ and standard deviation $\sigma$ and only colors lying above and below a certain threshold are preserved. Formally the criterion for pixels that are kept is
+
+\begin{equation}
+    \frac{I(x,y)-\mu}{\sigma}\leq z.
+\end{equation}
+
+A good value for the threshold $z$ was empirically found to be 2.
+
+The contours of the resulting binary image undergo two tests. 
+First, the area within the contour has to lie above a empirically found minimum for the contour to be further treated. The resulting contours and the regions of interest are shown in Figure \ref{fig:img_org}. 
+
+\begin{figure}[htb]
+	\centering
+	\begin{subfigure}[b]{0.49\linewidth}
+        \centering
+		\includegraphics[width=\linewidth]{files/_img139_cvt.png}
+		\caption{Original image}
+		\label{fig:img}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\linewidth}
+        \centering
+		\includegraphics[width=\linewidth]{files/_img_org139.png}
+		\caption{Regions of interest and extracted colors}
+		\label{fig:img_org}
+	\end{subfigure}
+    \caption{Extraction of regions of interest for reference points} 
+\end{figure}
+
+Secondly, the circular shape is tested by placing a circular filter of an approximate radius onto the contours and counting the white pixels that lie inside the circle and outside the circle respectively (true positives and false positives). 
+The proportion of true positives has to lie above a certain threshold $t$ for the contour to be considered valid.  
+The resulting binary image is composed of at least $N_{pts}$ contours whose centroids can be obtained by calculating the respective moments $M_{i,j}=\sum_{x} \sum_{y} x^iy^i I(x,y)$ ($x$, $y$ correspond to pixel coordinates and $I(x,y)$ is the pixel intensity). 
+The centroid coordinates are given by $\bar{x}=M_{10}/M_{00}$ and $\bar{y}=M_{01}/M_{00}$. If two centroids are too close to each other, they are considered as duplicate and repliced by their midpoint.
+
+The resulting binary images with the final centroids for each point of both reference points and the robot head are shown in Figures \ref{fig:circ_org} and \ref{fig:circ_red} respectively.
+
+\begin{figure}[htb]
+	\begin{subfigure}[b]{0.49\linewidth}
+        \centering
+		\includegraphics[width=\linewidth]{files/_circ_org139.png}
+		\caption{Extracted colours, reference points}
+		\label{fig:circ_org}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\linewidth}
+        \centering
+		\includegraphics[width=\linewidth]{files/_circ_red139.png}
+		\caption{Extracted colours, robot head}
+		\label{fig:circ_red}
+	\end{subfigure}
+	\caption{Final results of image processing for feature extraction} 
+\end{figure}
+
+%\begin{lstlisting}[caption=Listing]
+%\end{lstlisting}
+

@@ -19,39 +19,40 @@
 \LoadClass[11pt,onecolumn,a4paper,twoside]{article}
 
 %fundamental packages
-\usepackage[utf8]{inputenc}
-\usepackage{lmodern}
-\usepackage[T1]{fontenc}
-\usepackage[british,UKenglish,USenglish,english,american]{babel}
-\usepackage[framed]{mcode}
-\usepackage{verbatim}  % Needed for the "comment" environment to make LaTeX comments
-\usepackage[section]{placeins} % adds float barrier with each section
-\usepackage{float}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage{lmodern}
+\RequirePackage[T1]{fontenc}
+\RequirePackage[english]{babel}
+%\RequirePackage[british,UKenglish,USenglish,english,american]{babel}
+\RequirePackage[framed]{mcode}
+\RequirePackage{verbatim}  % Needed for the "comment" environment to make LaTeX comments
+\RequirePackage[section]{placeins} % adds float barrier with each section
+\RequirePackage{float}
 
 %mathematics packages
-\usepackage{array}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage[version=3]{mhchem}
-\usepackage[retainorgcmds]{IEEEtrantools}
+\RequirePackage{array}
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage[version=3]{mhchem}
+\RequirePackage[retainorgcmds]{IEEEtrantools}
 
 %Figures packages
-\usepackage{graphicx}
-\usepackage{wrapfig}
-\usepackage{subcaption}
-%\usepackage{subfigure}
-%\usepackage[center]{subcaption}
-%\usepackage[center]{subfigure}
-\usepackage[font={small,it}]{caption}
+\RequirePackage{graphicx}
+\RequirePackage{wrapfig}
+\RequirePackage{subcaption}
+%\RequirePackage{subfigure}
+%\RequirePackage[center]{subcaption}
+%\RequirePackage[center]{subfigure}
+\RequirePackage[font={small,it}]{caption}
 
 %font-codes package
-\usepackage{color}
-\usepackage{comment}
-\usepackage{hyperref}
+\RequirePackage{color}
+\RequirePackage{comment}
+\RequirePackage{hyperref}
 
 % code listings
-\usepackage{listings}
-\usepackage{xcolor}
+\RequirePackage{listings}
+\RequirePackage{xcolor}
 \lstset{
 numbers=left, 
 frame=lrtb,
@@ -62,9 +63,19 @@ postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{blue}\hookrightarrow\space
 }
 \renewcommand{\lstlistingname}{Code}
 
+% package for using SCI formulas
+\RequirePackage{siunitx}
+% be weird and use apostrophes to separate your numbers like a weirdo
+\sisetup{group-separator = {'}}
+% KATIE: you can use this command in math mode or normal mode (it automatically goes into math mode) to enter a number followed by a unit, properly formatted
+% you can also use abbreviations like \u{2}{\micro\second} and it figues it out
+% it also handles spacing and such of your number
+\renewcommand{\u}[2]{\ensuremath{\SI{#1}{#2}}}
+
+
 % Paper size and Layout
 
-\usepackage[dvips, 
+\RequirePackage[dvips, 
 	    a4paper, 
 	    top			=1cm, 
 	    bottom			=2cm, 
@@ -87,10 +98,10 @@ postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{blue}\hookrightarrow\space
 \newcommand\email[1]{\def\@email{#1}}
 
 %---- Tables ----%
-\usepackage{tabularx}
-\usepackage{booktabs} % in order to use midrule, toprule etc.
-\usepackage{multirow}
-\usepackage{multicol}
+\RequirePackage{tabularx}
+\RequirePackage{booktabs} % in order to use midrule, toprule etc.
+\RequirePackage{multirow}
+\RequirePackage{multicol}
 
 %----Newcommand----%
 
@@ -138,7 +149,7 @@ postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{blue}\hookrightarrow\space
 
 %Foot and header
 
-\usepackage{fancyhdr}
+\RequirePackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhead{} % clear all header fields
 \fancyhead[EL,OR]{\slshape \rightmark} % add title left on even pages, right on odd pages

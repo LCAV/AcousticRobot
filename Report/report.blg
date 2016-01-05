@@ -3,14 +3,15 @@ Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: report.aux
 A level-1 auxiliary file: introduction.aux
 A level-1 auxiliary file: experiment.aux
-A level-1 auxiliary file: visual.aux
-A level-1 auxiliary file: audio.aux
 A level-1 auxiliary file: movement.aux
+A level-1 auxiliary file: audio.aux
+A level-1 auxiliary file: visual.aux
+A level-1 auxiliary file: conclusion.aux
 The style file: siam.bst
 Database file #1: bibliography.bib
 You've used 14 entries,
             2030 wiz_defined-function locations,
-            590 strings with 5552 characters,
+            591 strings with 5570 characters,
 and the built_in function-call counts, 3867 in all, are:
 = -- 355
 > -- 143

@@ -1,0 +1,4 @@
+tutorial: http://mobile.cs.fsu.edu/tutorial-for-using-androids-api-5-0-camera-package/
+other tutorial: http://jylee-world.blogspot.ch/2014/12/a-tutorial-of-androidhardwarecamera2.html
+API: http://developer.android.com/reference/android/hardware/camera2/package-summary.html
+CameraManager reference: http://developer.android.com/reference/android/hardware/camera2/CameraManager.html

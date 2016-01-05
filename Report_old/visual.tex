@@ -1,0 +1,62 @@
+%!TEX root = report
+\section{Visual Localisation}
+
+For visual localisation, a set of 4 cameras is used. The camera's parameters such as their focal width, height and distortion factors (\textit{intrinsic parameters}) are determined using an algorithm provided by \texttt{OpenCV} (§ \ref{sec:intrinsic}). 
+Using color filtering and some basic shape recognition, a set of feature or reference points are localized in the images (§ \ref{sec:imageprocessing}).
+Combining these image positions with the knowledge of the exact positions in the object space, the 3D camera poses (or \textit{extrinsic parameters}) are obtained (§ \ref{sec:extrinsic}). 
+Knowing the intrinsic and extrinsic parameters of the camera, any point can be located given its image. A higher robustness is achieved when the point is triangulated using its image position in more than one camera (§ \ref{sec:triangulation}).
+This visual localization process is summarized in Figure \ref{fig:visual}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\linewidth]{files/Visual.png}
+    \caption{Steps of visual localization.}
+    \label{fig:visual}
+\end{figure}
+
+
+
+\input{intrinsic}
+\input{imageprocessing}
+\input{extrinsic}
+\input{triangulation}
+\newpage
+\input{results_visual}
+%\begin{lstlisting}[caption=Listing]
+%\end{lstlisting}
+
+%\begin{figure}[htb]
+%	\centering
+%	\begin{subfigure}[b]{0.49\linewidth}
+%		\includegraphics[width=\linewidth]{../files/img_org139.png}
+%		\caption{Regions of interest chosen by user and extracted colors}
+%		\label{feat_step0}
+%	\end{subfigure}
+%	\begin{subfigure}[b]{0.49\linewidth}
+%		\includegraphics[width=\linewidth]{../files/img_h139.png}
+%		\caption{tit{Hue} representation of original image}
+%		\label{feat_step1}
+%	\end{subfigure}
+%	\begin{subfigure}[b]{0.49\linewidth}
+%		\includegraphics[width=\linewidth]{../files/img_s139.png}
+%		\caption{tit{Saturation} representation of original image}
+%		\label{feat_step2}
+%	\end{subfigure}
+%	\begin{subfigure}[b]{0.49\linewidth}
+%		\includegraphics[width=\linewidth]{../files/circ_org139.png}
+%		\caption{Regions of interest chosen by user and extracted colors}
+%		\label{feat_step3}
+%	\end{subfigure}
+%	
+%	
+%	\begin{subfigure}[b]{0.49\linewidth}
+%		\includegraphics[width=\linewidth]{../files/zdot_RefTrackNL.png}
+%	\end{subfigure}
+%	\begin{subfigure}[b]{0.49\linewidth}
+%		\includegraphics[width=\linewidth]{../files/speeds_RefTrackNL.png}
+%	\end{subfigure}
+%	\begin{subfigure}[b]{0.49\linewidth}
+%		\includegraphics[width=\linewidth]{../files/xyz_RefTrackNL.png}
+%	\end{subfigure}
+%	\caption{Procedure for feature extraction} 
+%	\label{features}
+%\end{figure}

@@ -147,11 +147,11 @@ Looking at the frequency spectrum of the recorded response, many peaks at multip
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\linewidth]{files/notchY.png}
-    \caption{Frequency spectrum of recorded response, unfiltered (top) and with applied notch filter(bottom).}
+    \caption{Frequency spectrum of recorded response, unfiltered (top) and with applied notch filter (bottom).}
     \label{fig:RIR_filtered}
 \end{figure}
 These peaks might be the source of unwanted noise and side peaks, which is why an attempt is done to filter them out by applying notch filters on the extraneous frequencies, trying to influence the pertinent frequencies as little as possible. 
-A Finite Impulse Response filter (FIR) using a Kaiser Window was first implemented following \cite{notch}, containing few off-frequency ripples and a narrow transient region. 
+A Finite Impulse Response filter (FIR) using a Kaiser Window was first implemented following \cite{Notch}, containing few off-frequency ripples and a narrow transient region. 
 The filter is applied in forward and backward directions to avoid a phase shift with the filtered data. 
 The memory required for the solution of this problem is higher than the memory available in accessible computers. The problem persists when only one forward filter is applied. 
 

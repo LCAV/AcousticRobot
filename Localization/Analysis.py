@@ -52,6 +52,7 @@ class Analysis():
         output_end: encoder output file
         output_real: real positions output file
         output_vis: visual localization output file
+        output_cam: camera centers output file
 
         '''
         if out_dir[-1]!='/':
@@ -298,7 +299,8 @@ class Analysis():
 
         return np.array([t,h_filt]),np.array([f_filt,H_filt])
     def get_crosscorr(self):
-        ''' Get cross correlation '''
+        ''' Get cross correlation between self.input_files and
+        self.output_files'''
         global MAX_LENGTH
         MAX_L = MAX_LENGTH
         corrs = []
@@ -504,7 +506,6 @@ class Analysis():
         plt.show(block=False)
         if fname!='':
             plt.savefig(fname)
-        return cam_centers
 
 def get_parameters():
     ''' Get parameters from command line '''

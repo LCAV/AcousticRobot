@@ -124,9 +124,13 @@ def get_param():
         in_dir = in_dir+"/"
     return out_dir,in_dir,m,fisheye
 def leastsquares(choice_ref,pts_ref,cams,errs,img,pts,r_real,loop_counter,TIME):
+    '''
+    Get least squares results from calibrate.py and plot errors vs.
+    camera combinations
+    '''
+
     # average error of reference point reprojection
     errors = np.matrix([round(np.sum(x)/len(x),4) for x in errs.values()])
-
     # create list of image points of chosen reference point in all cameras.
     pts_ref_list = []
     for values in pts_ref.values():
@@ -218,7 +222,6 @@ if __name__ == '__main__':
     ref_z = 1*np.ones((1,NPTS))
     #ref_z = np.array([135,0,230,0]) #height of reference points in mm
     #ref_z = '' #height automatically set to 0
-
     # Odometry
     loop_counter = ''
 
@@ -234,12 +237,12 @@ if __name__ == '__main__':
         f_theo=WIDTH_IMG*FOCAL_MM/WIDTH_SENSOR
         if (abs(cam.C[0,0]-f_theo)>100):
             choice = raw_input("focal width obtained ({0}) far from theory {1}. Continue? (yes=y, no=n)".
-                               format(int(cam.C[0,0]),f_theoretical))
+                               format(int(cam.C[0,0]),f_theo))
             if choice == 'n':
                 sys.exit(2)
         if (abs(cam.C[1,1]-f_theo)>100):
             choice = raw_input("focal height obtained ({0}) far from theory {1}. Continue? (yes=y, no=n)".
-                               format(int(cam.C[1,1]),f_theoretical))
+                               format(int(cam.C[1,1]),f_theo))
             if choice == 'n':
                 sys.exit(2)
         cam.save(in_dir,fisheye[i])
@@ -262,7 +265,7 @@ if __name__ == '__main__':
             # save unchanged image
             plt.imsave(out_dir+str(loop_counter)+'_image_'+str(n)+'_'+TIME,img.img)
             if not CHECKERBOARD:
-                img.get_refimage(R_REF,THRESH_REF,MIN_REF,MAX_REF,NPTS,1,out_dir,
+                img.get_refimage(R_REF,THRESH_REF,MIN_REF,MAX_REF,NPTS,0,out_dir,
                                 TIME)
                 img.get_refobject(input_obj,NPTS,MARGIN,1,out_dir,TIME)
             else:
@@ -422,8 +425,6 @@ if __name__ == '__main__':
 
     p_real_array = np.array(p_real_list).reshape(len(p_real_list),3)
     p_obj_array = np.array(p_obj_list).reshape(len(p_obj_list),3)
-    fname=out_dir+'geometry_'+TIME+'.png'
-    calib.plot_geometry(PTS_BASIS,MARGIN,p_real_array,p_obj_array,fname)
     plt.close('all')
     print("Program terminated")
     '''except: # disconnect robot when an error occurs

@@ -1,0 +1,16 @@
+auto lo
+iface lo inet loopback
+
+iface eth0 inet static
+address 172.16.156.138
+netmask 255.255.255.0
+gateway 172.16.156.1
+
+auto wlan0
+allow-hotplug wlan0
+iface wlan0 inet static
+address 172.16.156.139
+netmask 255.255.255.0
+gateway 172.16.156.1
+wireless-essid korebot
+
