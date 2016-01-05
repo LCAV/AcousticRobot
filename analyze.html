@@ -1,7 +1,100 @@
 <h2> Analyze </h2>
 
-<h3> Where to find results </h3>
+<p>
+As explained in Section <a href="operate.html">Operate</a>, a big large number of files is created in the output folder after running to the experiments. 
+</p>
+<h3> Analysis class </h3>
+<p>
+<b>Important</b>: you need to adjust the two variables "PTS_BASIS" and "MARGIN" manually for correct functioning of the program. 
+<h4> Positions </h4>
+First of all, there are text files of the robot's real positions, its odometry encoder measurements, its position calculated using the cameras and the camera's positions. For their evaluation, a Python class Analysis.py was created.
+You need to construct an Analysis object with at least the output folder as argument. Then, the names of the outputfiles of interest can be given to the respective fields, as explained in the Code documentation <a href="develop.html">Develop</a>. 
+</p>
+<p>
+For example, if you are only interested in plotting the robot's real positions, the odometry positions and the calculated camera postions, you could enter
+PTS_BASIS. <br>
 
-<h3> List of graphics </h3>
+<code>
+    b = Analysis.Analysis('output_analysis/') <br>
+    b.output_real = 'output/real_X.txt' <br>
+    b.output_vis = 'output/posobj_fix_X.txt' <br>
+    b.output_cam = 'output/cameras_X.txt'<br>
+</code>
+</p>
 
-<h3> Further suggestions </h3>
+<p>
+Once the object is created, you can plot its components, as far as they're defined, by calling b.plot_geometry(fname). The resulting picture is saved under output_analysis/fname. It will look similar to Figure 1.
+
+<figure>
+<img src="../images/res2_room.png" width=500px>
+<figcaption>
+Figure 1 - Plot obtained from Analysis.plot_goemtry(fname).
+</figcaption>
+</figure>
+
+</p>
+
+<h4> Room impulse response </h4>
+<p>
+
+You can also obtain the impulse responses at every position with different zooms using the Analysis object. 
+Simply declare the input_wav file and output_wav_list. If you also want to include vertical lines at the expected time of arrival of the principal echoes, add 'output/real_X.txt' and run b.get_TOA() for calculating the times of arrival. Then, run b.get_RIR() to get plots of the impulse responses. The function also returns the couples [t,h] [f,H] for the impulse response in time and frequency domain respectively. A typical plot created by this function is shown in Figure 2.
+</p> 
+<code>
+    b = Analysis.Analysis('output_analysis/') <br>
+    b.input_wav = 'input/sound.wav' <br>
+    b.output_wav_list = ['output/0_audio_X_0.txt','output/0_audio_X_1.txt','output/1...', etc. ] <br>
+    # optional:<br>
+    b.output_real = 'output/real_X.txt'<br>
+    b.get_TOA()<br>
+    # get impulse responses<br>
+    [t,h],[f,H]=b.get_RIR()<br>
+</code>
+<figure>
+<img src="../images/RIR.png" width=500px>
+<figcaption>
+Figure 2 - Plot obtained from Analysis.get_RIR().
+</figcaption>
+</figure>
+</p>
+<p>
+Note that the current program filters out certain harmonic frequencies for better results. The list of frequencies needs to be adjusted to contain all frequencies at which the reponse Y(w) shows peaks. If no filtering shall be done, you can comment the line b.apply_filter(time, freq).
+</p>
+
+<h4> Correlation </h4>
+<p>
+The analysis class also serves for doing the latency analysis, described in <a href="prepare.html"> Prepare </a>. 
+You can use the b.get_corsscor() to plot the cross correlation between the input file b.input_wav and each output file from b.output_wav_list. (Figure 3)
+</p>
+
+
+<figure>
+<img src="../images/crosscor.png" width=500px>
+<figcaption>
+Figure 3 - Plot of cross correlation with maximum.
+</figcaption>
+</figure>
+
+<h3> Other results </h3>
+
+
+For the visual localization, a plot of the resulting 2D and 3D errors of the robot position or the reference point positions for the visual localization algorithm is created and saved under "output/N_combi_rob_X.png" (Figure 4).
+
+<figure>
+<img src="../images/res2_combi_rob.png" width=500px>
+<figcaption>
+Figure 4 - 2D and 3D errors of robot position in "output/N_combi_rob_X.png".
+</figcaption>
+</figure>
+
+You can check the success of the extrinsic calibrating by looking at "output/summary_X.png", which visualizes the reprojection of all points of the image to x-y plane in the reference point coordinate frame (Figure 5).  
+
+<figure>
+<img src="../images/ref_summary.png" width=500px>
+<figcaption>
+Figure 5 - Visualization of reprojection errors in "output/summary_X.png".
+</figcaption>
+</figure>
+
+</p>
+

@@ -44,21 +44,48 @@ A line was added to the function stop_drive_motors()  so that when the robot is 
 Without doing so, the motors sometimes entered some unstable state where they were making a loud noise after receiving the command to stop.
 The resulting code with highlighted inserted line was:
 
-In order to compile it,... 
-
 </p>
-
 
 <h3> Cameras </h3>
 <p> Describe functioning of cameras 
+You can find the parameters of the cameras <p><a href="http://elinux.org/Rpi_Camera_Module"target="_blank">here</a></p>
+
 </p>
 
 
 <h3> Program </h3>
 <p><a href="../html/index.html" target="_blank">View Code with Doxygen</a></p>
 
+<p>
+There are some debug options for the code, there is more information if you type 'h' as command line argument.
+</p>
+
+
 <h3> Page </h3>
-<p> Run ./template.sh for automatically adding template to all *.html files in home folder. The completed files will be copied to pages/. Don't edit these files, always edit files in home folder and run ./template.sh before commiting.</p>
+<p> Run ./template.sh for automatically adding template to all *.html files in home folder. 
+The completed files will be copied to pages/. 
+Don't edit the files in the pages/ folder, always edit files in home folder and run ./template.sh before commiting.
+</p>
+
+<h3> How to create backup of SD Card (Mac) </h3>
+
+<p>Insert the SD card into your computer and open a Terminal. 
+Find out the number of the inserted disk by typing </p>
+<code>diskutil list</code>
+
+<p> In the following, the SD card is assumed to have number 2. 
+Unmount the SD card by typing <code>diskutil unmountdisk /dev/disk2</code>. 
+Now you may copy the image to your desired location by typing: </p>
+<code>sudo dd if=/dev/rdisk2 bs=2m | gzip > ~/Desktop/backups/backup_robot.gz</code>
+<p> or, directly zipping the file: </p>
+<code>sudo dd if=/dev/rdisk2 bs=2m | gzip > ~/Desktop/backups/backup_robot.gz</code>
+
+<p> When the backup is needed, it can be unzipped by entering 
+<code> sudo dd if=/dev/rdisk2 bs=2m | gzip > ~/Desktop/backups/backup_robot.gz </code>. 
+Once the image is unzipped, the card where the backups is to be copied to can be
+inserted and unmounted as described above and then the image can be copied onto it using 
+</p>
+<code> sudo dd if=~/Desktop/backups/backup_robot.img of=/dev/rdisk2 bs=2m </code>
 </section>
 </div>
 
