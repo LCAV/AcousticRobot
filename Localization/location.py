@@ -63,8 +63,10 @@ THRESH_REF = 20 # empiric threshold for circle detection
 # MARGIN = np.array([2000,1000],dtype=np.float) #margin from leftmost and downlost ref point to reference (in mm)
 # PTS_BASIS = np.array(([2275,3769],[3128,3713])) #position of first and second reference points from wall (in mm)
 # res 1
-MARGIN = np.array([1000,1000],dtype=np.float) #margin from leftmost and downlost ref point to reference (in mm)
-PTS_BASIS = np.array(([4000,1500],[2500,3000])) #position of first and second reference points from wall (in mm)
+#MARGIN = np.array([1000,1000],dtype=np.float) #margin from leftmost and downlost ref point to reference (in mm)
+#PTS_BASIS = np.array(([4000,1500],[2500,3000])) #position of first and second reference points from wall (in mm)
+MARGIN = np.array([2000,2000],dtype=np.float) #margin from leftmost and downlost ref point to reference (in mm)
+PTS_BASIS = np.array(([2746,3066],[3506,2708])) #position of first and second reference points from wall (in mm)
 
 R_HEIGHT = 1650
 NCAMERAS = [139,141,143,145]
@@ -277,6 +279,7 @@ if __name__ == '__main__':
                 calib.write_ref(out_dir,name,img.ref_img,img.M,img.ref_obj)
 
             # save camera center
+            img.ref_obj=img.ref_obj[:,:2]
             img.ref_obj=img.augment(img.ref_obj,ref_z)
             cam.reposition(img.ref_obj,img.ref_img,flag)
             fname="cameras_"+TIME

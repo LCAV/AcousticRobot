@@ -35,8 +35,8 @@ MAX_LENGTH = Fs*2
 TLAT = 0.1454 # Latency time, found with 660mm distance test
 
 # res2:
-MARGIN = np.array([2000,1000],dtype=np.float) #MARGIN from leftmost and downlost ref point to reference (in mm)
-PTS_BASIS = np.array(([2275,3769],[3128,3713])) #position of first and second reference points from wall (in mm)
+MARGIN = np.array([2000,2000],dtype=np.float) #MARGIN from leftmost and downlost ref point to reference (in mm)
+PTS_BASIS = np.array(([2746,3066],[3506,2708])) #position of first and second reference points from wall (in mm)
 # res1:
 #MARGIN = np.array([1000,1000],dtype=np.float) #MARGIN from leftmost and downlost ref point to reference (in mm)
 #PTS_BASIS = np.array(([2500,3000],[4000,1500])) #position of first and second reference points from wall (in mm)
