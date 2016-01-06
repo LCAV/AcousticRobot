@@ -26,9 +26,10 @@ MIN_F = 100 # minimum of sine sweep
 MAX_F = 20000  # maximum of sine sweep
 Fs = 44100. # sampling rate
 T = 10 # seconds of interest for room impulse response
-WIDTH_ROOM = 7078 #in mm
-HEIGHT_ROOM = 7311 #in mm
-N_WALLS = 4
+WIDTH_ROOM = 7078 # in mm
+HEIGHT_ROOM = 7311 # in mm
+HEIGHT_CEILING = 1494 # in mm, measured from microphones
+N_WALLS = 5
 C = 343200 # speed of sound at 20C, dry air, in mm/s
 # CROSS CORRELATION
 MAX_LENGTH = Fs*2
@@ -37,13 +38,16 @@ TLAT = 0.1454 # Latency time, found with 660mm distance test
 # res2:
 MARGIN = np.array([2000,2000],dtype=np.float) #MARGIN from leftmost and downlost ref point to reference (in mm)
 PTS_BASIS = np.array(([2746,3066],[3506,2708])) #position of first and second reference points from wall (in mm)
+# res2:
+#THETA_0=round(np.pi/4,4)
+THETA_0=round(3*np.pi/2,4)
 # res1:
 #MARGIN = np.array([1000,1000],dtype=np.float) #MARGIN from leftmost and downlost ref point to reference (in mm)
 #PTS_BASIS = np.array(([2500,3000],[4000,1500])) #position of first and second reference points from wall (in mm)
 
 class Analysis():
     def __init__(self,out_dir,input_wav='', output_wav_list='', output_enc='',
-                 output_real='',output_vis='',output_cam=''):
+                 output_real='',output_vis='',output_cam='',output_camreal=''):
         '''
         _Parameters_:
         out_dir: folder where results should be saved
@@ -64,7 +68,53 @@ class Analysis():
         self.output_real = output_real
         self.output_vis = output_vis
         self.output_cam = output_cam
+        self.output_camreal = output_camreal
         self.U=''
+        self.y=[]
+        self.u=''
+        self.cam=''
+        self.camreal=''
+        self.real=''
+        self.enc=''
+        self.vis=''
+    def read_file(self,fname):
+        if type(fname)==str:
+            if fname[-3:]=='wav': # input wav file
+                Fs2,u= wavfile.read(fname)
+                return u
+            else: # all .txt output files
+                return np.loadtxt(fname,dtype=np.float32)
+        if type(fname)==list: # output wav file list
+            y_arr=[]
+            for output_wav in fname:
+                y_dic = dict()
+                fname = output_wav.partition('/')
+                fname = [a for a in fname if a!= '']
+                step_number = int(fname[-1][0])
+                channel_number = int(output_wav[-5])
+                Fs,y = wavfile.read(output_wav)
+                y_dic['channel']=channel_number
+                y_dic['step']=step_number
+                y_dic['y']=y
+                y_dic['Fs']=Fs
+                y_arr.append(y_dic)
+            return y_arr
+    def read_files(self):
+        ''' reads the files if they are specified'''
+        if self.input_wav!='':
+            self.u=self.read_file(self.input_wav)
+        if self.output_wav_list!='':
+            self.y=self.read_file(self.output_wav_list)
+        if self.output_cam!='':
+            self.cam=self.read_file(self.output_cam)
+        if self.output_camreal!='':
+            self.camreal=self.read_file(self.output_camreal)
+        if self.output_real!='':
+            self.real=self.read_file(self.output_real)
+        if self.output_vis!='':
+            self.vis=self.read_file(self.output_vis)
+        if self.output_enc!='':
+            self.enc=self.read_file(self.output_enc)
     def get_TOA(self):
         '''
         Calculate matrix of estimated time of arrival based on distances
@@ -75,15 +125,15 @@ class Analysis():
             K is number of walls. Therefore, the rows correspond the response
             times from the K walls and the columns correspond to steps.
         '''
-        output_real = np.loadtxt(self.output_real,dtype=np.float32)
-        U = np.zeros((N_WALLS,output_real.shape[0]))
-        for i in range(0,output_real.shape[0]):
-            U[0,i]=(HEIGHT_ROOM-output_real[i,1])*2/C
-            U[1,i]=(WIDTH_ROOM-output_real[i,0])*2/C
-            U[2,i]=output_real[i,1]*2/C
-            U[3,i]=output_real[i,0]*2/C
-        self.U = U+TLAT
-        return U
+        U = np.zeros((N_WALLS,self.real.shape[0]))
+        for i in range(0,self.real.shape[0]):
+            U[0,i]=(HEIGHT_ROOM-self.real[i,1])
+            U[1,i]=(WIDTH_ROOM-self.real[i,0])
+            U[2,i]=self.real[i,1]
+            U[3,i]=self.real[i,0]
+            U[4,i]=HEIGHT_CEILING
+        self.U = U*2/C+TLAT
+        return self.U
     def get_RIR(self):
         ''' calculates the RIR from self.input_wav and all corresponding
         self.output_wav_list files and saves plots in self.out_dir with the
@@ -95,30 +145,22 @@ class Analysis():
         (t,h_filtered): time vector and impulse response
         (f,H_filtered): frequency vector and FFT of impulse response
         '''
-        Fs,u = wavfile.read(self.input_wav)
-        for output_wav in self.output_wav_list:
-            step_number = int(output_wav.partition('/')[-1][0])
-            channel_number = int(output_wav[-5])
-            # Read input files
-            name=self.out_dir+str(step_number)+'_'+str(channel_number)+'_NEW_filtY'
-            Fs2,y = wavfile.read(output_wav)
-            if Fs2 != Fs:
-                print("Warning: Sampling rate from input doens't match output:",
-                      Fs,Fs2)
-            # reshape to one-channel array (can be removed once Audio.py is
-            # fixed)
-            y = y.reshape((-1))
-            Fs=float(Fs)
+        for output_wav in self.y:
+            y = output_wav['y']
+            step_number=output_wav['step']
+            channel_number=output_wav['channel']
+            name=self.out_dir+str(step_number)+'_'+str(channel_number)+'_filt'
+            Fs=float(output_wav['Fs'])
             # Deconvolute signals
             t = np.linspace(0,T,T*Fs) # time vector
-            N=2*max(len(u),len(y))
+            N=2*max(len(self.u),len(y))
             f = np.fft.rfftfreq(N, d=1/Fs)
             Y = np.fft.rfft(y,n=N) # automatically adds 0s until N
+            U = np.fft.rfft(self.u,n=N)
 
-            U = np.fft.rfft(u,n=N)
             # apply filter to Y to filter out harmonic frequencies
             __,[f,Y] = self.apply_filter([t,y],[f,Y],'Y')
-            H = np.zeros((max(len(u),len(y))+1),dtype=np.complex)
+            H = np.zeros((max(len(self.u),len(y))+1),dtype=np.complex)
             # find the length where U is not 0. (or bigger than 1000)
             lengthU = U.shape[0]
             thresh = 1000
@@ -164,7 +206,6 @@ class Analysis():
             # Show and save results
             plt.close('all')
 
-
             plt.figure(1)
             plt.plot(t,h_filtered[:len(t)]*1000),plt.axis('tight')
             plt.xlabel('t [s]'),plt.ylabel('h')
@@ -175,26 +216,31 @@ class Analysis():
             plt.figure(2)
             plt.plot(f,abs(H))
             plt.xlabel('f (Hz)'),plt.ylabel('|H(f)|')
-            plt.xlim([0,int(max(f)/2)])
+            plt.xlim([0,int(max(abs(f))/2)])
             plt.title('Raw RIR and filter step {0} channel {1}'.
                       format(step_number,channel_number))
-            plt.savefig(name+'_unfiltered')
+            #plt.savefig(name+'_unfiltered')
             i = 1
-            for zoom in [zoom1,zoom2,zoom3]:
+            for zoom in [zoom2,zoom3]:
+                legend_str=[]
                 plt.figure(i+2)
                 plt.plot(t,h_filtered[:len(t)]*1000)
+                legend_str.append('impulse response')
                 # plot vertical lines at estimated arrival times
                 if self.U != '':
-                    colors = ['red','green','black','orange']
+                    colors = ['red','green','black','orange','grey']
                     j = 0
                     for x_TOA in self.U[:,step_number]:
                         plt.axvline(x=x_TOA,color=colors[j],linestyle='dashed',linewidth=1)
                         j=j+1
+                    legend_str.append(['wall 1','wall 2','wall 3','wall 4','ceiling'])
                 # plot vertical line at latency time
                 plt.axvline(x=TLAT,color='black',linestyle='-',linewidth=2)
+                legend_str.append('latency')
                 # plot parameters
                 plt.xlim(zoom),plt.xlabel('t [s]'),plt.ylabel('h')
-                plt.legend(['impulse response','wall 1','wall 2','wall 3','wall 4','latency'],'best')
+                plt.legend(legend_str)
+                plt.legend(['impulse response','wall 1','wall 2','wall 3','wall 4','ceiling','latency'],'best')
                 plt.title('RIR step {0} channel {1} zoom {2}'.
                       format(step_number,channel_number,i))
                 plt.savefig(name+'_zoom'+str(i))
@@ -295,7 +341,7 @@ class Analysis():
         #ax1.set_xlabel('Time (sec)'); ax2.set_xlabel('Time (sec)')
         ax3.set_xlabel('f [Hz]'); ax4.set_xlabel('f [Hz]')
         plt.show(block=False)
-        plt.savefig('../Report/files/Notch_test'+method+'.png')
+        plt.savefig('self.out_dir'+'Notch_test'+method+'.png')
 
         return np.array([t,h_filt]),np.array([f_filt,H_filt])
     def get_crosscorr(self):
@@ -391,8 +437,8 @@ class Analysis():
             r=D/2*(l_left+l_right)/(l_left-l_right)
 
             # calculate new positions
-            y2 = y1 + r*(np.sin(theta1)-np.sin(theta2))
-            x2 = x1 + r*(np.sin(theta2-theta1))
+            y2 = y1 + r*(np.sin(theta2)-np.sin(theta1))
+            x2 = x1 + r*(np.cos(theta2)-np.cos(theta1))
             # res 2:
             pos_old=np.array([round(x2),round(y2),round(theta2,4)])
             positions.append(pos_old)
@@ -480,7 +526,7 @@ class Analysis():
         if self.output_enc!='':
             enc_array = np.loadtxt(self.output_enc,dtype=np.float32)
             array_wall = []
-            pos_0 = [round(real_array[0,0]),round(real_array[0,1]),round(np.pi/4,4)]
+            pos_0 = [round(real_array[0,0]),round(real_array[0,1]),THETA_0]
             odo_array = self.odometry(pos_0,enc_array)
             plt.plot(odo_array[:,0],odo_array[:,1],marker='x',color='k')
             legend_str.append('odometry')

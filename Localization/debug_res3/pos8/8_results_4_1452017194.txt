@@ -1,0 +1,5 @@
+Best combination (based on best reference point 2D error with fixed height):[[141 145]], error:      2
+Fixed height [mm]: [  889 ,  2970 ,  1650], error 2D:   111
+Free height [mm]:  [  913 ,  2962 ,  1619], error 2D:    85 3D:    91
+Real position [mm]:[  994 ,  2934 ,  1650]
+Error reference points [px]: [[ 0.5539  0.8002  0.9161  0.4338]] 
