@@ -22,7 +22,7 @@ R_wheels =150. # radius of robot wheels in mm
 D=710. # distance between two wheels in mm
 
 # RIR
-MIN_F = 100 # minimum of sine sweep
+MIN_F = 50# minimum of sine sweep
 MAX_F = 20000  # maximum of sine sweep
 Fs = 44100. # sampling rate
 T = 10 # seconds of interest for room impulse response
@@ -47,7 +47,7 @@ THETA_0=round(3*np.pi/2,4)
 
 class Analysis():
     def __init__(self,out_dir,input_wav='', output_wav_list='', output_enc='',
-                 output_real='',output_vis='',output_cam='',output_camreal=''):
+                 output_real='',output_vis_fix='',output_vis_free='',output_cam='',output_camreal=''):
         '''
         _Parameters_:
         out_dir: folder where results should be saved
@@ -66,17 +66,21 @@ class Analysis():
         self.output_wav_list = output_wav_list
         self.output_enc = output_enc
         self.output_real = output_real
-        self.output_vis = output_vis
+        self.output_vis_fix = output_vis_fix
+        self.output_vis_free = output_vis_free
         self.output_cam = output_cam
         self.output_camreal = output_camreal
         self.U=''
         self.y=[]
         self.u=''
         self.cam=''
+        self.camwall=''
         self.camreal=''
         self.real=''
         self.enc=''
-        self.vis=''
+        self.odo=''
+        self.vis_free=''
+        self.vis_fix=''
     def read_file(self,fname):
         if type(fname)==str:
             if fname[-3:]=='wav': # input wav file
@@ -111,8 +115,10 @@ class Analysis():
             self.camreal=self.read_file(self.output_camreal)
         if self.output_real!='':
             self.real=self.read_file(self.output_real)
-        if self.output_vis!='':
-            self.vis=self.read_file(self.output_vis)
+        if self.output_vis_fix!='':
+            self.vis_fix=self.read_file(self.output_vis_fix)
+        if self.output_vis_free!='':
+            self.vis_free=self.read_file(self.output_vis_free)
         if self.output_enc!='':
             self.enc=self.read_file(self.output_enc)
     def get_TOA(self):
@@ -159,34 +165,21 @@ class Analysis():
             U = np.fft.rfft(self.u,n=N)
 
             # apply filter to Y to filter out harmonic frequencies
-            __,[f,Y] = self.apply_filter([t,y],[f,Y],'Y')
-            H = np.zeros((max(len(self.u),len(y))+1),dtype=np.complex)
-            # find the length where U is not 0. (or bigger than 1000)
-            lengthU = U.shape[0]
-            thresh = 1000
-            for i in range(lengthU-1,-1,-1):
-                if abs(U[i])>thresh:
-                    print("non-zero length U", lengthU)
-                    lengthU = i
-                    break
-            # alternative: calculate length of U based on max frequency
-            #freq_max = 20000 # max freq of sine sweep in Hz
-            #lengthU=int(freq_max*U.shape[0]*2/Fs)
+            #__,[f,Y] = self.apply_filter([t,y],[f,Y],'Y')
 
             # calculate impulse response
-            lengthU=400000
+            H = np.zeros(N/2+1,dtype=np.complex)
+            # delete response after max frequency
+            lengthU=9./10.*MAX_F*N/Fs
             H[:lengthU] = Y[:lengthU]/U[:lengthU]
-
-
-            H[:int(50.*N/Fs)]=0
-            #__,[f,H] = self.apply_filter([t,y],[f,H],'H')
-            #H[lengthU:]=0
-            #H[400000:]=0
+            # delete response up to min frequency
+            H[:int(MIN_F*N/Fs)]=0
 
             # Apply window
-            #M = int(N*MAX_F/Fs) # k of highest frequency of input signal
             #hann=np.zeros(H.shape)
             #hann[:M] = np.hanning(2*M)[M:]
+
+            #__,[f,H_filtered] = self.apply_filter([t,y],[f,H],'H')
             H_filtered=H
 
             # Create impulse response
@@ -350,21 +343,17 @@ class Analysis():
         global MAX_LENGTH
         MAX_L = MAX_LENGTH
         corrs = []
-        Fs,u = wavfile.read(self.input_wav)
         i=0
-        for output_wav in self.output_wav_list:
-            print("treating",output_wav)
-            channel_number = int(output_wav[-5])
+        for output_wav in self.y:
+            y = output_wav['y']
+            step_number=output_wav['step']
+            channel_number=output_wav['channel']
+            name=self.out_dir+str(step_number)+'_'+str(channel_number)+'_CrossCorr'
+            Fs=float(output_wav['Fs'])
             # Read input files
-            name=self.out_dir+str(channel_number)+'_CrossCorrelation'
-            Fs2,y = wavfile.read(output_wav)
-            if Fs2 != Fs:
-                print("Warning: Sampling rate from input doens't match output:",
-                      Fs,Fs2)
-            Fs=float(Fs)
             # make signals go from 0 to 1 to avoid overflow:
             bits = 16 # nubmer of bits of wav file.
-            u = u.astype(np.float32)/2**(bits-1)
+            u = self.u.astype(np.float32)/2**(bits-1)
             y = y.astype(np.float32)/2**(bits-1)
             # compute cross-correlation
             if u.shape[0]<MAX_LENGTH or y.shape[0]<MAX_LENGTH:
@@ -429,9 +418,7 @@ class Analysis():
             theta1 = pos_old[2]
             # conversion in mm
             l_left = enc[0]/N_tot*2*np.pi*R_wheels
-            print(l_left)
             l_right = -enc[1]/N_tot*2*np.pi*R_wheels
-            print(l_right)
             dtheta=(l_left-l_right)/D
             theta2 = dtheta+theta1
             r=D/2*(l_left+l_right)/(l_left-l_right)
@@ -439,16 +426,9 @@ class Analysis():
             # calculate new positions
             y2 = y1 + r*(np.sin(theta2)-np.sin(theta1))
             x2 = x1 + r*(np.cos(theta2)-np.cos(theta1))
-            # res 2:
             pos_old=np.array([round(x2),round(y2),round(theta2,4)])
             positions.append(pos_old)
-            # res 1:
 
-            #pos_old=np.array(calib.change_ref_to_wall(PTS_BASIS,MARGIN,
-            #    np.array([round(x2),round(y2),round(theta2,4)]).reshape(1,3)))[0]
-            #positions.append(pos_old)
-
-            print(pos_old)
             dthetas.append(dtheta)
             rs.append(r)
         return np.array(positions)
@@ -472,86 +452,107 @@ class Analysis():
         plt.title('Odometry precision study')
         plt.axis('equal'),plt.show(block=False)
         plt.savefig(out_dir+'odometry')
-    def plot_geometry(self,fname=''):
+    def plot_geometry(self,fname='',zoom=False):
         ''' Reads results from files of specified output file names (if not empty)
         and plots everything in the wall reference frame i
         _Parameters_:
-            fname:   file name (with path) where resulting image is saved
+            [fname:]    file name where resulting image is saved (within self.out_dir)
+                        no output saved if not specified or set to '' (default '')
+            [zoom:]     weather to zoom to positions or not. (default False)
         _Returns_:
             nothing
         '''
-        plt.figure()
+        if zoom:
+            plt.figure()
+        else:
+            plt.figure(figsize=(9,8))
         legend_str=[]
 
-        # plot line between frist two reference points
-        if PTS_BASIS != '':
+        if not zoom:
+            # plot line between frist two reference points
             ax = plt.plot(PTS_BASIS[:,0],PTS_BASIS[:,1],color='k',linestyle='-')
             legend_str.append('ref basis')
-        # plot reference coordinate system
-        origin=calib.change_ref_to_wall(PTS_BASIS,MARGIN,np.matrix([0,0,0]))
-        xaxis=calib.change_ref_to_wall(PTS_BASIS,MARGIN,np.matrix([MARGIN[1],0,0]))
-        yaxis=calib.change_ref_to_wall(PTS_BASIS,MARGIN,np.matrix([0,MARGIN[1],0]))
-        plt.plot([yaxis[0,0],origin[0,0],xaxis[0,0]],[yaxis[0,1],origin[0,1],xaxis[0,1]],color='b',linestyle=':')
-        legend_str.append('ref origin')
-        # plot wall
-        x=[0,WIDTH_ROOM,WIDTH_ROOM,0,0]
-        y=[0,0,HEIGHT_ROOM,HEIGHT_ROOM,0]
-        plt.plot(x,y,linestyle='dashed',color='k')
-        legend_str.append('walls')
+            # plot reference coordinate system
+            origin=calib.change_ref_to_wall(PTS_BASIS,MARGIN,np.matrix([0,0,0]))
+            xaxis=calib.change_ref_to_wall(PTS_BASIS,MARGIN,np.matrix([MARGIN[1],0,0]))
+            yaxis=calib.change_ref_to_wall(PTS_BASIS,MARGIN,np.matrix([0,MARGIN[1],0]))
+            plt.plot([yaxis[0,0],origin[0,0],xaxis[0,0]],[yaxis[0,1],origin[0,1],xaxis[0,1]],color='b',linestyle=':')
+            legend_str.append('ref origin')
+            # plot wall
+            x=[0,WIDTH_ROOM,WIDTH_ROOM,0,0]
+            y=[0,0,HEIGHT_ROOM,HEIGHT_ROOM,0]
+            plt.plot(x,y,linestyle='dashed',color='k')
+            legend_str.append('walls')
         # plot robot positions
         if self.output_real!='':
-            real_array = np.loadtxt(self.output_real,dtype=np.float32)
-            # for results of 22.11. (not yet in wall reference)
-            #array_wall = []
-            #for c in real_array:
-            #    res=calib.change_ref_to_wall(PTS_BASIS,MARGIN,c.reshape(1,3))
-            #    array_wall.append(res)
-            #real_array = np.array(array_wall).reshape(3,3)
-            plt.plot(real_array[:,0],real_array[:,1],marker='x',color='g')
+            plt.plot(self.real[:,0],self.real[:,1],marker='x',color='g')
             legend_str.append('real')
         # plot visual positions
-        if self.output_vis!='':
-            obj_array = np.loadtxt(self.output_vis,dtype=np.float32)
-            if len(obj_array.shape) > 1:
-                plt.plot(obj_array[:,0],obj_array[:,1],marker='x',color='r')
+        if self.output_vis_fix!='':
+            if len(self.vis_fix.shape) > 1:
+                plt.plot(self.vis_fix[:,0],self.vis_fix[:,1],marker='x',color='r')
             else:
-                # for results of 22.11. (not yet in wall reference)
-                #obj_array = calib.change_ref_to_wall(PTS_BASIS,MARGIN,obj_array.reshape(1,3))
-                #plt.plot(obj_array[0,0],obj_array[0,1],marker='x',color='r')
-
-                plt.plot(obj_array[0],obj_array[1],marker='x',color='r')
-
-            legend_str.append('visual')
+                plt.plot(self.vis_fix[0],self.vis_fix[1],marker='x',color='r')
+            if zoom:
+                error = np.linalg.norm(self.real[:,:2]-self.vis_fix[:,:2])/self.real.shape[0]
+                legend_str.append('visual fixed RMS-error = {0:3.2f}'.format(error))
+            else:
+                legend_str.append('visual fixed')
+        if self.output_vis_free!='':
+            if len(self.vis_free.shape) > 1:
+                plt.plot(self.vis_free[:,0],self.vis_free[:,1],marker='x',color='grey')
+            else:
+                plt.plot(self.vis_free[0],self.vis_free[1],marker='x',color='grey')
+            if zoom:
+                error = np.linalg.norm(self.real[:,:2]-self.vis_free[:,:2])/self.real.shape[0]
+                legend_str.append('visual free RMS-error = {0:3.2f}'.format(error))
+            else:
+                legend_str.append('visual free')
         # plot odometry positions
         if self.output_enc!='':
-            enc_array = np.loadtxt(self.output_enc,dtype=np.float32)
-            array_wall = []
-            pos_0 = [round(real_array[0,0]),round(real_array[0,1]),THETA_0]
-            odo_array = self.odometry(pos_0,enc_array)
-            plt.plot(odo_array[:,0],odo_array[:,1],marker='x',color='k')
-            legend_str.append('odometry')
+            pos_0 = [round(self.real[0,0]),round(self.real[0,1]),THETA_0]
+            self.odo = self.odometry(pos_0,self.enc)
+            plt.plot(self.odo[:,0],self.odo[:,1],marker='x',color='k')
+            if zoom:
+                error = np.linalg.norm(self.real[:,:2]-self.odo[:,:2])/self.real.shape[0]
+                legend_str.append('odometry RMS-error = {0:3.2f}'.format(error))
+            else:
+                legend_str.append('odometry')
         # plot camera positions
         if self.output_cam!='':
-            cam_centers = np.loadtxt(self.output_cam,dtype=np.float32)
-            cam_centers_wall = []
-            for c in cam_centers:
-                res=calib.change_ref_to_wall(PTS_BASIS,MARGIN,c[1:].reshape(1,3))
-                c[1:]=res[0]
-                cam_centers_wall.append(c)
-            cam_centers = np.array(cam_centers_wall)
+            cam_wall = []
+            # first time: change to wall reference frame.
+            if self.camwall=='':
+                for c in self.cam:
+                    res=calib.change_ref_to_wall(PTS_BASIS,MARGIN,c[1:].reshape(1,3))
+                    c[1:]=res[0]
+                    cam_wall.append(c)
+                self.camwall = np.array(cam_wall)
             colors={139:'blue',141:'red',143:'green',145:'orange'}
-            for i in range(0,cam_centers.shape[0]):
-                plt.plot(cam_centers[i,1],cam_centers[i,2],marker='o',linestyle='',color=colors[cam_centers[i,0]])
-                #legend_str.append(str(int(cam_centers[i,0])))
+            for i in range(0,self.camwall.shape[0]):
+                plt.plot(self.camwall[i,1],self.camwall[i,2],marker='x',linestyle='',color=colors[self.camwall[i,0]])
+                #legend_str.append(str(int(self.camwall[i,0])))
+        if self.output_camreal!='':
+            colors={139:'blue',141:'red',143:'green',145:'orange'}
+            for i in range(0,self.camreal.shape[0]):
+                plt.plot(self.camreal[i,1],self.camreal[i,2],marker='o',linestyle='',color=colors[self.camreal[i,0]])
+                #legend_str.append(str(int(self.camreal[i,0])))
         plt.legend(legend_str,'best')
         # plot properties
         plt.grid(True)
-        plt.axes().set_aspect('equal','datalim')
         plt.xlabel('x [mm]'),plt.ylabel('y [mm]')
-        plt.title('Experimental Results in Room Reference Frame \n')
+        if zoom:
+            plt.xlim([2000,5000])
+            plt.ylim([2000,5000])
+            plt.title('Experimental Results - Robot Positions\n')
+        else:
+            plt.axes().set_aspect('equal')
+            plt.xlim([-1000,8000])
+            plt.ylim([-1000,8000])
+            plt.title('Experimental Results in Room Reference Frame \n')
         plt.show(block=False)
         if fname!='':
-            plt.savefig(fname)
+            plt.savefig(self.out_dir+fname)
 
 def get_parameters():
     ''' Get parameters from command line '''

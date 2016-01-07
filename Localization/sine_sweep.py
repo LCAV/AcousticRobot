@@ -4,7 +4,7 @@ from scipy.io import wavfile
 import wave
 import matplotlib.pyplot as plt
 
-f1 = 100.     # Start frequency in [Hz]
+f1 = 50.     # Start frequency in [Hz]
 f2 = 20000.  # End frequency in [Hz]
 T  = 11.      # Pulse duration in [s]
 fs = 44100.  # Sampling frequency in [Hz]

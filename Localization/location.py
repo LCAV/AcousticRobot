@@ -13,6 +13,7 @@ import cv2
 import time
 import move
 import Audio
+import os
 USAGE = '''
 USAGE: locate.py -o <output path> -i <input path> [-m <number of points>]
 [-f <fisheye on (0/1)>] [-d for debugging] [-h to show this help]
@@ -163,7 +164,7 @@ def leastsquares(choice_ref,pts_ref,cams,errs,img,pts,r_real,loop_counter,TIME):
                             'Robot',fisheye)
 
     # Pick best combination based on 2D error with fixed height
-    index2,err2 = calib.get_best_combination(e21)
+    index2,err2 = calib.get_best_combination(e23)
     p_lq_fix = p3[index2]
     err1 = e23[index2]
     p_lq_free = np.matrix(p4[index2])
@@ -172,7 +173,7 @@ def leastsquares(choice_ref,pts_ref,cams,errs,img,pts,r_real,loop_counter,TIME):
     print("real position:",r_real)
 
     # Results visualization and saving
-    msg0="Best combination (based on best reference point 2D error with fixed height):{0}, error: {1:6.0f}".format(arr[index2],err2)
+    msg0="Best combination (based on best robot 2D error with fixed height):{0}, error: {1:6.0f}".format(arr[index2],err2)
     msg1="Fixed height [mm]: [{0:5.0f} , {1:5.0f} , {2:5.0f}], error 2D: {3:5.0f}".format(float(p_lq_fix[0]),float(p_lq_fix[1]),float(p_lq_fix[2]),err1)
     msg2="Free height [mm]:  [{0:5.0f} , {1:5.0f} , {2:5.0f}], error 2D: {3:5.0f} 3D: {4:5.0f}".format(float(p_lq_free[0]),float(p_lq_free[1]),float(p_lq_free[2]),err22,err32)
     msg3="Real position [mm]:[{0:5.0f} , {1:5.0f} , {2:5.0f}]".format(r_real[0,0],r_real[0,1],r_real[0,2])
@@ -197,6 +198,7 @@ def signal_handler(signal, frame):
     sys.exit(2)
 
 if __name__ == '__main__':
+    print("updated")
     robot_connected=False
     p_real_list = []
     p_obj_list = []
@@ -212,6 +214,8 @@ if __name__ == '__main__':
         print("Running in real mode\n")
 
     TIME = str(int(time.mktime(time.gmtime())))
+    #TIME=str(1452171186)
+
     input_au =in_dir+"sound.wav"
     input_mov = in_dir+"control.txt"
     input_obj = in_dir+"objectpoints.csv"
@@ -229,6 +233,9 @@ if __name__ == '__main__':
     #ref_z = '' #height automatically set to 0
     # Odometry
     loop_counter = ''
+
+    # DEBUGONLY
+    real_pos = np.loadtxt(in_dir+'posreal.txt')
 
 #--------------------------- 0. Intrinsic Calibration   -------------------#
 
@@ -263,7 +270,10 @@ if __name__ == '__main__':
             cam.read(in_dir,fisheye)
             img=calib.Image(n)
             if DEBUG:
-                img.load_image(in_dir+str(loop_counter)+"_image_"+str(n)+".png")
+                for f in os.listdir(in_dir):
+                    if f.startswith(str(loop_counter)+"_image_"+str(n)):
+                        print(in_dir+f)
+                        img.load_image(in_dir+f)
             else:
                 img.take_image()
 
@@ -291,20 +301,25 @@ if __name__ == '__main__':
             break
 
 #--------------------------- 4. Localization        -----------------------#
-    loop_counter = 0
+    loop_counter = 4
     times=0
     commands=''
     choice_loc = raw_input(ROBOT_LOC)
     while choice_loc != "n":
 #--------------------------- 4.1 Real Position    -------------------------#
-        choice = raw_input(ROBOT_REAL)
+        #choice = raw_input(ROBOT_REAL)
+        #DEBUGONLY
+        choice = 'y'
         if choice != 'n':
-            x = raw_input("robot position x in mm, measured from wall: ")
-            y = raw_input("robot position y in mm, measured from wall: ")
-            if x!='':
-                r_wall[0,0]=x
-            if y!='':
-                r_wall[0,1]=y
+            # x = raw_input("robot position x in mm, measured from wall: ")
+            # y = raw_input("robot position y in mm, measured from wall: ")
+            # if x!='':
+                # r_wall[0,0]=x
+            # if y!='':
+                # r_wall[0,1]=y
+            # DEBUGONLY
+            r_wall[0,:2]=real_pos[loop_counter,:2]
+
             r_real = calib.change_wall_to_ref(PTS_BASIS,MARGIN,r_wall.copy())
             name='posreal_'+TIME+'.txt'
             calib.write_pos(out_dir,name,np.matrix(np.array(r_wall)[0]).reshape(((1,3))))
@@ -324,7 +339,9 @@ if __name__ == '__main__':
                     img = calib.Image(n)
 
                     if DEBUG:
-                        img.load_image(in_dir+str(loop_counter)+"_image_"+str(n)+".png")
+                        for f in os.listdir(in_dir):
+                            if f.startswith(str(loop_counter)+"_image_"+str(n)):
+                                img.load_image(in_dir+f)
                     else:
                         img.take_image()
                     # save unchanged image
@@ -375,7 +392,10 @@ if __name__ == '__main__':
             p_obj_list.append(p_lq_fix_wall)
 
 #--------------------------- 4.2 Odometry Localization   ------------------#
-        choice = raw_input(ROBOT_ODO)
+        if DEBUG:
+            choice='n'
+        else:
+            choice = raw_input(ROBOT_ODO)
         if choice == 'y':
 
             # Connect to robot
@@ -387,7 +407,10 @@ if __name__ == '__main__':
             print("Odometry localization")
             Robot.get_position(output_odo)
 #--------------------------- 4.3 Acoustic Localization   ------------------#
-        choice = raw_input(ROBOT_ACO)
+        if DEBUG:
+            choice='n'
+        else:
+            choice = raw_input(ROBOT_ACO)
         if choice == 'y':
             print("Acoustic localization")
             out_au = output_au.replace('/','/'+str(loop_counter)+'_')
@@ -395,7 +418,10 @@ if __name__ == '__main__':
             frames=Au.play_and_record_long()
             Au.save_wav_files(frames)
 #--------------------------- 5. Make Robot Move        --------------------#
-        choice = raw_input(ROBOT_MOVE)
+        if DEBUG:
+            choice='n'
+        else:
+            choice = raw_input(ROBOT_MOVE)
         if choice == 'y':
             if not robot_connected:
                 Robot = move.Robot()
