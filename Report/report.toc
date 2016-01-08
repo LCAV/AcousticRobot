@@ -1,34 +1,39 @@
 \select@language {english}
-\contentsline {section}{\numberline {1}Introduction}{4}{section.1}
-\contentsline {section}{\numberline {2}Experimental Setup}{5}{section.2}
-\contentsline {subsection}{\numberline {2.1}Camera Setup}{5}{subsection.2.1}
-\contentsline {paragraph}{Hardware}{5}{section*.6}
-\contentsline {paragraph}{Webcam setup}{5}{section*.8}
-\contentsline {paragraph}{Button}{7}{section*.10}
-\contentsline {subsection}{\numberline {2.2}Audio Setup}{8}{subsection.2.2}
-\contentsline {subsection}{\numberline {2.3}Robot}{8}{subsection.2.3}
-\contentsline {section}{\numberline {3}Robot movement}{9}{section.3}
-\contentsline {subsection}{\numberline {3.1}Control}{9}{subsection.3.1}
-\contentsline {subsection}{\numberline {3.2}Odometry}{10}{subsection.3.2}
-\contentsline {section}{\numberline {4}Echo-SLAM}{11}{section.4}
-\contentsline {subsection}{\numberline {4.1}Sine Sweep Generation}{11}{subsection.4.1}
-\contentsline {subsection}{\numberline {4.2}Recording}{11}{subsection.4.2}
-\contentsline {subsection}{\numberline {4.3}Experimental Results}{12}{subsection.4.3}
-\contentsline {subsubsection}{\numberline {4.3.1}Calibration}{12}{subsubsection.4.3.1}
-\contentsline {subsubsection}{\numberline {4.3.2}Echo SLAM}{13}{subsubsection.4.3.2}
-\contentsline {section}{\numberline {5}Visual Localisation}{15}{section.5}
-\contentsline {subsection}{\numberline {5.1}Intrinsic Calibration}{15}{subsection.5.1}
-\contentsline {subsection}{\numberline {5.2}Image Processing}{16}{subsection.5.2}
-\contentsline {subsection}{\numberline {5.3}Extrinsic Calibration}{18}{subsection.5.3}
-\contentsline {subsubsection}{\numberline {5.3.1}Reference points}{18}{subsubsection.5.3.1}
-\contentsline {paragraph}{Points}{18}{section*.23}
-\contentsline {paragraph}{Checkerboard}{18}{section*.24}
-\contentsline {paragraph}{Algorithm}{18}{section*.26}
-\contentsline {subsection}{\numberline {5.4}Triangulation}{19}{subsection.5.4}
-\contentsline {subsection}{\numberline {5.5}Experimental Results}{21}{subsection.5.5}
-\contentsline {subsubsection}{\numberline {5.5.1}Performance measure}{21}{subsubsection.5.5.1}
-\contentsline {subsubsection}{\numberline {5.5.2}Reference frames}{21}{subsubsection.5.5.2}
-\contentsline {subsubsection}{\numberline {5.5.3}Experiment in BC building hall (Atrium)}{22}{subsubsection.5.5.3}
-\contentsline {subsubsection}{\numberline {5.5.4}Experiment in BC329 with reference points}{22}{subsubsection.5.5.4}
-\contentsline {subsubsection}{\numberline {5.5.5}Experiment in BC329 with checkerboard}{23}{subsubsection.5.5.5}
-\contentsline {section}{\numberline {6}Conclusion}{26}{section.6}
+\contentsline {section}{\numberline {1}Introduction}{5}{section.1}
+\contentsline {section}{\numberline {2}Experimental Setup}{6}{section.2}
+\contentsline {subsection}{\numberline {2.1}Overview}{6}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Camera Setup}{6}{subsection.2.2}
+\contentsline {paragraph}{Hardware}{6}{section*.8}
+\contentsline {paragraph}{Webcam setup}{6}{section*.10}
+\contentsline {paragraph}{Button}{8}{section*.12}
+\contentsline {subsection}{\numberline {2.3}Audio Setup}{9}{subsection.2.3}
+\contentsline {subsection}{\numberline {2.4}Robot}{10}{subsection.2.4}
+\contentsline {section}{\numberline {3}Robot movement}{11}{section.3}
+\contentsline {subsection}{\numberline {3.1}Control}{11}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}Odometry}{12}{subsection.3.2}
+\contentsline {section}{\numberline {4}Audio Processing}{14}{section.4}
+\contentsline {subsection}{\numberline {4.1}Sine Sweep Generation}{14}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}Recording}{14}{subsection.4.2}
+\contentsline {subsection}{\numberline {4.3}Analysis}{15}{subsection.4.3}
+\contentsline {subsubsection}{\numberline {4.3.1}Calibration}{15}{subsubsection.4.3.1}
+\contentsline {subsubsection}{\numberline {4.3.2}Echolocation}{16}{subsubsection.4.3.2}
+\contentsline {section}{\numberline {5}Visual Localisation}{18}{section.5}
+\contentsline {subsection}{\numberline {5.1}Intrinsic Calibration}{18}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}Image Processing}{19}{subsection.5.2}
+\contentsline {subsection}{\numberline {5.3}Extrinsic Calibration}{21}{subsection.5.3}
+\contentsline {subsubsection}{\numberline {5.3.1}Reference Points}{21}{subsubsection.5.3.1}
+\contentsline {paragraph}{Points}{21}{section*.26}
+\contentsline {paragraph}{Checkerboard}{21}{section*.27}
+\contentsline {subsubsection}{\numberline {5.3.2}Algorithm}{21}{subsubsection.5.3.2}
+\contentsline {subsection}{\numberline {5.4}Triangulation}{22}{subsection.5.4}
+\contentsline {subsection}{\numberline {5.5}Performance Measure}{24}{subsection.5.5}
+\contentsline {section}{\numberline {6}Experimental Results}{25}{section.6}
+\contentsline {subsection}{\numberline {6.1}Reference frames}{25}{subsection.6.1}
+\contentsline {subsection}{\numberline {6.2}Experiment in BC building hall (Atrium)}{25}{subsection.6.2}
+\contentsline {subsection}{\numberline {6.3}Experiment in BC329 with reference points}{25}{subsection.6.3}
+\contentsline {subsection}{\numberline {6.4}Experiment 1 in BC329 with checkerboard}{25}{subsection.6.4}
+\contentsline {subsection}{\numberline {6.5}Experiment 2 in BC329 with checkerboard}{29}{subsection.6.5}
+\contentsline {subsubsection}{\numberline {6.5.1}Visual and odometry results}{29}{subsubsection.6.5.1}
+\contentsline {subsubsection}{\numberline {6.5.2}Impulse responses}{30}{subsubsection.6.5.2}
+\contentsline {section}{\numberline {7}Learning Experience}{33}{section.7}
+\contentsline {section}{\numberline {8}Conclusion}{34}{section.8}

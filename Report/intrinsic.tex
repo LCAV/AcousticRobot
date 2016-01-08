@@ -24,7 +24,7 @@ If $x'$ and $y'$ are the coordinates of the undistorted image points normalized 
 The distortion coefficients are indifferent to the camera resolution \cite{calib3d}, only the focal width and height and the principal point have to be scaled appropriately. To reduce imprecisions due to scaling, a recalibration was done every time the camera resolution was changed.
 
 An algorithm for finding the intrinsic parameters including the radial distortion coefficients was suggested by Zhang \cite{Zhang2000}. 
-Its implementation in the \texttt{Matlab Camera Calbiration Toolbox} added an estimation algorithm for two tangential distortion coefficients. \cite{MTB}
+Its implementation in the \texttt{Matlab Camera Calbiration Toolbox} added an estimation algorithm for two tangential distortion coefficients \cite{MTB}.
 The \texttt{OpenCV} implementation used in this project is based on the \texttt{Matlab} Toolbox. 
 It is implemented for the first six radial distortion coefficients $r_i$ and the first two tangential distortion coefficients $p_i$ \cite{calib3d}.
 
@@ -67,7 +67,5 @@ We have the following relation between the focal length, the image resolution an
     f_x = \frac{w \times f_{x,mm}}{w_{CCD}} = \frac{1280\text{ px} \times 3.6\text{ mm}}{3.67\text{ mm}} = 1255 \text{ px},
 \end{equation}
 
-where $f_{x,mm}$ is the focal width in mm and $w_{CCD}$ is the width of hte CCD sensor, given by the manufacturer.
-The obtained pixel value is allowed to be 100 px off this reference value.
-% QUESTION: where does the opencv implementation come from??
-%$\quad k(r) &=\frac{1+k_1r^2+k_2r^4+k_3r^6}{1+k_4r^2+k_5r^4+k_6r^6} $
+where $f_{x,mm}$ is the focal width in mm and $w_{CCD}$ is the width of the CCD sensor, given by the manufacturer.
+The obtained pixel value is allowed to be 100 px off this reference value. If it is not the case, more pictures need to be taken.

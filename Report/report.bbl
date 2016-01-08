@@ -16,6 +16,15 @@
 {\sc A.~Conrady}, {\em {Decentred Lens-Systems}}, Monthly Notices of the Royal
   Astronomical Soceity, 79 (1919), pp.~384--390.
 
+\bibitem{Instructions}
+<<<<<<< HEAD
+{\sc F.~Dümbgen}, {\em {Routines to control a humanoid echolocator robot.}}
+\newblock \url{http://lcav.github.io/AcousticRobot/io/AcousticRobot/}.
+=======
+{\sc F.~Dümbgen}, {\em {Routines to
+  conhttp://lcav.github.io/AcousticRobot/io/AcousticRobot/}}.
+>>>>>>> 7cb61bf5ab256924de8612f89ee9a5072780ede0
+
 \bibitem{RaspiDoc}
 {\sc elinux.org}, {\em {Rpi Camera Module}}.
 \newblock \url{http://elinux.org/Rpi_Camera_Module}.

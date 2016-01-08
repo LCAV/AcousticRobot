@@ -2,10 +2,30 @@
 \newpage
 \section{Experimental Setup}
 
-% Camera
+\subsection{Overview}
+
+The experimental setup includes 4 cameras for providing ground truth, a speaker and an acoustic head fixed to the robot for recording the room impulse response. A snapshot of this setup at one given position is shown in Figure \ref{fig:overview}.
+
+The steps of one iteration of measures are:
+\begin{itemize}
+    \item Get images from cameras and perform visual localization.
+    \item Read current encoder state.
+    \item Record the response to a sine sweep for room impulse response calculation. 
+    \item Move the robot to the next position.
+\end{itemize}
+
+The above steps are repeated for as many positions as necessary. This procedure is implemented in a program which guides the user through the necessary steps and saves the recorded data in a structured way. 
+
+The instructions for the preparation, setup and operating of the experimental framework can be found online \cite{Instructions}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{files/Overview.jpg}
+    \caption{Experimental setup with cameras, robot, speaker and checkerboard.}
+    \label{fig:overview}
+\end{figure}
 \subsection{Camera Setup}
 
-\paragraph{Hardware} The camera used is a Raspi-Camera module powered by a Raspberry Pi 2 Model B.
+\paragraph{Hardware} The camera used is a Raspi-Camera module powered by a \textit{Raspberry Pi 2 Model B}.
 The Operating System loaded on the Raspberry Pi is the common Raspian WHEEZY system with some customizations and two custom scripts that are run at startup. 
 
 The camera has the following key parameters \cite{RaspiDoc}
@@ -18,7 +38,7 @@ The camera has the following key parameters \cite{RaspiDoc}
 \begin{figure}
     \centering
     \includegraphics[width=0.25\linewidth]{files/RaspiCam.png}
-    \caption{Raspberry Pi with camera module used for visual localization.}
+    \caption{Raspberry Pi with camera module and button used for visual localization.}
     \label{fig:camera}
 \end{figure}
 
@@ -72,12 +92,12 @@ The current image is then taken from this folder by the \textit{mjpg-streamer} m
 
 \paragraph{Button}
 
-A button is added to the Raspberry Pi such that it can be restarted or turned off without connecting to it via ssh. This allows the Raspberry Pi to be turned off correctly even when the network has not be set up properly or the ethernet is not working.
+A button is added to the Raspberry Pi such that it can be restarted or turned off without connecting to it. This allows the Raspberry Pi to be turned off correctly even when the network has not be set up properly or the ethernet is not working.
 The button is a pull-down resistor, thus the signal at the output goes from 0 to 1 when the button is pressed. 
 An interrupt is triggered when the button is pressed. 
 It reads the button status once per second for six seconds and counts the number of times the button was in the ``down'' state. 
 If, during this period, the ``down'' state is read at least 3 times, the system shuts down. Otherwise, the system reboots. 
-The \textit{python} script implementing this interrupt is shown in Code \ref{switchoff}.
+The \texttt{python} script implementing this interrupt is shown in Code \ref{switchoff}.
 
 \begin{center}
 \begin{minipage}{0.9\linewidth}
@@ -100,9 +120,7 @@ sudo python /home/pi/switchoff.py &
 \end{center}
 
  \subsection{Audio Setup}
-  The tools used for the audio recording are two wireless audio transmitters with their corresponding 
-  receivers (\textit{Line 6 Relay G50}, see Figure \ref{fig:audio}) 
-  with the following key specifications:
+The tools used for the audio recording are two wireless audio transmitters with their corresponding receivers (\textit{Line 6 Relay G50}, see Figure \ref{fig:audio}) with the following key specifications:
 
   \begin{itemize}
       \item Frequency range 10 Hz - 20 kHz
@@ -110,37 +128,18 @@ sudo python /home/pi/switchoff.py &
       \item Broadcast in 2.4 GHz band
   \end{itemize}
 
-  The transmitters are connected to microphones placed in the ears of the robot's acoustic head and the receivers are connected to two channels of a MOTU soundcard.
-
-  %\begin{figure}[H]
-  %    \centering
-  %    \begin{subfigure}{0.4\linewidth}
-  %        \includegraphics[width=\linewidth]{files/Receiver.png}
-  %    \end{subfigure}
-  %    \begin{subfigure}{0.4\linewidth}
-  %        \includegraphics[width=\linewidth]{files/Transmitter.png}
-  %    \end{subfigure}
-  %    \caption{Wireless audio receiver (top) and transmitter (bottom)}
-  %    \label{fig:audio}
-  %\end{figure}
-
-  A conventional speaker is fixed on the robot and operated via the same soundcard. 
+The transmitters are connected to microphones placed in the ears of the robot's acoustic head and the receivers are connected to two channels of a MOTU soundcard.
+ 
+A conventional speaker is fixed on the robot as shown in Figure \ref{fig:speaker} and operated via the same soundcard. 
 \subsection{Robot}
 
 \begin{figure}
     \centering
     \begin{subfigure}{0.3\linewidth}
         \centering
-        \includegraphics[height=0.3\textheight]{files/Robot.png}
-        \caption{Robot designed by Gigatec S.A.}
+        \includegraphics[height=0.3\textheight]{files/Robot2_cvt.png}
+        \caption{Robot designed by Gigatec S.A. with acoustic head}
         \label{fig:robot}
-    \end{subfigure}
-    \hspace{0.5em}
-    \begin{subfigure}{0.3\linewidth}
-        \centering
-        \includegraphics[height=0.3\textheight]{files/Robot2.png}
-        \caption{Robot in action with acoustic head and speaker.}
-        \label{fig:robot_action}
     \end{subfigure}
     \hspace{0.5em}
     \begin{subfigure}{0.3\linewidth}
@@ -149,17 +148,18 @@ sudo python /home/pi/switchoff.py &
         \caption{Wireless audio receiver (top) and transmitter (bottom).}
         \label{fig:audio}
     \end{subfigure}
-    \caption{Robot designed by Gigatec S.A. for Echo SLAM with wireless audio equipment and speaker.}
+    \hspace{0.5em}
+    \begin{subfigure}{0.3\linewidth}
+        \centering
+        \includegraphics[height=0.3\textheight]{files/Speaker.jpg}
+        \caption{Speaker fixation on the robot.}
+        \label{fig:speaker}
+    \end{subfigure}
+    \caption{Robot designed by Gigatec S.A. for EchoSLAM with wireless audio equipment and speaker.}
 \end{figure}
 
-The robot used for the experiments was designed by Gigatec S.A. It is shown in Figures \ref{fig:robot} and \ref{fig:robot_action}.
+The robot used for the experiments was designed by Gigatec S.A. It is shown in Figures \ref{fig:robot}. 
 Two wheels can be actuated for displacement (see § \ref{sec:movement}) and the acoustic head can be rolled, pitched and yawed independently. 
 For the present setup, the head always stays in the standard (straight) position.
 
-For autonomy, the robot is actuated via a socket interface and the AF\_INET protocol. All commands are sent via a \textit{python} script. For manual operation of the robot, some commands can also be sent via ssh.
-%picture quality and compression:
-%\url{www.raspberrypi.org/forum/viewtopic.php?f=43&t=73174&p=527300#p527300}
-%wget:
-%\url{https://www.maketecheasier.com/test-internet-connection-speed-from-terminal/}
-%speedtest:
-%http://www.speedtest.net/
+For autonomy, the robot is actuated via a socket interface and the AF\_INET protocol. All commands are sent via a \texttt{python} script. For manual operation of the robot, some commands can also be sent via ssh.

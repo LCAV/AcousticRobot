@@ -145,6 +145,10 @@ postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{blue}\hookrightarrow\space
 	\today
 \end{flushright}
 \hbox{\raisebox{0.4em}{\vrule depth 0pt height 0.05cm width 17cm}}
+
+\vspace{30em}
+\abstract
+An experimental framework for an echolocator robot was developed and tested. The framework includes an image processing and computer vision algorithm for visual localization, odometry analysis and the tools for calculating room impulse responses. The performance of each method was compared and first analysises of the room impulse responses were provided for different experimental setups. The precision obtained with visual localization was on the order of 1 cm and significantly better than the results obtained with odometry, for which the errors accumulate. All results and tools were documented for later use for EchoSLAM experiments within the laboratory. 
 }
 
 %Foot and header

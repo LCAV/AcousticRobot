@@ -1,4 +1,0 @@
-test §
-[t]
-\paragraph
-§ bla

@@ -213,8 +213,10 @@ if __name__ == '__main__':
     else:
         print("Running in real mode\n")
 
+    # DEBUGONLY
+    real_pos = np.loadtxt(in_dir+'posreal.txt')
     TIME = str(int(time.mktime(time.gmtime())))
-    #TIME=str(1452171186)
+    #TIME=str(1452243684)
 
     input_au =in_dir+"sound.wav"
     input_mov = in_dir+"control.txt"
@@ -227,15 +229,13 @@ if __name__ == '__main__':
     r_wall = np.matrix([0,0,R_HEIGHT]) # real robot position from wall
     r_real = calib.change_wall_to_ref(PTS_BASIS,MARGIN,r_wall.copy())
     R_HEIGHT = r_real[0,2] #height of robot in mm
-    choice_ref = 4 #chosen reference point for error calculation
+    choice_ref = 0 #chosen reference point for error calculation
     ref_z = 1*np.ones((1,NPTS))
     #ref_z = np.array([135,0,230,0]) #height of reference points in mm
     #ref_z = '' #height automatically set to 0
     # Odometry
     loop_counter = ''
 
-    # DEBUGONLY
-    real_pos = np.loadtxt(in_dir+'posreal.txt')
 
 #--------------------------- 0. Intrinsic Calibration   -------------------#
 
@@ -301,7 +301,7 @@ if __name__ == '__main__':
             break
 
 #--------------------------- 4. Localization        -----------------------#
-    loop_counter = 4
+    loop_counter = 0
     times=0
     commands=''
     choice_loc = raw_input(ROBOT_LOC)
@@ -318,7 +318,7 @@ if __name__ == '__main__':
             # if y!='':
                 # r_wall[0,1]=y
             # DEBUGONLY
-            r_wall[0,:2]=real_pos[loop_counter,:2]
+            r_wall[0,:2]=real_pos[loop_counter,:2]+20
 
             r_real = calib.change_wall_to_ref(PTS_BASIS,MARGIN,r_wall.copy())
             name='posreal_'+TIME+'.txt'
@@ -345,7 +345,7 @@ if __name__ == '__main__':
                     else:
                         img.take_image()
                     # save unchanged image
-                    plt.imsave(out_dir+str(loop_counter)+'_image_'+str(n)+'_'+TIME,img.img)
+                    #plt.imsave(out_dir+str(loop_counter)+'_image_'+str(n)+'_'+TIME,img.img)
 
                     img.get_robotimage(R_ROB,THRESH_ROB,MIN,MAX,1,out_dir,
                                        TIME,loop_counter)

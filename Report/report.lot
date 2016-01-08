@@ -1,2 +1,7 @@
 \select@language {english}
-\contentsline {table}{\numberline {1}{\ignorespaces Experiment with checkerboard: positions obtained with free-height and fixed-height algorithm.\relax }}{25}{table.caption.34}
+<<<<<<< HEAD
+\contentsline {table}{\numberline {1}{\ignorespaces Experiment 1 with checkerboard: positions obtained with free-height and fixed-height algorithm.\relax }}{26}{table.caption.36}
+=======
+\contentsline {table}{\numberline {1}{\ignorespaces Experiment 1 with checkerboard: positions obtained with free-height and fixed-height algorithm.\relax }}{25}{table.caption.36}
+>>>>>>> 7cb61bf5ab256924de8612f89ee9a5072780ede0
+\contentsline {table}{\numberline {2}{\ignorespaces Experiment 2 with checkerboard: positions 5 and 6 with free-height and fixed-height algorithm.\relax }}{30}{table.caption.40}

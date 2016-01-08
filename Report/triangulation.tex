@@ -31,8 +31,8 @@ If the height is specified, then finding the solution to \eqref{eq:triangulation
     \begin{bmatrix} \mathbf{a_1} & \mathbf{a_2} \end{bmatrix}^T \mathbf{x} &= -\mathbf{a_3}Z-\mathbf{a_4},
 \end{align}
 
-where $f_k$ denotes the $k$th row of the matrix $\mathbf{A}$
-This system of equations can be solved in the least-squares sense, which leads to the solution $\mathbf{\hat{x}}=(A^TA)^{-1}A^T\mathbf{b}^T$. 
+where $\mathbf{a_k}$ denotes the $k$th row of the matrix $A'$.
+This system of equations can be solved in the least-squares sense, which leads to the solution $\mathbf{\hat{x}}=(A'^TA')^{-1}A'^T\mathbf{b}^T$. 
 Adding the third component Z to $\mathbf{\hat{x}}$, the solution is obtained.
 
 If the height is not specified, one can simply use a single value decomposition of $A$. The eigenvector with biggest eigenvalue corresponds to the solution of \eqref{eq:triangulation} in the least squares sense.

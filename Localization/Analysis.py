@@ -46,17 +46,19 @@ THETA_0=round(3*np.pi/2,4)
 #PTS_BASIS = np.array(([2500,3000],[4000,1500])) #position of first and second reference points from wall (in mm)
 
 class Analysis():
-    def __init__(self,out_dir,input_wav='', output_wav_list='', output_enc='',
+    def __init__(self,out_dir,input_wav='', output_wav_list='', output_enc='',output_mov='',
                  output_real='',output_vis_fix='',output_vis_free='',output_cam='',output_camreal=''):
         '''
         _Parameters_:
         out_dir: folder where results should be saved
         input_wav: audio input file with path (most likely sine sweep)
         output_wav_list: list of audio output files
-        output_end: encoder output file
+        output_enc: encoder output file
+        output_mov: expected robot movement file
         output_real: real positions output file
         output_vis: visual localization output file
         output_cam: camera centers output file
+        output_camreal: real camera centers file
 
         '''
         if out_dir[-1]!='/':
@@ -65,6 +67,7 @@ class Analysis():
         self.input_wav = input_wav
         self.output_wav_list = output_wav_list
         self.output_enc = output_enc
+        self.output_mov = output_mov
         self.output_real = output_real
         self.output_vis_fix = output_vis_fix
         self.output_vis_free = output_vis_free
@@ -79,6 +82,7 @@ class Analysis():
         self.real=''
         self.enc=''
         self.odo=''
+        self.mov=''
         self.vis_free=''
         self.vis_fix=''
     def read_file(self,fname):
@@ -121,6 +125,8 @@ class Analysis():
             self.vis_free=self.read_file(self.output_vis_free)
         if self.output_enc!='':
             self.enc=self.read_file(self.output_enc)
+        if self.output_mov!='':
+            self.mov=self.read_file(self.output_mov)
     def get_TOA(self):
         '''
         Calculate matrix of estimated time of arrival based on distances
@@ -163,6 +169,13 @@ class Analysis():
             f = np.fft.rfftfreq(N, d=1/Fs)
             Y = np.fft.rfft(y,n=N) # automatically adds 0s until N
             U = np.fft.rfft(self.u,n=N)
+
+            #filter Y and U
+            hann=np.zeros(Y.shape)
+            M=20000
+            hann[:M] = np.hanning(2*M)[M:]
+            plt.figure()
+            plt.plot(f,[Y,hann])
 
             # apply filter to Y to filter out harmonic frequencies
             #__,[f,Y] = self.apply_filter([t,y],[f,Y],'Y')
@@ -363,7 +376,6 @@ class Analysis():
             corrmax = kcorr[np.argmax(corr)]
             print('argmax: ',corrmax)
             print('time lag: ',corrmax/Fs)
-            min
             plt.close(i)
             plt.figure(i)
             plt.plot(kcorr,corr)
@@ -453,8 +465,10 @@ class Analysis():
         plt.axis('equal'),plt.show(block=False)
         plt.savefig(out_dir+'odometry')
     def plot_geometry(self,fname='',zoom=False):
-        ''' Reads results from files of specified output file names (if not empty)
-        and plots everything in the wall reference frame i
+        '''
+        Plots all results read by read_files() in the wall reference frame.
+        Run read_files() before running this function.
+
         _Parameters_:
             [fname:]    file name where resulting image is saved (within self.out_dir)
                         no output saved if not specified or set to '' (default '')
@@ -463,7 +477,7 @@ class Analysis():
             nothing
         '''
         if zoom:
-            plt.figure()
+            plt.figure(figsize=(10,5))
         else:
             plt.figure(figsize=(9,8))
         legend_str=[]
@@ -485,7 +499,7 @@ class Analysis():
             legend_str.append('walls')
         # plot robot positions
         if self.output_real!='':
-            plt.plot(self.real[:,0],self.real[:,1],marker='x',color='g')
+            plt.plot(self.real[:,0],self.real[:,1],marker='o',color='g')
             legend_str.append('real')
         # plot visual positions
         if self.output_vis_fix!='':
@@ -518,8 +532,13 @@ class Analysis():
                 legend_str.append('odometry RMS-error = {0:3.2f}'.format(error))
             else:
                 legend_str.append('odometry')
+        # plot expected robot movement
+        if self.output_mov!='':
+            plt.plot(self.mov[:,0],self.mov[:,1],marker='o',markersize=2,color='k')
+            error = np.linalg.norm(self.real[:,:2]-self.mov[:,:2])/self.real.shape[0]
+            legend_str.append('expected RMS-error = {0:3.2f}'.format(error))
         # plot camera positions
-        if self.output_cam!='':
+        if self.output_cam!='' and not zoom:
             cam_wall = []
             # first time: change to wall reference frame.
             if self.camwall=='':
@@ -532,7 +551,7 @@ class Analysis():
             for i in range(0,self.camwall.shape[0]):
                 plt.plot(self.camwall[i,1],self.camwall[i,2],marker='x',linestyle='',color=colors[self.camwall[i,0]])
                 #legend_str.append(str(int(self.camwall[i,0])))
-        if self.output_camreal!='':
+        if self.output_camreal!='' and not zoom:
             colors={139:'blue',141:'red',143:'green',145:'orange'}
             for i in range(0,self.camreal.shape[0]):
                 plt.plot(self.camreal[i,1],self.camreal[i,2],marker='o',linestyle='',color=colors[self.camreal[i,0]])
@@ -542,8 +561,12 @@ class Analysis():
         plt.grid(True)
         plt.xlabel('x [mm]'),plt.ylabel('y [mm]')
         if zoom:
-            plt.xlim([2000,5000])
-            plt.ylim([2000,5000])
+            #plt.xlim([2000,5000])
+            #plt.ylim([2000,5000])
+            ax=plt.gca()
+            ax.relim()
+            ax.autoscale_view()
+            plt.axes().set_aspect('equal')
             plt.title('Experimental Results - Robot Positions\n')
         else:
             plt.axes().set_aspect('equal')
@@ -563,4 +586,7 @@ def get_parameters():
     y_files = sys.argv[2:-1]
     out_dir = sys.argv[-1]
     return u_file,y_files,out_dir
+def get_crosscor2(t,y1,y2):
+    sig=50000
+    plot(t[:sig],y1[:sig])
 

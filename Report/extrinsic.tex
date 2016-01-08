@@ -1,7 +1,7 @@
 %!TEX root = report.tex
 \subsection{Extrinsic Calibration}
 \label{sec:extrinsic}
-\subsubsection{Reference points}
+\subsubsection{Reference Points}
 
 \paragraph{Points} 
 In a first run, 4 to 6 bright orange circular reference points where used for the extrinsic calibration. The points are numbered and the first 2 points serve as the basis for the reference frame. (see Figure \ref{fig:ref_points}).
@@ -9,10 +9,10 @@ In a first run, 4 to 6 bright orange circular reference points where used for th
 Since the distances between all points can be very accurately measured using a laser pointer, the euclidean distance matrix is set up and the absolute positions in the reference frame are obtained using the classical Multidimensional Scaling (MDS) method. \cite{Wickelmaier2003}
 
 The limitations of this method are that the number of reference points can only hardly be extended since all points need to be numbered manually by the user and the number of laser pointer measurements increases quadratically.
-Secondly, the radius of the reference points needs to be chosen big enough to be robustly detected from distance. But increasing the radius, leads to a higher imprecision since the points can not be exactly placed on the ground and are perceived at different heights from different camera angles.
+Secondly, the radius of the reference points needs to be chosen big enough to be robustly detected from distance. But increasing the radius leads to a higher imprecision since the points can not be exactly placed on the ground and are perceived at different heights from different camera angles.
 
 \paragraph{Checkerboard}
-A second and more user friendly approach using a checkerboard for reference points was implemented in a second run. 
+A more accurate and more user friendly approach using a checkerboard for reference points was therefore implemented. 
 Since many robust implementations exist for checkerboard corner detection, its use promises a big number of reference points with minimal effort and high reliability. 
 In addition to that, the checkerboard corners are of much smaller radius than circular reference points and can be placed exactly on the ground.
 
@@ -36,7 +36,7 @@ The three reference points are detected manually and the numbering starts at the
 	\caption{Reference point and checkerboard layout conventions.} 
 \end{figure}
 
-\paragraph{Algorithm}
+\subsubsection{Algorithm}
 
 The reference points are detected as explained in § \ref{sec:imageprocessing}. The so found image-object space correspondances can be used to determine the camera position and orientation by solving the following system of equations for $R$ and $\mathbf{t}$.
 \begin{align}
@@ -75,7 +75,7 @@ Various methods have been proposed for solving this Perspective-$n$-Point or P$n
 The methods can be embedded in a Ransac scheme, which makes them more resistant to outliers. 
 However, outliers will not occur in the present experimental setup because of its deterministic nature: all reference points are precisely defined and need to be detected, as opposed to setups where a undefined amount of feature points are extracted from images.
 
-Three different methods for solving this P$n$P problem are implemented in OpenCV.
+Three different methods for solving this P$n$P problem are implemented in \texttt{OpenCV}.
 \texttt{P3P} is based on a technique that is limited to 4 points only, so it was immediately rejected. The \texttt{EPNP} method \cite{Lepetit2009} provides a non-iterative solution to the problem which is more stable and computationally inexpensive. Since in the present case, the number of points is limited to 40 and the calculation time turned out to be acceptable, the method chosen is the \texttt{ITERATIVE} method, based on reprojection error minimization.
 
 The reprojection error is the sum of the squared distances between observed projections $\mathbf{x_i}=[u_i,v_i,1]^T$ and the projected object points ($\mathbf{proj}(\mathbf{X_i},P)$), defined as in \eqref{eq:projection} and calculated with the current estimation of the extrinsic camera matrix $P$. Formally, this means

@@ -1,3 +1,42 @@
 %!TEX root=report.tex
 
 \section{Conclusion}
+
+\setlength{\parskip}{1em}
+<<<<<<< HEAD
+=======
+%The experimental framework was successfully implemented and tested. As expected, odometry accumulates errors and is not sufficient for robust localization when used without additional, absolute positioning. 
+>>>>>>> 7cb61bf5ab256924de8612f89ee9a5072780ede0
+The experimental framework was successfully implemented and tested. 
+As expected, odometry was not appropriate for robust localization as the error accumulates over time. 
+It must be combined with an additional, absolute position in order to be accurate.
+
+Visual localization was shown to be a viable candidate for absolute positioning with a precision of 1 to 5 cm. 
+In order to outperform the millimeter precision obtained manually using a laser distance meter, however, further improvements must be made to the procedure to render it both more automated and more robust. 
+
+One possible improvement would be to replace the point on the robot used for localization (currently the head) with a much smaller target -- such as a checkerboard or a \textit{QR code} -- to allow for more accurate positioning. 
+Secondly, the amount of user input required for feature detection could be reduced by further automating the process of color filtering. 
+Moreover, the need for manual numbering of the reference points when performing extrinsic calibration could be obviated by making the points unique, such that the software could automatically distinguish between them.
+Finally, the highest precision of the visual localization (on the order of 1 cm) is only possible when using the optimal camera combination for the current robot position. 
+A reliable way of determining this optimal combination has, however, yet to be found. 
+One possible option that should be explored is using a weighted combination of the position calculated using each camera combination, where the weights are determined using the accuracy of each camera for the current robot position.
+
+
+As far as the odometry analysis is concerned, its only drawback -- besides its inherent accumulation of errors -- is that when the robot is stopped and restarted due to unforeseen errors, the encoder counts are reset to zero and the data corresponding to the current position is unrecoverable.
+This problem could be somewhat mitigated with a more robust functioning of the robot, meaning fewer unexpected restarts.
+One potential improvement would be to send the robot its commands in blocks, instead of one-by-one. 
+The robot would then be able to move only when it has received all commands and acknowledged the receipt with a return signal. 
+Such a procedure would both lead to a more accurate timing of the commands and help avoid unexpected behavior.
+
+Finally, the room impulse responses required for EchoSLAM need further investigation since the principal echoes cannot be reliably detected at all positions, which is crucial for applying the localization algorithm. 
+One obvious limitation of the experimental setup is that the theoretically required omnidirectional speakers and microphones are hard to implement in practice.
+Furthermore, some unresolved issues persist in the experimental setup of the speakers and microphones. 
+According to online documentation and blogs, there are some problems with \texttt{PyAudio} not clearing the buffer as fast as it is being filled.
+The experiments can be continued after restarting the program but it would be preferable to eliminate this problem altogether.
+It would also be beneficial to take multiple room impulse response  measurements at each position and to apply averaging for reducing the effect of noise. 
+
+Overall, the main goal of providing a robust method for localization was achieved and an experimental framework allowing the measurement of room impulse responses was established, however more work is requried in order to obtain satisfactory echolocation results for use in the EchoSLAM algorithm.
+
+\setlength{\parskip}{0em}
+
+

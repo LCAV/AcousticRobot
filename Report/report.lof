@@ -1,25 +1,63 @@
 \select@language {english}
-\contentsline {figure}{\numberline {1}{\ignorespaces Diagram of experimental setup for echo-SLAM.\relax }}{4}{figure.caption.5}
-\contentsline {figure}{\numberline {2}{\ignorespaces Raspberry Pi with camera module used for visual localization.\relax }}{5}{figure.caption.7}
-\contentsline {figure}{\numberline {3}{\ignorespaces Quality vs. image size considerations.\relax }}{6}{figure.caption.9}
-\contentsline {figure}{\numberline {4}{\ignorespaces Robot designed by Gigatec S.A. for Echo SLAM with wireless audio equipment and speaker.\relax }}{8}{figure.caption.11}
-\contentsline {figure}{\numberline {5}{\ignorespaces Speed profile for acceleration from 0 to 45, followed by 45 to 100 and a deceleration down to 0 in speed/acceleration control mode.\relax }}{9}{figure.caption.12}
-\contentsline {figure}{\numberline {6}{\ignorespaces Geometry considerations for odometry for three example positions.\relax }}{10}{figure.caption.13}
-\contentsline {figure}{\numberline {7}{\ignorespaces Characteristics of sine sweep used for room impulse response recording.\relax }}{11}{figure.caption.14}
-\contentsline {figure}{\numberline {8}{\ignorespaces Characteristics of random signal used for calibration.\relax }}{12}{figure.caption.15}
-\contentsline {figure}{\numberline {9}{\ignorespaces Room impulse response with estimated times of arrival and latency time.\relax }}{13}{figure.caption.16}
-\contentsline {figure}{\numberline {10}{\ignorespaces Frequency spectrum of recorded response, unfiltered (top) and with applied notch filter (bottom).\relax }}{14}{figure.caption.17}
-\contentsline {figure}{\numberline {11}{\ignorespaces Steps of visual localization.\relax }}{15}{figure.caption.18}
-\contentsline {figure}{\numberline {12}{\ignorespaces Checkerboard images used for intrinsic calibration. \relax }}{16}{figure.caption.19}
-\contentsline {figure}{\numberline {13}{\ignorespaces HSV components used for color extraction.\relax }}{16}{figure.caption.20}
-\contentsline {figure}{\numberline {14}{\ignorespaces Extraction of regions of interest for reference points.\relax }}{17}{figure.caption.21}
-\contentsline {figure}{\numberline {15}{\ignorespaces Final results of image processing for feature extraction.\relax }}{17}{figure.caption.22}
-\contentsline {figure}{\numberline {16}{\ignorespaces Reference point and checkerboard layout conventions.\relax }}{18}{figure.caption.25}
-\contentsline {figure}{\numberline {17}{\ignorespaces Experiment in Atrium: results of visual localization for various camera combinations.\relax }}{21}{figure.caption.27}
-\contentsline {figure}{\numberline {18}{\ignorespaces Experiment in Atrium: camera views with 5 blue reference points and the bottle as target point in view 139.\relax }}{22}{figure.caption.28}
-\contentsline {figure}{\numberline {19}{\ignorespaces Experiment with reference points: view from camera 141.\relax }}{22}{figure.caption.29}
-\contentsline {figure}{\numberline {20}{\ignorespaces Experiment with reference points: summary of results in room reference frame (Camera numbering: blue 139, red 141, green 143, orange 145).\relax }}{23}{figure.caption.30}
-\contentsline {figure}{\numberline {21}{\ignorespaces Experiment with reference points: view of badly positioning camera 145 and results of visual localization.\relax }}{24}{figure.caption.31}
-\contentsline {figure}{\numberline {22}{\ignorespaces Experiment with checkerboard: camera views for extrinsic calibration.\relax }}{24}{figure.caption.32}
-\contentsline {figure}{\numberline {23}{\ignorespaces Experiment with checkerboard: view of camera 141 and results of visual localization.\relax }}{24}{figure.caption.33}
-\contentsline {figure}{\numberline {24}{\ignorespaces Experiment with checkerboard: summary of results in room reference frame (Camera numbering: blue 139, red 141, green 143, orange 145).\relax }}{25}{figure.caption.35}
+<<<<<<< HEAD
+\contentsline {figure}{\numberline {1}{\ignorespaces Diagram of experimental setup for EchoSLAM.\relax }}{5}{figure.caption.6}
+\contentsline {figure}{\numberline {2}{\ignorespaces Experimental setup with cameras, robot, speaker and checkerboard.\relax }}{6}{figure.caption.7}
+\contentsline {figure}{\numberline {3}{\ignorespaces Raspberry Pi with camera module and button used for visual localization.\relax }}{7}{figure.caption.9}
+\contentsline {figure}{\numberline {4}{\ignorespaces Quality vs. image size considerations.\relax }}{8}{figure.caption.11}
+\contentsline {figure}{\numberline {5}{\ignorespaces Robot designed by Gigatec S.A. for EchoSLAM with wireless audio equipment and speaker.\relax }}{10}{figure.caption.13}
+\contentsline {figure}{\numberline {6}{\ignorespaces Speed profile for acceleration from 0 to 45, followed by 45 to 100 and a deceleration down to 0 in speed/acceleration control mode.\relax }}{11}{figure.caption.14}
+\contentsline {figure}{\numberline {7}{\ignorespaces Real trajectory of the robot vs. expected trajectory and trajectory estimated by odometry.\relax }}{12}{figure.caption.15}
+\contentsline {figure}{\numberline {8}{\ignorespaces Geometry considerations for odometry for three example positions.\relax }}{13}{figure.caption.16}
+\contentsline {figure}{\numberline {9}{\ignorespaces Characteristics of sine sweep used for room impulse response recording.\relax }}{14}{figure.caption.17}
+\contentsline {figure}{\numberline {10}{\ignorespaces Characteristics of random signal used for calibration.\relax }}{15}{figure.caption.18}
+\contentsline {figure}{\numberline {11}{\ignorespaces Room impulse response with estimated times of arrival and latency time.\relax }}{16}{figure.caption.19}
+\contentsline {figure}{\numberline {12}{\ignorespaces Frequency spectrum of recorded response, unfiltered (top) and with applied notch filter (bottom).\relax }}{17}{figure.caption.20}
+\contentsline {figure}{\numberline {13}{\ignorespaces Steps of visual localization.\relax }}{18}{figure.caption.21}
+\contentsline {figure}{\numberline {14}{\ignorespaces Checkerboard images used for intrinsic calibration. \relax }}{19}{figure.caption.22}
+\contentsline {figure}{\numberline {15}{\ignorespaces HSV components used for color extraction.\relax }}{19}{figure.caption.23}
+\contentsline {figure}{\numberline {16}{\ignorespaces Extraction of regions of interest for reference points.\relax }}{20}{figure.caption.24}
+\contentsline {figure}{\numberline {17}{\ignorespaces Final results of image processing for feature extraction.\relax }}{20}{figure.caption.25}
+\contentsline {figure}{\numberline {18}{\ignorespaces Reference point and checkerboard layout conventions.\relax }}{21}{figure.caption.28}
+\contentsline {figure}{\numberline {19}{\ignorespaces Experiment in Atrium: results of visual localization for various camera combinations.\relax }}{24}{figure.caption.29}
+\contentsline {figure}{\numberline {20}{\ignorespaces Experiment in Atrium: camera views with 5 blue reference points and the bottle as target point in view 139.\relax }}{26}{figure.caption.30}
+\contentsline {figure}{\numberline {21}{\ignorespaces Experiment with reference points: view from camera 141.\relax }}{26}{figure.caption.31}
+\contentsline {figure}{\numberline {22}{\ignorespaces Experiment with reference points: summary of results in room reference frame (Camera numbering: blue 139, red 141, green 143, orange 145).\relax }}{27}{figure.caption.32}
+\contentsline {figure}{\numberline {23}{\ignorespaces Experiment with reference points: view of badly positioning camera 145 and results of visual localization.\relax }}{27}{figure.caption.33}
+\contentsline {figure}{\numberline {24}{\ignorespaces Experiment 1 with checkerboard: input and output of extrinsic calibration.\relax }}{28}{figure.caption.34}
+\contentsline {figure}{\numberline {25}{\ignorespaces Experiment 1 with checkerboard: view of camera 141 and results of visual localization.\relax }}{28}{figure.caption.35}
+\contentsline {figure}{\numberline {26}{\ignorespaces Experiment 1 with checkerboard: summary of results in room reference frame (Camera numbering: blue 139, red 141, green 143, orange 145).\relax }}{28}{figure.caption.37}
+\contentsline {figure}{\numberline {27}{\ignorespaces Experiment 2 with checkerboard: Robot positions.\relax }}{29}{figure.caption.38}
+\contentsline {figure}{\numberline {28}{\ignorespaces Experiment 2 with checkerboard: 2D and 3D errors of robot at two example positions.\relax }}{30}{figure.caption.39}
+\contentsline {figure}{\numberline {29}{\ignorespaces Experiment 2 with checkerboard: summary of results in room reference frame (Camera numbering: blue 139, red 141, green 143, orange 145). 'o' and 'x' denote the real and calculated positions respectively.\relax }}{31}{figure.caption.41}
+\contentsline {figure}{\numberline {30}{\ignorespaces Room impulse responses at Positions 1,2,7 and 8.\relax }}{32}{figure.caption.42}
+=======
+\contentsline {figure}{\numberline {2}{\ignorespaces Diagram of experimental setup for echo-SLAM.\relax }}{4}{figure.caption.5}
+\contentsline {figure}{\numberline {3}{\ignorespaces Experimental setup with cameras, robot, speaker and checkerboard.\relax }}{5}{figure.caption.6}
+\contentsline {figure}{\numberline {4}{\ignorespaces Raspberry Pi with camera module and button used for visual localization.\relax }}{6}{figure.caption.8}
+\contentsline {figure}{\numberline {5}{\ignorespaces Quality vs. image size considerations.\relax }}{7}{figure.caption.10}
+\contentsline {figure}{\numberline {6}{\ignorespaces Robot designed by Gigatec S.A. for Echo SLAM with wireless audio equipment and speaker.\relax }}{9}{figure.caption.12}
+\contentsline {figure}{\numberline {7}{\ignorespaces Speed profile for acceleration from 0 to 45, followed by 45 to 100 and a deceleration down to 0 in speed/acceleration control mode.\relax }}{10}{figure.caption.13}
+\contentsline {figure}{\numberline {8}{\ignorespaces Real trajectory of the robot vs. expected trajectory and trajectory estimated by odometry.\relax }}{11}{figure.caption.14}
+\contentsline {figure}{\numberline {9}{\ignorespaces Geometry considerations for odometry for three example positions.\relax }}{12}{figure.caption.15}
+\contentsline {figure}{\numberline {10}{\ignorespaces Characteristics of sine sweep used for room impulse response recording.\relax }}{13}{figure.caption.16}
+\contentsline {figure}{\numberline {11}{\ignorespaces Characteristics of random signal used for calibration.\relax }}{14}{figure.caption.17}
+\contentsline {figure}{\numberline {12}{\ignorespaces Room impulse response with estimated times of arrival and latency time.\relax }}{15}{figure.caption.18}
+\contentsline {figure}{\numberline {13}{\ignorespaces Frequency spectrum of recorded response, unfiltered (top) and with applied notch filter (bottom).\relax }}{16}{figure.caption.19}
+\contentsline {figure}{\numberline {14}{\ignorespaces Steps of visual localization.\relax }}{17}{figure.caption.20}
+\contentsline {figure}{\numberline {15}{\ignorespaces Checkerboard images used for intrinsic calibration. \relax }}{18}{figure.caption.21}
+\contentsline {figure}{\numberline {16}{\ignorespaces HSV components used for color extraction.\relax }}{18}{figure.caption.22}
+\contentsline {figure}{\numberline {17}{\ignorespaces Extraction of regions of interest for reference points.\relax }}{19}{figure.caption.23}
+\contentsline {figure}{\numberline {18}{\ignorespaces Final results of image processing for feature extraction.\relax }}{19}{figure.caption.24}
+\contentsline {figure}{\numberline {19}{\ignorespaces Reference point and checkerboard layout conventions.\relax }}{20}{figure.caption.27}
+\contentsline {figure}{\numberline {20}{\ignorespaces Experiment in Atrium: results of visual localization for various camera combinations.\relax }}{23}{figure.caption.29}
+\contentsline {figure}{\numberline {21}{\ignorespaces Experiment in Atrium: camera views with 5 blue reference points and the bottle as target point in view 139.\relax }}{25}{figure.caption.30}
+\contentsline {figure}{\numberline {22}{\ignorespaces Experiment with reference points: view from camera 141.\relax }}{25}{figure.caption.31}
+\contentsline {figure}{\numberline {23}{\ignorespaces Experiment with reference points: summary of results in room reference frame (Camera numbering: blue 139, red 141, green 143, orange 145).\relax }}{26}{figure.caption.32}
+\contentsline {figure}{\numberline {24}{\ignorespaces Experiment with reference points: view of badly positioning camera 145 and results of visual localization.\relax }}{26}{figure.caption.33}
+\contentsline {figure}{\numberline {25}{\ignorespaces Experiment 1 with checkerboard: input and output of extrinsic calibration.\relax }}{27}{figure.caption.34}
+\contentsline {figure}{\numberline {26}{\ignorespaces Experiment 1 with checkerboard: view of camera 141 and results of visual localization.\relax }}{27}{figure.caption.35}
+\contentsline {figure}{\numberline {27}{\ignorespaces Experiment 1 with checkerboard: summary of results in room reference frame (Camera numbering: blue 139, red 141, green 143, orange 145).\relax }}{28}{figure.caption.37}
+\contentsline {figure}{\numberline {28}{\ignorespaces Experiment 2 with checkerboard: Robot positions.\relax }}{29}{figure.caption.38}
+\contentsline {figure}{\numberline {29}{\ignorespaces Experiment 2 with checkerboard: 2D and 3D errors of robot at two example positions.\relax }}{29}{figure.caption.39}
+\contentsline {figure}{\numberline {30}{\ignorespaces Experiment 2 with checkerboard: summary of results in room reference frame (Camera numbering: blue 139, red 141, green 143, orange 145). 'o' and 'x' denote the real and calculated positions respectively.\relax }}{30}{figure.caption.41}
+>>>>>>> 7cb61bf5ab256924de8612f89ee9a5072780ede0
