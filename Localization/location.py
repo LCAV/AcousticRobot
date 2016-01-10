@@ -51,6 +51,7 @@ ROBOT_REAL='''Real Robot           :
 Do you want to save the real position? ('y' for yes or 'n' for no)
 '''
 # color frame ƒor robot detection
+# res3:
 MIN = np.array([150,100,0],dtype=np.uint8)
 MAX = np.array([10,250,255],dtype=np.uint8)
 # res2:
@@ -69,6 +70,7 @@ THRESH_REF = 20 # empiric threshold for circle detection
 # res 1
 #MARGIN = np.array([1000,1000],dtype=np.float) #margin from leftmost and downlost ref point to reference (in mm)
 #PTS_BASIS = np.array(([4000,1500],[2500,3000])) #position of first and second reference points from wall (in mm)
+# res3
 MARGIN = np.array([2000,2000],dtype=np.float) #margin from leftmost and downlost ref point to reference (in mm)
 PTS_BASIS = np.array(([2746,3066],[3506,2708])) #position of first and second reference points from wall (in mm)
 
@@ -119,7 +121,7 @@ def get_param():
             # array with '' for 0 and '1' for 1
             fish = np.array(arg.split('0'))
             # array with True and False
-            fisheye = [c=='1' for c in fish]
+            fisheye = [c=='1' for c in fish[:4]]
             print("Fisheye settings for [139,141,143,145]:",fisheye[:4])
     if opts==[]:
         print(USAGE)
@@ -213,11 +215,15 @@ if __name__ == '__main__':
     else:
         print("Running in real mode\n")
 
-    # DEBUGONLY
-    real_pos = np.loadtxt(in_dir+'posreal.txt')
-    TIME = str(int(time.mktime(time.gmtime())))
-    #TIME=str(1452243684)
+    # if the already saved real positions should be used instead of
+    # saving them manually. (save the file under 'posreal.txt')
+    real_pos_file = ''
+    if DEBUG:
+        real_pos_file = np.loadtxt(in_dir+'posreal.txt')
 
+    TIME = str(int(time.mktime(time.gmtime())))
+
+    # Input positions.
     input_au =in_dir+"sound.wav"
     input_mov = in_dir+"control.txt"
     input_obj = in_dir+"objectpoints.csv"
@@ -230,9 +236,10 @@ if __name__ == '__main__':
     r_real = calib.change_wall_to_ref(PTS_BASIS,MARGIN,r_wall.copy())
     R_HEIGHT = r_real[0,2] #height of robot in mm
     choice_ref = 0 #chosen reference point for error calculation
-    ref_z = 1*np.ones((1,NPTS))
+    ref_z = 1*np.ones((1,NPTS)) # height of reference points
     #ref_z = np.array([135,0,230,0]) #height of reference points in mm
     #ref_z = '' #height automatically set to 0
+
     # Odometry
     loop_counter = ''
 
@@ -307,18 +314,17 @@ if __name__ == '__main__':
     choice_loc = raw_input(ROBOT_LOC)
     while choice_loc != "n":
 #--------------------------- 4.1 Real Position    -------------------------#
-        #choice = raw_input(ROBOT_REAL)
-        #DEBUGONLY
-        choice = 'y'
+        choice = raw_input(ROBOT_REAL)
         if choice != 'n':
-            # x = raw_input("robot position x in mm, measured from wall: ")
-            # y = raw_input("robot position y in mm, measured from wall: ")
-            # if x!='':
-                # r_wall[0,0]=x
-            # if y!='':
-                # r_wall[0,1]=y
-            # DEBUGONLY
-            r_wall[0,:2]=real_pos[loop_counter,:2]+20
+            if real_pos_file=='':
+                x = raw_input("robot position x in mm, measured from wall: ")
+                y = raw_input("robot position y in mm, measured from wall: ")
+                if x!='':
+                    r_wall[0,0]=x
+                if y!='':
+                    r_wall[0,1]=y
+            else:
+                r_wall[0,:2]=real_pos_file[loop_counter,:2]+20
 
             r_real = calib.change_wall_to_ref(PTS_BASIS,MARGIN,r_wall.copy())
             name='posreal_'+TIME+'.txt'
@@ -345,7 +351,7 @@ if __name__ == '__main__':
                     else:
                         img.take_image()
                     # save unchanged image
-                    #plt.imsave(out_dir+str(loop_counter)+'_image_'+str(n)+'_'+TIME,img.img)
+                    plt.imsave(out_dir+str(loop_counter)+'_image_'+str(n)+'_'+TIME,img.img)
 
                     img.get_robotimage(R_ROB,THRESH_ROB,MIN,MAX,1,out_dir,
                                        TIME,loop_counter)
@@ -433,6 +439,7 @@ if __name__ == '__main__':
                 print("End of control input file reached.")
                 break
 
+            # only if motors are turned off at stop.
             #print("Activating motors")
             #Robot.activate()
             print("Moving robot")
@@ -443,20 +450,9 @@ if __name__ == '__main__':
         loop_counter += 1
         choice_loc = raw_input(ROBOT_LOC)
 #--------------------------- 6. Terminate               -------------------#
-    # disconnect robot in the end
+    # disconnect robot in the end.
     if robot_connected:
         Robot.cleanup()
         print("Robot cleaned up successfully")
-
-
-
-    p_real_array = np.array(p_real_list).reshape(len(p_real_list),3)
-    p_obj_array = np.array(p_obj_list).reshape(len(p_obj_list),3)
     plt.close('all')
     print("Program terminated")
-    '''except: # disconnect robot when an error occurs
-        if robot_connected:
-            Robot.cleanup()
-            print("Robot cleaned up successfully")
-        print("Program terminated")
-    '''

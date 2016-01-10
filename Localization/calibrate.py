@@ -894,11 +894,11 @@ class Image:
         img_red,circ_red,p,__ = persp.imagepoints(self.img,R,1,THRESH,MIN,MAX)
         self.r_img=p
         if save:
-            imgs={'img_red_'+str(self.n)+'_'+TIME:img_red}
-                  #'circ_red_'+str(self.n)+'_'+TIME:circ_red}
-                  #'img_'+str(self.n)+'_'+TIME:self.img}
+            imgs={'img_red_'+str(self.n)+'_'+TIME:img_red,
+                  'circ_red_'+str(self.n)+'_'+TIME:circ_red,
+                  'img_'+str(self.n)+'_'+TIME:self.img}
             persp.visualization(imgs,self.n)
-            #persp.save_open_images(out_dir,loop)
+            persp.save_open_images(out_dir,loop)
             plt.close('all')
     def get_refimage(self,R,THRESH,MIN,MAX,NPTS,save=0,out_dir='',TIME=0,loop=''):
         ''' Finds reference position in image using persp.imagepoints.
@@ -923,7 +923,7 @@ class Image:
                   'circ_org_'+str(self.n)+'_'+TIME:circ_org,
                   'img_'+str(self.n)+'_'+TIME:self.img}
             persp.visualization(imgs,self.n)
-            #persp.save_open_images(out_dir,loop)
+            persp.save_open_images(out_dir,loop)
             plt.close('all')
     def get_refobject(self,input_obj,NPTS,MARGIN,save=0,out_dir='',TIME=0):
         pts_obj,M = persp.objectpoints(NPTS,input_obj)
@@ -936,7 +936,7 @@ class Image:
             img_summary = persp.create_summary(img_flat,pts_obj)
             imgs = {'summary_'+str(self.n)+'_'+TIME:img_summary}
             persp.visualization(imgs,self.n,0,1)
-            # persp.save_open_images(out_dir)
+            persp.save_open_images(out_dir)
             plt.close('all')
     def get_checkerboard(self,in_dir,fisheye,w,h,MARGIN,
                          R,THRESH,MIN,MAX,save,out_dir='',TIME=0,loop=''):
