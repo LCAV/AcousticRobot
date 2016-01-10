@@ -76,7 +76,7 @@ PTS_BASIS = np.array(([2746,3066],[3506,2708])) #position of first and second re
 
 R_HEIGHT = 1650
 NCAMERAS = [139,141,143,145]
-NUMBERS=range(2,5) # number of cameras to loop through
+NUMBERS=range(4,5) # number of cameras to loop through
 CHECKERBOARD = 0 # weather or not to use checkerboard for extrinsic calculation
 WIDTH = 7
 HEIGHT = 5
@@ -95,7 +95,7 @@ def get_param():
     out_dir = ''
     in_dir = ''
     m = 0
-    fisheye = '00001'
+    fisheye = '0000'
     try:
         opts,args = getopt.getopt(sys.argv[1:],"o:i:m:f:d",
                                   ['output=','input=','m=','fisheye=','debug='])
@@ -160,10 +160,9 @@ def leastsquares(choice_ref,pts_ref,cams,errs,img,pts,r_real,loop_counter,TIME):
     names_errors="{0:5}\t{1:5}\t{2:5}".format("fixed","2D","3D")
     calib.save_combinations(out_dir,str(loop_counter)+"_combi_ref"+str(choice_ref)+TIME,
                             arr,p2,(e21,e22,e32),names_errors,
-                            'Reference Point '+str(choice_ref),fisheye)
+                            'Reference Point '+str(choice_ref))
     calib.save_combinations(out_dir,str(loop_counter)+"_combi_rob"+TIME
-                            ,arr,p4,(e23,e24,e34),names_errors,
-                            'Robot',fisheye)
+                            ,arr,p4,(e23,e24,e34),names_errors,'Robot')
 
     # Pick best combination based on 2D error with fixed height
     index2,err2 = calib.get_best_combination(e23)

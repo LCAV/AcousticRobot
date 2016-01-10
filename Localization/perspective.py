@@ -240,7 +240,7 @@ def get_circles_count(img,contours,t,w,r):
 
     keep = np.delete(range(len(centers)),rmv)
     centers = np.take(centers,[keep],axis=0)
-    centers=np.array(centers,dtype=np.uint)
+    #centers=np.array(centers,dtype=np.uint)
 
     # Visualisation
     if len(centers[0])>0:
@@ -248,8 +248,8 @@ def get_circles_count(img,contours,t,w,r):
     cimg = img.copy()
     cimg = cv2.cvtColor(cimg,cv2.COLOR_GRAY2BGR)
     for i in range(len(centers[0])):
-        cv2.circle(cimg,(centers[0][i][1],centers[0][i][0]),r,(0,255,0),2,cv2.CV_AA)
-        cv2.circle(cimg,(centers[0][i][1],centers[0][i][0]),2,(0,0,0),2,cv2.CV_AA)
+        cv2.circle(cimg,(int(centers[0][i][1]),int(centers[0][i][0])),r,(0,255,0),2,cv2.CV_AA)
+        cv2.circle(cimg,(int(centers[0][i][1]),int(centers[0][i][0])),2,(0,0,0),2,cv2.CV_AA)
     return cimg, centers
 def extract_color(img,range_min,range_max,r):
     '''

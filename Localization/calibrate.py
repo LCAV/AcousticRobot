@@ -234,7 +234,7 @@ def get_best_combination(crit):
             c_best = c
             i_best = i
     return i_best, c_best
-def save_combinations(out_dir,fname,arrs,pts,errs,errors,title,fisheye=False):
+def save_combinations(out_dir,fname,arrs,pts,errs,errors,title):
     '''
     Saves obtained 2D and 3D errors in .png and textfile.
 
@@ -244,16 +244,12 @@ def save_combinations(out_dir,fname,arrs,pts,errs,errors,title,fisheye=False):
     arrs: list of used camera combinations
     pts:
     errs:
-    fisheye: True if fisheye was applied on this camera.
 
     _Returns_:
     Nothing
 
     '''
-    if fisheye==True:
-        fname2 = fname+"_fish.txt"
-    else:
-        fname2 = fname+".txt"
+    fname2 = fname+".txt"
     with open(out_dir+fname2,"w") as f:
         f.write("{0:20}\t{1:5}\t{2:5}\t{3:5}\t{4}\n".format("combi","x","y","z",errors))
         for i,arr in arrs.iteritems():
@@ -593,7 +589,8 @@ class Camera:
     def get_checkpoints_file(self,out_dir,w,h,fisheye,img=''):
         '''
         gets checkboard points for the intrinsic camera calibration from pictures
-        that have been taken previously
+        that have been taken previously (either in file structure or given
+        as argument)
         '''
         choice = "y"
         counter = 1
@@ -980,9 +977,6 @@ class Image:
             index[i]=a_ind+(c_ind-a_ind)/(w*(h-1))*(j[i]-1)+(b_ind-a_ind)/(w-1)*(i+1-j[i])
             ipts_new[i,:] = ipts[0][int(index[i]),:]
 
-        ''' resposition camera '''
-        #cam.reposition(opts[0],ipts_new,0)
-
         ''' choose 4 corner points for homography'''
         ipts_selec = np.array([ipts_new[0],ipts_new[w-1],
                                 ipts_new[w*(h-1)],ipts_new[w*h-1]])
@@ -1012,7 +1006,7 @@ class Image:
                 'circ_org_'+str(self.n)+'_'+TIME:circ_org,
                   'img_out_'+str(self.n)+'_'+TIME:img_out}
             persp.visualization(imgs,self.n)
-            #persp.save_open_images(out_dir)
+            persp.save_open_images(out_dir)
 
         return 1
 
