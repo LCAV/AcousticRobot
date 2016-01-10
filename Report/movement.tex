@@ -48,17 +48,6 @@ This discrepancy is not a major problem since the robot does not need to accurat
 	\label{fig:trajectory}
 \end{figure}
 
-Figure \ref{fig:trajectory} shows the positions obtained if the robot followed the path it was given exactly, assuming it reaches its target speed (\u{0.3}{m\per s}) instantaneously, compared to the results of odometry. 
-It can be clearly seen that due to communication latency and unexpected delays, the actual trajectory differs significantly from the expected one, especially when turning takes place. 
-This discrepancy is not a major problem since the robot does not need to accurately attain given positions, however it does show the need for an external positioning system to accuractely localize the robot.
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.8\linewidth]{files/trajectory.png} 
-	\caption{Real trajectory of the robot vs. expected trajectory and trajectory estimated by odometry.}
-	\label{fig:trajectory}
-\end{figure}
-
 \subsection{Odometry}
 
 The following considerations follow from basic geometry and Borenstein \cite{Borenstein1996}.

@@ -1,0 +1,35 @@
+%!TEX root=report.tex
+
+\section{Learning Experience}
+
+\setlength{\parskip}{1em}
+The project was as interesting as it was challenging. Initially, the goal was to get a glimpse into how signal processing can be used in combination with visual and auditive representations of our relality. Additionally, odometry should be considered to evaluate the robot movements. Gathering and processing these three different types of data required mastering various experimental equipment that I had never used before. Additionally, the analysis often required creativity to identify the many sources of error that resulted from working with such diverse data types and tools.
+
+The experiments were not only complex but also time-constrained since the room in which they were performed was only available for limited periods. 
+This additional constraint required me to prepare as much as possible beforehand to avoid delays during the experiment.
+Despite this, however, unforeseen errors inevitably cropped up during the experiments, requiring effective problem solving to minimize the delays. 
+
+One major obstacle during the first experiments was that the SD cards of the Raspberry Pis were frequently corrupted. Unfortunately, SD card corruption is inevitable, but I regularly created backups of the SD cards so that the corrupted ones could be quickly replaced. For future experiments, it would be recommended to have one or two backup copies of every SD card for even quicker replacement.
+
+Another challenge during the first experiments was a network problem, which resulted in certain cameras taking more than five minutes to upload a single picture, during which time the robot could not receive commands. This problem was solved by adapting the picture size and upload rate to the capacity of the available router. 
+The burden on the network was furthermore reduced by streaming only the pictures that were necessary for analysis. 
+
+Finally, I learned that it is crucial to verify and analyze key features of the results during experiments in order to make sure that the data collection is functioning as expected (verifying in particular that the signal to noise ratio is high enough and the intrinsic and extrinsic camera parameters are coherent). Some of these checks were implemented directly in the code for convenience. 
+
+In addition to data collection and analysis, the project goal included defining an experimental framework to allow the results to be reproduced in future experiments.
+The development of this framework presented an additional challenge: how to create a user-friendly human-machine interface that is both intuitive and easy to maintain. 
+I started developing the documentation at the very beginning of the project and continuously improved it to make it more user-friendly. 
+Since all code is available online and open for editing, it can be further improved and extended by future users. 
+
+From a technical point of view, I have acquired many new skills such as:
+\vspace{-1em}
+\begin{itemize}
+    \item \texttt{python}, i.e. \texttt{OpenCV}
+    \item Doxygen for code documentation
+    \item Local network setup
+    \item Raspberry Pi setup
+    \item Sound processing with \texttt{python} and other software
+    \item Basic \texttt{html} webdesign
+\end{itemize}
+
+\setlength{\parskip}{0em}

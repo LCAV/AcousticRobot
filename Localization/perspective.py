@@ -9,7 +9,6 @@ object point reading and image reprojection functions.
 
 
 created by Frederike Duembgen, July 2015
-last modified: 08.12.2015
 '''
 
 

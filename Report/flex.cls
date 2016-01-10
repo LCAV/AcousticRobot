@@ -148,7 +148,7 @@ postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{blue}\hookrightarrow\space
 
 \vspace{30em}
 \abstract
-An experimental framework for an echolocator robot was developed and tested. The framework includes an image processing and computer vision algorithm for visual localization, odometry analysis and the tools for calculating room impulse responses. The performance of each method was compared and first analysises of the room impulse responses were provided for different experimental setups. The precision obtained with visual localization was on the order of 1 cm and significantly better than the results obtained with odometry, for which the errors accumulate. All results and tools were documented for later use for EchoSLAM experiments within the laboratory. 
+An experimental framework for an echolocator robot was developed and tested. The framework includes an image processing and computer vision algorithm for visual localization, odometry analysis and the tools for calculating room impulse responses. The performance of each method was compared and first analyses of the room impulse responses were provided for different experimental setups and at multiple positions. The precision obtained with visual localization was on the order of 1 cm and significantly better than the results obtained with odometry, for which the positioning errors accumulate. All results and tools were documented for later use for EchoSLAM experiments within the laboratory. 
 }
 
 %Foot and header

@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.7.25)  8 JAN 2016 22:51
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.7.25)  9 JAN 2016 16:59
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**report
+**report.tex
 (./report.tex
 LaTeX2e <2011/06/27>
 Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, ge
@@ -1590,20 +1590,20 @@ File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 <files/Overview.jpg, id=291, 3276.24pt x 2457.18pt>
 File: files/Overview.jpg Graphic file (type jpg)
  <use files/Overview.jpg>
-Package pdftex.def Info: files/Overview.jpg used on input line 21.
+Package pdftex.def Info: files/Overview.jpg used on input line 22.
 (pdftex.def)             Requested size: 290.22107pt x 217.64977pt.
 
 <files/RaspiCam.png, id=293, 90.0966pt x 129.6042pt>
 File: files/RaspiCam.png Graphic file (type png)
  <use files/RaspiCam.png>
-Package pdftex.def Info: files/RaspiCam.png used on input line 39.
+Package pdftex.def Info: files/RaspiCam.png used on input line 40.
 (pdftex.def)             Requested size: 120.92421pt x 173.95348pt.
-LaTeX Font Info:    Try loading font information for T1+lmtt on input line 45.
+LaTeX Font Info:    Try loading font information for T1+lmtt on input line 46.
 
 (/usr/local/texlive/2012/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for T1+pcr on input line 50.
+LaTeX Font Info:    Try loading font information for T1+pcr on input line 51.
 
 (/usr/local/texlive/2012/texmf-dist/tex/latex/psnfss/t1pcr.fd
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
@@ -1618,14 +1618,14 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 
  <./files/Overview.jpg>]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 60.
+(Font)              <10> on input line 61.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 60.
+(Font)              <7> on input line 61.
  (./files/start_camera)
 <files/quality.png, id=308, 803.0pt x 468.75125pt>
 File: files/quality.png Graphic file (type png)
  <use files/quality.png>
-Package pdftex.def Info: files/quality.png used on input line 71.
+Package pdftex.def Info: files/quality.png used on input line 72.
 (pdftex.def)             Requested size: 386.95897pt x 225.8921pt.
 
 [7 <./files/RaspiCam.png>]
@@ -1639,26 +1639,26 @@ Underfull \vbox (badness 6236) has occurred while \output is active []
 File: files/Robot2_cvt.png Graphic file (type png)
 
 <use files/Robot2_cvt.png>
-Package pdftex.def Info: files/Robot2_cvt.png used on input line 139.
+Package pdftex.def Info: files/Robot2_cvt.png used on input line 140.
 (pdftex.def)             Requested size: 121.19772pt x 215.46228pt.
 
-Underfull \hbox (badness 1406) in paragraph at lines 140--140
+Underfull \hbox (badness 1406) in paragraph at lines 141--141
 []\T1/lmr/m/it/10 (a) |Robot de-signed by Gi-gatec
  []
 
 <files/Wireless.png, id=365, 252.945pt x 566.115pt>
 File: files/Wireless.png Graphic file (type png)
  <use files/Wireless.png>
-Package pdftex.def Info: files/Wireless.png used on input line 146.
+Package pdftex.def Info: files/Wireless.png used on input line 147.
 (pdftex.def)             Requested size: 96.27061pt x 215.46228pt.
 
 <files/Speaker.jpg, id=366, 2457.18pt x 3276.24pt>
 File: files/Speaker.jpg Graphic file (type jpg)
  <use files/Speaker.jpg>
-Package pdftex.def Info: files/Speaker.jpg used on input line 153.
+Package pdftex.def Info: files/Speaker.jpg used on input line 154.
 (pdftex.def)             Requested size: 161.59698pt x 215.46228pt.
 
-Overfull \hbox (16.48645pt too wide) in paragraph at lines 153--154
+Overfull \hbox (16.48645pt too wide) in paragraph at lines 154--155
  [][] 
  []
 
@@ -1908,7 +1908,7 @@ Package pdftex.def Info: files/ref_checkerboard.png used on input line 32.
 File: files/res0_combi_4.png Graphic file (type png)
 
 <use files/res0_combi_4.png>
-Package pdftex.def Info: files/res0_combi_4.png used on input line 17.
+Package pdftex.def Info: files/res0_combi_4.png used on input line 18.
 (pdftex.def)             Requested size: 386.95897pt x 290.21953pt.
 )) [24 <./files/res0_combi_4.png>]
 \openout2 = `results.aux'.
@@ -1988,37 +1988,37 @@ File: files/res2_room.png Graphic file (type png)
 Package pdftex.def Info: files/res2_room.png used on input line 144.
 (pdftex.def)             Requested size: 290.22107pt x 217.663pt.
 
-[25
+<files/res3_best_err.png, id=669, 864.22874pt x 420.57124pt>
+File: files/res3_best_err.png Graphic file (type png)
+
+<use files/res3_best_err.png>
+Package pdftex.def Info: files/res3_best_err.png used on input line 158.
+(pdftex.def)             Requested size: 338.58632pt x 164.76654pt.
+
+<files/res3_all_err.png, id=670, 722.7pt x 361.35pt>
+File: files/res3_all_err.png Graphic file (type png)
+
+<use files/res3_all_err.png>
+Package pdftex.def Info: files/res3_all_err.png used on input line 164.
+(pdftex.def)             Requested size: 386.95897pt x 193.47748pt.
+ [25
 
 
 ] [26 <./files/res0_img139.png> <./files/res0_img141.png> <./files/res1_img141.
 png (PNG copy)>] [27 <./files/res1_room.png> <./files/res1_img145.png> <./files
 /res1_combi_4.png>] [28 <./files/res2_image_143.png> <./files/res2_output_143.j
 pg> <./files/res2_0_image_141.png> <./files/res2_combi_rob.png> <./files/res2_r
-oom.png>] <files/res3_best_err.png, id=695, 864.22874pt x 420.57124pt>
-File: files/res3_best_err.png Graphic file (type png)
-
-<use files/res3_best_err.png>
-Package pdftex.def Info: files/res3_best_err.png used on input line 159.
-(pdftex.def)             Requested size: 338.58632pt x 164.76654pt.
-
-<files/res3_all_err.png, id=696, 722.7pt x 361.35pt>
-File: files/res3_all_err.png Graphic file (type png)
-
-<use files/res3_all_err.png>
-Package pdftex.def Info: files/res3_all_err.png used on input line 165.
-(pdftex.def)             Requested size: 386.95897pt x 193.47748pt.
-
+oom.png>]
 <files/res3_err3.png, id=697, 578.16pt x 433.62pt>
 File: files/res3_err3.png Graphic file (type png)
  <use files/res3_err3.png>
-Package pdftex.def Info: files/res3_err3.png used on input line 176.
+Package pdftex.def Info: files/res3_err3.png used on input line 175.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
 <files/res3_err8.png, id=698, 578.16pt x 433.62pt>
 File: files/res3_err8.png Graphic file (type png)
  <use files/res3_err8.png>
-Package pdftex.def Info: files/res3_err8.png used on input line 181.
+Package pdftex.def Info: files/res3_err8.png used on input line 180.
 (pdftex.def)             Requested size: 237.01411pt x 177.75888pt.
 
 Underfull \vbox (badness 2269) has occurred while \output is active []
@@ -2028,7 +2028,7 @@ Underfull \vbox (badness 2269) has occurred while \output is active []
 File: files/res3_all_room2.png Graphic file (type png)
 
 <use files/res3_all_room2.png>
-Package pdftex.def Info: files/res3_all_room2.png used on input line 228.
+Package pdftex.def Info: files/res3_all_room2.png used on input line 227.
 (pdftex.def)             Requested size: 386.95897pt x 343.86775pt.
  (./results_audio.tex
 <files/1_1_filt_zoom2.png, id=717, 578.16pt x 433.62pt>
@@ -2108,7 +2108,7 @@ Here is how much of TeX's memory you used:
  23381 multiletter control sequences out of 15000+200000
  128621 words of font info for 100 fonts, out of 3000000 for 9000
  957 hyphenation exceptions out of 8191
- 49i,14n,45p,673b,1403s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 49i,14n,45p,713b,1403s stack positions out of 5000i,500n,10000p,200000b,50000s
 {/usr/local/texlive/2012/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/lo
 cal/texlive/2012/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/local/texlive/20
 12/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/usr/local/texlive/2012/texmf-dist/
@@ -2138,7 +2138,7 @@ lmsy10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/lm/lmsy8.pfb>
 /texlive/2012/texmf-dist/fonts/type1/public/lm/lmtt10.pfb></usr/local/texlive/2
 012/texmf-dist/fonts/type1/public/lm/lmtti10.pfb></usr/local/texlive/2012/texmf
 -dist/fonts/type1/urw/courier/ucrr8a.pfb>
-Output written on report.pdf (35 pages, 15028086 bytes).
+Output written on report.pdf (35 pages, 15028084 bytes).
 PDF statistics:
  912 PDF objects out of 1000 (max. 8388607)
  735 compressed objects within 8 object streams
