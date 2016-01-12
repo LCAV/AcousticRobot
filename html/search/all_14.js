@@ -1,5 +1,6 @@
 var searchData=
 [
+<<<<<<< HEAD
   ['s',['s',['../namespaceexecute__file.html#adb033cc206bf4ad0337ae56c6d3b3219',1,'execute_file']]],
   ['save',['save',['../classcalibrate_1_1_camera.html#abdcb4bc525746a0734dca35d661957eb',1,'calibrate::Camera']]],
   ['save_5fcheckpoints_5ffile',['save_checkpoints_file',['../classcalibrate_1_1_camera.html#a1bbbea60fb76b33a42c293edb9ed9699',1,'calibrate::Camera']]],
@@ -46,4 +47,28 @@ var searchData=
   ['system_5f_5finfo_5f8py_2ejs',['system__info_8py.js',['../system____info__8py_8js.html',1,'']]],
   ['system_5finfo',['system_info',['../namespacesystem__info.html',1,'']]],
   ['system_5finfo_2epy',['system_info.py',['../system__info_8py.html',1,'']]]
+=======
+  ['t',['t',['../classcalibrate_1_1_camera.html#a6b529f91c4c2bdd1f17984d6be0e5770',1,'calibrate.Camera.t()'],['../namespacemove.html#afe240fa4133d708c7cb33caa0a23a361',1,'move.t()'],['../namespacelocation.html#a00358cee580ece832cde040bfdf7cc9b',1,'location.t()'],['../namespaceperspective.html#a7cb2c2caafa8c3ec248282a78bc6f596',1,'perspective.t()']]],
+  ['tcp_5fip',['TCP_IP',['../namespaceexecute__file.html#a5a55ee93ddf3b6d507a9b5ba8a67e877',1,'execute_file.TCP_IP()'],['../namespaceexecute__file__improved.html#a63affb1f1fed2f96747bc30beaf956f5',1,'execute_file_improved.TCP_IP()'],['../namespacemove.html#a1066bb7ae2c92e7ee69a45c96764c928',1,'move.TCP_IP()']]],
+  ['tcp_5fport',['TCP_PORT',['../namespaceexecute__file.html#ab3a65665e59a16fe823a2e748bb50149',1,'execute_file.TCP_PORT()'],['../namespaceexecute__file__improved.html#a59884fa3bdc3879119f05d44fdbc08d1',1,'execute_file_improved.TCP_PORT()'],['../namespacemove.html#a6607dc78bdef71f6a89fd25f3012b48c',1,'move.TCP_PORT()']]],
+  ['test',['test',['../namespacetest.html',1,'']]],
+  ['test_2epy',['test.py',['../test_8py.html',1,'']]],
+  ['test2_2etxt',['test2.txt',['../test2_8txt.html',1,'']]],
+  ['test_5foutput_2etxt',['test_output.txt',['../test__output_8txt.html',1,'']]],
+  ['test_5foutput2_2etxt',['test_output2.txt',['../test__output2_8txt.html',1,'']]],
+  ['testblocks_2etxt',['testblocks.txt',['../output_2testblocks_8txt.html',1,'']]],
+  ['testblocks_2etxt',['testblocks.txt',['../input_2testblocks_8txt.html',1,'']]],
+  ['testnames_2etxt',['testnames.txt',['../input_2testnames_8txt.html',1,'']]],
+  ['testnames_2etxt',['testnames.txt',['../output_2testnames_8txt.html',1,'']]],
+  ['th_5fred',['th_red',['../namespaceperspective.html#a35ad54572f198833c41e6dcfcb54016f',1,'perspective']]],
+  ['this_5ftime',['this_time',['../namespaceexecute__file.html#a4d4527bea1a262a210da3c1b961017b5',1,'execute_file']]],
+  ['tick',['tick',['../classrobot__tracking_1_1_calibration_widget.html#a155e6fe3a064345c8a78b0b0452a82d5',1,'robot_tracking::CalibrationWidget']]],
+  ['tick_5ftimer',['tick_timer',['../classrobot__tracking_1_1_calibration_widget.html#ac9298ebbd2b3d9e374cc40e9dea47817',1,'robot_tracking::CalibrationWidget']]],
+  ['time_5fdiff',['time_diff',['../namespaceexecute__file.html#adadd6cccbac6f2ce61da9c518d7921ae',1,'execute_file']]],
+  ['touchopen',['touchopen',['../namespaceexecute__file__improved.html#aebb4e7af5cb3afbcda4b3fd8e9edf74a',1,'execute_file_improved.touchopen()'],['../namespacemove.html#a3d9c370100d26c2e9ec298f3809def4b',1,'move.touchopen()']]],
+  ['triangulate',['triangulate',['../namespacecalibrate.html#ab44f8da2b8b48f2934763bc372688e59',1,'calibrate']]],
+  ['trilateration',['trilateration',['../classmarker__calibration_1_1_marker_set.html#a4fe6279fab4735eafc73094c075222fe',1,'marker_calibration::MarkerSet']]],
+  ['trilateration_5fsingle_5fpoint',['trilateration_single_point',['../classmarker__calibration_1_1_marker_set.html#ab1ccf3cb34d70aafdffc36a7d1494213',1,'marker_calibration::MarkerSet']]],
+  ['ts',['ts',['../namespaceexecute__file__improved.html#ad5f1e69d6c9aed5953f9fad7693b599a',1,'execute_file_improved']]]
+>>>>>>> f2fcbe1144bae9a139e3ca2db48453e88eb3f146
 ];

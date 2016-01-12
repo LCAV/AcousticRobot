@@ -1,5 +1,6 @@
 var searchData=
 [
+<<<<<<< HEAD
   ['geometric_5ftransformationn',['geometric_transformationN',['../namespaceperspective.html#a91d32557ba60d8a86807975194228309',1,'perspective']]],
   ['get_5fbest_5fcombination',['get_best_combination',['../namespacecalibrate.html#a65748f3405be820108c9f719baf93d7e',1,'calibrate']]],
   ['get_5fcalibpoints',['get_calibpoints',['../namespacecalibrate.html#ab0630a001f61011a102d9fd00d7821ac',1,'calibrate']]],
@@ -26,4 +27,9 @@ var searchData=
   ['gotoanchor',['gotoAnchor',['../navtree_8js.html#aee1fc3771eeb15da54962a03da1f3c11',1,'navtree.js']]],
   ['gotonode',['gotoNode',['../navtree_8js.html#a0e6a2d65190a43246d668bba554243e5',1,'navtree.js']]],
   ['gray_5fconversion',['gray_conversion',['../namespaceperspective.html#af55c05204853ac7be27d669e8692ebbd',1,'perspective']]]
+=======
+  ['imagepoints',['imagepoints',['../namespaceperspective.html#ae9c387c42f1bbff1edf3694d9ed840f6',1,'perspective']]],
+  ['imagepoints_5fauto',['imagepoints_auto',['../namespaceperspective.html#a98eef630fc4e415614ba8306e26eb441',1,'perspective']]],
+  ['initui',['initUI',['../classrobot__tracking_1_1_calibration_widget.html#ae86d6edce828f1ec58ad6c19387c47c3',1,'robot_tracking::CalibrationWidget']]]
+>>>>>>> f2fcbe1144bae9a139e3ca2db48453e88eb3f146
 ];

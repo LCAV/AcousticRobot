@@ -1,5 +1,6 @@
 var searchData=
 [
+<<<<<<< HEAD
   ['ransac_5floop',['ransac_loop',['../classcalibrate_1_1_camera.html#a4b7a714017b727e90502df37e24f70c0',1,'calibrate::Camera']]],
   ['read',['read',['../classcalibrate_1_1_camera.html#a6b9aa2ca41f9f007ecea122e75fb7d72',1,'calibrate::Camera']]],
   ['read_5ffile',['read_file',['../namespaceexecute__file__improved.html#a67b0f27d987b1fabe86526b35b80ee84',1,'execute_file_improved.read_file()'],['../namespacemove.html#a1a69c4337466fc071a6b61fefe34052e',1,'move.read_file()']]],
@@ -17,4 +18,10 @@ var searchData=
   ['restorewidth',['restoreWidth',['../resize_8js.html#a517273f9259c941fd618dda7a901e6c2',1,'resize.js']]],
   ['rgb_5fconversion',['rgb_conversion',['../namespaceperspective.html#a70377defc2a21403181764641158fe0a',1,'perspective']]],
   ['run_5fcam_5fupdate',['run_cam_update',['../classrobot__tracking_1_1_calibration_widget.html#af24fef584b87e624e9c2973733af0078',1,'robot_tracking::CalibrationWidget']]]
+=======
+  ['undistort',['undistort',['../classcalibrate_1_1_camera.html#a11c101d53aa4d22ebb69de31aa7be81e',1,'calibrate::Camera']]],
+  ['update',['update',['../classcalibrate_1_1_camera.html#a3b6bf6efc5c2f4a969c645febdf87074',1,'calibrate::Camera']]],
+  ['update_5ffigure',['update_figure',['../classrobot__tracking_1_1_my_dynamic_mpl_canvas.html#ac1ae1b83e983207f90c7e85b28e4f0d1',1,'robot_tracking::MyDynamicMplCanvas']]],
+  ['updatecameras',['updateCameras',['../classrobot__tracking_1_1_calibration_widget.html#a7b0692b99c397ad35e708f24439d1a14',1,'robot_tracking::CalibrationWidget']]]
+>>>>>>> f2fcbe1144bae9a139e3ca2db48453e88eb3f146
 ];

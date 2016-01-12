@@ -1,0 +1,14 @@
+/*! send robot speed
+\return  0 no error occured
+					-1 left i2c error occured
+					-2 right i2c error occured
+					-3 left and right motor i2c error	
+*/ 
+int stop_drive_motors() {
+
+	set_drive_motors_mode(eCTRL_SPEED_ACC,eCTRL_SPEED_ACC);
+	set_drive_speed(0,0);
+	usleep(500000);
+	return set_drive_motors_mode(eCTRL_IDLE,eCTRL_IDLE);
+}
+

@@ -1,25 +1,59 @@
-<h2> Develop <h2>
-
+<h2> Develop </h2>
+<p>
+This site contains some information on how the hardware used in this framework can be coded and improved. It also contains the link to the Doxygen site and instructions for developing this webpage.
+</p>
 <h3> Robot </h3>
-<p>For a better functioning of the robot, a changement has been made in the source code of the server. 
-A line was added to the function stop_drive_motors()  so that when the robot is at rest, its motors are shut down. 
-Without doing so, the motors sometimes entered some unstable state where they were making a loud noise after receiving the command to stop.
-The resulting code with highlighted inserted line was:
 
+<p> For a better functioning of the robot, changements can be made in the source code of the server. 
+For example, A line was added to the function stop_drive_motors() so that when the robot is at rest, its motors are shut down. 
+Without doing so, the motors sometimes entered some unstable state where they were making a loud noise after receiving the command to stop.
+The resulting function was then:<br> 
+
+<iframe src="../other/new_function.txt" width=500px>
+<caption> Customized stop_drive_motors() function on robot's server </caption>
+</iframe>
+<br>
+The instructions for how to recompilse the code can be found in the Manufacturer's documentation. 
 </p>
 
 <h3> Cameras </h3>
-<p> Describe functioning of cameras 
-You can find the parameters of the cameras <p><a href="http://elinux.org/Rpi_Camera_Module"target="_blank">here</a></p>
+<h4> How to create backup of SD Card (Mac) </h4>
 
+<p>Insert the SD card into your computer and open a Terminal. 
+Find out the number of the inserted disk by typing </p>
+<code>diskutil list</code>
+
+<p> In the following, the SD card is assumed to have number 2. 
+Unmount the SD card by typing <code>diskutil unmountdisk /dev/disk2</code>. 
+Now you may copy the image to your desired location by typing: <br>
+<code>sudo dd if=/dev/rdisk2 bs=2m ~/Desktop/backups/backup_robot.img</code><br>
+or, directly zipping the file:<br>
+<code>sudo dd if=/dev/rdisk2 bs=2m | gzip > ~/Desktop/backups/backup_robot.gz</code><br>
+When the backup is needed, it can be unzipped by entering <br>
+<code> sudo dd if=~/Desktop/backups/backup_robot.gz bs=2m | gunzip > ~/Desktop/backups/backup_robot.img </code>. <br>
+Once the image is unzipped, the card where the backups is to be copied to can be
+inserted and unmounted as described above and then the image can be copied onto it using <br>
+<code> sudo dd if=~/Desktop/backups/backup_robot.img of=/dev/rdisk2 bs=2m </code> <br>
 </p>
+<h4> Webcam setup </h4>
+You can find the hardware parameters of the cameras
+<a href="http://elinux.org/Rpi_Camera_Module"target="_blank">here</a>.
 
+The camera is implemented to send images to a local network using the mjpg streamer. The two codes that have been added onto the camera are ~/start_camera.sh for starting raspistill with the mjpg streamer and ~/switchoff.py for starting the interrupt for turning the camera on via an externally mounted button. They can be find in the folder Cameras/ in in the Documentation. 
+Also, the IP number in /etc/network/interfaces need to be set and finally, a few lines need to be added in /etc/rc.local:<br>
+<code>
+    #Auto start camera<br>
+    sudo /home/pi/start_camera.sh &<br>
+    #Auto start shutdowni<br>
+    sudo python /home/pi/switchoff.py &<br>
+</code>
+</p>
 
 <h3> Program </h3>
 <p><a href="../html/index.html" target="_blank">View Code with Doxygen</a></p>
 
 <p>
-There are some debug options for the code, there is more information if you type 'h' as command line argument.
+Note that there are some debug options for the code, there is more information if you type 'h' as command line argument.
 </p>
 
 
@@ -29,22 +63,3 @@ The completed files will be copied to pages/.
 Don't edit the files in the pages/ folder, always edit files in home folder and run ./template.sh before commiting.
 </p>
 
-<h3> How to create backup of SD Card (Mac) </h3>
-
-<p>Insert the SD card into your computer and open a Terminal. 
-Find out the number of the inserted disk by typing </p>
-<code>diskutil list</code>
-
-<p> In the following, the SD card is assumed to have number 2. 
-Unmount the SD card by typing <code>diskutil unmountdisk /dev/disk2</code>. 
-Now you may copy the image to your desired location by typing: </p>
-<code>sudo dd if=/dev/rdisk2 bs=2m | gzip > ~/Desktop/backups/backup_robot.gz</code>
-<p> or, directly zipping the file: </p>
-<code>sudo dd if=/dev/rdisk2 bs=2m | gzip > ~/Desktop/backups/backup_robot.gz</code>
-
-<p> When the backup is needed, it can be unzipped by entering 
-<code> sudo dd if=/dev/rdisk2 bs=2m | gzip > ~/Desktop/backups/backup_robot.gz </code>. 
-Once the image is unzipped, the card where the backups is to be copied to can be
-inserted and unmounted as described above and then the image can be copied onto it using 
-</p>
-<code> sudo dd if=~/Desktop/backups/backup_robot.img of=/dev/rdisk2 bs=2m </code>

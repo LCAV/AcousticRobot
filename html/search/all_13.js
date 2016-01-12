@@ -1,5 +1,6 @@
 var searchData=
 [
+<<<<<<< HEAD
   ['r',['R',['../classcalibrate_1_1_camera.html#a0cd45cd7e166f4e242a5339088c5ba96',1,'calibrate.Camera.R()'],['../classcalibrate_1_1_camera.html#a0908a1ead08956747628b9f866987dfd',1,'calibrate.Camera.r()'],['../classcalibrate_1_1_image.html#aa389138c0b0dcb1fc02279f070db7b7e',1,'calibrate.Image.r()'],['../namespaceperspective.html#afcb1c14e78e05966e25ea3a82abcb354',1,'perspective.r()'],['../namespacemove.html#aec121a2f1577c94db6a37395717afa0d',1,'move.R()']]],
   ['r_5fheight',['r_height',['../namespacecalibrate.html#a6ef72eb1d42351fad4b18f4cee987edf',1,'calibrate.r_height()'],['../namespacelocation.html#a07aa62d73abc6771953bcb7b8935200e',1,'location.r_height()']]],
   ['r_5fimg',['r_img',['../classcalibrate_1_1_image.html#aa0545cfe8a9c003836f28a560f372e8b',1,'calibrate::Image']]],
@@ -308,4 +309,30 @@ var searchData=
   ['robot_5ftracking_2epy',['robot_tracking.py',['../robot__tracking_8py.html',1,'']]],
   ['roll',['roll',['../classcalibrate_1_1_camera.html#a2f8bef77568a40ae88e888f8ecf69b9a',1,'calibrate::Camera']]],
   ['run_5fcam_5fupdate',['run_cam_update',['../classrobot__tracking_1_1_calibration_widget.html#af24fef584b87e624e9c2973733af0078',1,'robot_tracking::CalibrationWidget']]]
+=======
+  ['s',['s',['../namespaceexecute__file.html#adb033cc206bf4ad0337ae56c6d3b3219',1,'execute_file']]],
+  ['samp_5fwidth',['samp_width',['../classtest_1_1_audio.html#a883b0fd9699f8a780a2dc9d1519681d6',1,'test::Audio']]],
+  ['save',['save',['../classcalibrate_1_1_camera.html#abdcb4bc525746a0734dca35d661957eb',1,'calibrate::Camera']]],
+  ['save_5fcheckpoints_5ffile',['save_checkpoints_file',['../classcalibrate_1_1_camera.html#a1bbbea60fb76b33a42c293edb9ed9699',1,'calibrate::Camera']]],
+  ['save_5fcombinations',['save_combinations',['../namespacecalibrate.html#aa985e2477fc900f9860ebe0a41f31b50',1,'calibrate']]],
+  ['save_5fopen_5fimages',['save_open_images',['../namespaceperspective.html#adb2ae3ff93ca31b7b96e245377895378',1,'perspective']]],
+  ['save_5fwav_5ffiles',['save_wav_files',['../classtest_1_1_audio.html#a5b94fcb74874720bf30b77f7f512ebcf',1,'test::Audio']]],
+  ['send_5fcommands',['send_commands',['../namespaceexecute__file__improved.html#a888c1f062a04be4ffb7eb42fc1612173',1,'execute_file_improved']]],
+  ['send_5fcommands_5fwihout_5fidletimes',['send_commands_wihout_idletimes',['../namespaceexecute__file__improved.html#ad0903822beb874153633a38f3317914f',1,'execute_file_improved']]],
+  ['setpoints',['setpoints',['../classperspective_1_1_interactive_plot_n.html#aa20d53bd5161bfaea309ffdec7168d72',1,'perspective::InteractivePlotN']]],
+  ['setup',['setup',['../namespacesetup.html',1,'']]],
+  ['setup_2epy',['setup.py',['../setup_8py.html',1,'']]],
+  ['setup_5fnetwork',['setup_network',['../namespaceexecute__file__improved.html#a140298426963508dace1e201d48ef115',1,'execute_file_improved']]],
+  ['shutdown_2etxt',['shutdown.txt',['../shutdown_8txt.html',1,'']]],
+  ['signal_5fhandler',['signal_handler',['../namespaceexecute__file__improved.html#acf37dc74fb39517bdf6e619b8f1b72aa',1,'execute_file_improved.signal_handler()'],['../namespacemove.html#a801d0c2f68ec8cfb0b2f6db53ffd0990',1,'move.signal_handler()']]],
+  ['size',['size',['../namespacegeometry.html#ae922d15f968da93dce8be5ef2383c221',1,'geometry']]],
+  ['socket',['socket',['../classmove_1_1_robot.html#a8f0452fabd429ce9c5c2ffa825743dde',1,'move::Robot']]],
+  ['standard_5fsample_5frates',['standard_sample_rates',['../namespacesystem__info.html#a6c1e4cc5184adf5a754e8407afb72982',1,'system_info']]],
+  ['stream',['stream',['../namespaceerror.html#a99e81b82a12ff8d26c556ec74caaa1e5',1,'error.stream()'],['../namespaceplay__wave.html#a6cbf401370f5c5f5640d7ef14ff4b2a6',1,'play_wave.stream()'],['../namespaceplay__wave__callback.html#ad27b612c6a4cb09eafd2e5b42b6fe681',1,'play_wave_callback.stream()'],['../namespaceplay__wave__macosx__channelmap.html#ae123af6c246f663a61b425d49bd02b96',1,'play_wave_macosx_channelmap.stream()'],['../namespacerecord.html#a016c7eda825803d5d84568ee41f659eb',1,'record.stream()'],['../namespacewire__callback.html#a98025e45ba8c8e4e6ac345036b889add',1,'wire_callback.stream()'],['../namespacewire__full.html#aeb2e0e75505d5564191e5d3c86944268',1,'wire_full.stream()']]],
+  ['stream_5finfo',['stream_info',['../namespaceplay__wave__macosx__channelmap.html#a7c313fb388c44a7bfab47ccce7673534',1,'play_wave_macosx_channelmap']]],
+  ['stream_5finput',['stream_input',['../namespacewire__half.html#a83b4f3ee406ad9270b6cb7ccc72df672',1,'wire_half']]],
+  ['stream_5foutput',['stream_output',['../namespacewire__half.html#a69daf7f770ec9f279189d8d11b4ddac0',1,'wire_half']]],
+  ['system_5finfo',['system_info',['../namespacesystem__info.html',1,'']]],
+  ['system_5finfo_2epy',['system_info.py',['../system__info_8py.html',1,'']]]
+>>>>>>> f2fcbe1144bae9a139e3ca2db48453e88eb3f146
 ];

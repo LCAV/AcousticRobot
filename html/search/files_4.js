@@ -1,5 +1,6 @@
 var searchData=
 [
+<<<<<<< HEAD
   ['calibrate_2epy',['calibrate.py',['../calibrate_8py.html',1,'']]],
   ['calibrate_5f8py_2ejs',['calibrate_8py.js',['../calibrate__8py_8js.html',1,'']]],
   ['classcalibrate_5f1_5f1_5fcamera_2ejs',['classcalibrate_1_1_camera.js',['../classcalibrate__1__1__camera_8js.html',1,'']]],
@@ -140,4 +141,9 @@ var searchData=
   ['combi_5frob_5ffree4_2etxt',['combi_rob_free4.txt',['../test__wednesday3__all__3_d_2combi__rob__free4_8txt.html',1,'']]],
   ['combi_5frob_5ffree4_2etxt',['combi_rob_free4.txt',['../test__wednesday3__all__2_d_2combi__rob__free4_8txt.html',1,'']]],
   ['combi_5frob_5ffree4_2etxt',['combi_rob_free4.txt',['../test__wednesday3__wo145__3_d_2combi__rob__free4_8txt.html',1,'']]]
+=======
+  ['geometry_2epy',['geometry.py',['../geometry_8py.html',1,'']]],
+  ['get_2etxt',['get.txt',['../get_8txt.html',1,'']]],
+  ['get_5fimage_2epy',['get_image.py',['../get__image_8py.html',1,'']]]
+>>>>>>> f2fcbe1144bae9a139e3ca2db48453e88eb3f146
 ];

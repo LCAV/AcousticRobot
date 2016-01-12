@@ -1,5 +1,6 @@
 var searchData=
 [
+<<<<<<< HEAD
   ['t',['t',['../classcalibrate_1_1_camera.html#a6b529f91c4c2bdd1f17984d6be0e5770',1,'calibrate.Camera.t()'],['../namespacemove.html#afe240fa4133d708c7cb33caa0a23a361',1,'move.t()'],['../namespacelocation.html#a00358cee580ece832cde040bfdf7cc9b',1,'location.t()'],['../namespaceperspective.html#a7cb2c2caafa8c3ec248282a78bc6f596',1,'perspective.t()']]],
   ['tcp_5fip',['TCP_IP',['../namespaceexecute__file.html#a5a55ee93ddf3b6d507a9b5ba8a67e877',1,'execute_file.TCP_IP()'],['../namespaceexecute__file__improved.html#a63affb1f1fed2f96747bc30beaf956f5',1,'execute_file_improved.TCP_IP()'],['../namespacemove.html#a1066bb7ae2c92e7ee69a45c96764c928',1,'move.TCP_IP()']]],
   ['tcp_5fport',['TCP_PORT',['../namespaceexecute__file.html#ab3a65665e59a16fe823a2e748bb50149',1,'execute_file.TCP_PORT()'],['../namespaceexecute__file__improved.html#a59884fa3bdc3879119f05d44fdbc08d1',1,'execute_file_improved.TCP_PORT()'],['../namespacemove.html#a6607dc78bdef71f6a89fd25f3012b48c',1,'move.TCP_PORT()']]],
@@ -30,4 +31,12 @@ var searchData=
   ['trilateration_5fsingle_5fpoint',['trilateration_single_point',['../classmarker__calibration_1_1_marker_set.html#ab1ccf3cb34d70aafdffc36a7d1494213',1,'marker_calibration::MarkerSet']]],
   ['ts',['ts',['../namespaceexecute__file__improved.html#ad5f1e69d6c9aed5953f9fad7693b599a',1,'execute_file_improved']]],
   ['txt',['txt',['../all__11_8js.html#a840980a8618df93b1d11ab0955dbcc44',1,'txt():&#160;all_11.js'],['../all__7_8js.html#a840980a8618df93b1d11ab0955dbcc44',1,'txt():&#160;all_7.js'],['../all__a_8js.html#a840980a8618df93b1d11ab0955dbcc44',1,'txt():&#160;all_a.js'],['../variables__5_8js.html#a840980a8618df93b1d11ab0955dbcc44',1,'txt():&#160;variables_5.js'],['../variables__7_8js.html#a840980a8618df93b1d11ab0955dbcc44',1,'txt():&#160;variables_7.js'],['../variables__e_8js.html#a840980a8618df93b1d11ab0955dbcc44',1,'txt():&#160;variables_e.js']]]
+=======
+  ['undistort',['undistort',['../classcalibrate_1_1_camera.html#a11c101d53aa4d22ebb69de31aa7be81e',1,'calibrate::Camera']]],
+  ['update',['update',['../classcalibrate_1_1_camera.html#a3b6bf6efc5c2f4a969c645febdf87074',1,'calibrate::Camera']]],
+  ['update_5ffigure',['update_figure',['../classrobot__tracking_1_1_my_dynamic_mpl_canvas.html#ac1ae1b83e983207f90c7e85b28e4f0d1',1,'robot_tracking::MyDynamicMplCanvas']]],
+  ['updatecameras',['updateCameras',['../classrobot__tracking_1_1_calibration_widget.html#a7b0692b99c397ad35e708f24439d1a14',1,'robot_tracking::CalibrationWidget']]],
+  ['usage',['USAGE',['../namespacemove.html#afbfad67db03b331536788c7719f9bed0',1,'move.USAGE()'],['../namespacecalibrate.html#a8676aba2266c2c03c6db75e132d3482c',1,'calibrate.USAGE()'],['../namespacelocation.html#a6c9d0e6ccfa18ba0fa25e189aebb0fc7',1,'location.USAGE()'],['../namespaceperspective.html#a0a5336ad83fe06873f46bb1fb0288bed',1,'perspective.USAGE()']]],
+  ['use_5fpyside',['use_pyside',['../namespacerobot__tracking.html#a121390e1d9d3c473e90b973df4bb8284',1,'robot_tracking']]]
+>>>>>>> f2fcbe1144bae9a139e3ca2db48453e88eb3f146
 ];

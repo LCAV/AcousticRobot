@@ -37,17 +37,17 @@
 </overview> 
 <h1><a id="acoustic-robot" class="anchor" href="#acoustic-robot" aria-hidden="true"><span class="octicon octicon-link"></span></a>Acoustic Robot</h1>
 <h2>Operate</h2>
-<p> How to do experiments... </p>
+<p> How to move the robot and record the room impulse responses, localize visually and record encoder data for odometry... </p>
 
 <h3> Create navigation file </h3>
 <p> 
 Create a file with the navigation sequence for the robot to follow. 
-The history needs to be structured in blocks, each block corresponding to one "step" of the robot. 
-Each "step" consists of multiple lines. One line contains a time (int or float) and the command to be sent at that time. The time and command must be separated by exactly one tab. After each step, a localization of the robot may be done.
-A new step starts, when the time restarts at zero. 
+The sequence needs to be structured in blocks, each block corresponding to one "step" of the robot. 
+Each "step" consists of multiple lines. One line contains a time (int or float) and the command to be sent at that time. The time and command must be separated by exactly one tab. After each step, a localization of the robot, a recording of the impulse response and encoder data may be done.
+A new step starts when the time restarts at zero. 
 </p>
 <iframe src="../other/test.txt">
-<caption> test </caption>
+<caption> Example of a command file </caption>
 </iframe> 
 <p> The valid commands can be found in the Robot documentation or under (Control/commands.txt). Save the file under input/control.txt </p>
 

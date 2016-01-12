@@ -1,6 +1,6 @@
 <h2>Setup</h2>
 
-<p> Things that need to be done before every new experiment... </p>
+<p> Things that need to be done before every new experimentimental setup... </p>
 
 <p> 
 Make sure you have succesfully completed all steps of the <a href="preparation.html">Setup</a> before going on to this setup 
@@ -8,23 +8,35 @@ Most importantly, the setup of the network needs to be ready before robot and ca
 For the full experiment you will need: </p>
 
 <ul style="list-style-type:disc">
+<li>Robot with acoustic head</li>
 <li>Router</li>
-<li>4 Cameras (Figure 1) with corresponding tools:</li>
+<li>4 Cameras  with corresponding tools:</li>
 <ul>
 <li> 4 microphone holders</li>
 <li> 4 screw adapters </li>
 <li> 4 Camera fixations </li>
 </ul>
-<li>4-6 reference points (Figure 2)</li>
+<li>4-6 reference points  or 3 reference points and checkerboard </li>
 <li>Laser distance meter</li>
 <li>Audio tools:</li>
 <ul>
-<li> Point source speaker</li>
-<li> MOTU Soundcard with at least 2 inputs and FireWire connection.</li>
+<li> Point source speaker or conventional speaker, fixed on the robot </li>
+<li> MOTU Soundcard with at least 2 inputs, 1 output and FireWire connection.</li>
 <li> 2 Wireless sound receiver </li>
-<li> 2 VLR-Jack cables,1 VLR-VLR cable, 1 Firewire cable, Power cables for above instruments  </li>
+<li> 2 VLR-Jack cables (for input of wireless receivers),1 VLR-VLR cable (for speaker), 1 Firewire cable, Power cables for above instruments  </li>
 </ul>
 </ul>
+
+
+<figure>
+<img src="../images/1_1_robot.png" height=150px>
+<img src="../images/1_2_camera.png" height=150px>
+<img src="../images/1_3_refandcheck.png" height=150px>
+<img src="../images/1_5_speaker.png" height=150px>
+<figcaption> 
+Figure 1 - from left to right: Robot with acoustic head, Webcam, Reference point and checkerboard, Speaker
+</figcaption>    
+</figure>
 
 <h3> Start network </h3>
 
@@ -33,21 +45,32 @@ For the full experiment you will need: </p>
 <h3> Place cameras </h3>
 
 <p>
-Fix the 4 cameras in different corners of the room such that they have a big common visible area.
-It is useful to indicate the visible area so that no blind areas are entered during the experiments. 
 <b>Important</b>: do not unplug the cameras before shutting them down correctly or the SD card might get corrupted. 
-You can turn off the camera by pressing and holding the button on the side for longer than 7 seconds.
-The green light will then blink slowly for about 10 times and then turn off. 
+You can turn off the camera by pressing and holding the button on the side for longer than 7 seconds. (If you hold it only for a few seconds, the camera will reboot)
+The green light will then blink slowly 10 times and then turn off. 
 When only the red camera is turned on, you are safe to unplug the camera. 
-
-You may view the camera's visible area at
+</p>
+<p>
+Fix the 4 cameras in different corners of the room such that they have a big common visible area.
+It is useful to indicate the visible area so that no blind areas are entered by mistake during the experiments. <br>
+You may view the camera's visible area at <br>
 <a href="http://172.16.156.139:8080/stream.html" target="_blank">http://172.16.156.139:8080/stream.html</a>. 
-Replace "139" in the URL by the desired camera number.
+<br>
+Simply replace "139" in the URL by the desired camera number.
+You can find the visible area by always considering two neighbouring cameras and putting 
+the reference point where both cameras can just see it (see Figure 2).
+
+<figure>
+<img src="../images/refplacement.png" width=500px>
+<figcaption> 
+Figure 4 - Example for finding the biggest common visible area)
+</figcaption>    
+</figure>
 </p>
 
 <p> 
 Mark an area where the robot should be allowed to move. Place the robot in the critical points of the area and adjust the camera
-orientation such that it can just see the robot's head. (See Figure 3)
+orientation such that it can just see the robot's head (See Figure 3).
 
 <figure>
 <img src="../images/robotplacement.png" width=500px>
@@ -62,7 +85,7 @@ The white crosses mark the area where the robot is allowed to move.
 <h4> Reference points </h4>
 <p> 
 Place 4 to 6 reference points in the visible area. For later processing, the reference points are numbered. 
-Use following numbers only and place them such that all reference points are above an imaginary 
+Place the points such that all reference points are above an imaginary 
 line drawn from the first reference point to the second reference point. (see Figure 4)
 
 <figure>
@@ -72,29 +95,17 @@ Figure 4 - Example of correct reference points placements (All points are above 
 </figcaption>    
 </figure>
 
-You can find the visible area by always considering two neighbouring cameras and putting 
-the reference point where both cameras can just see it (see Figure 5).
-
-<figure>
-<img src="../images/refplacement.png" width=500px>
-<figcaption> 
-Figure 5 - Example for finding the biggest common visible area)
-</figcaption>    
-</figure>
-</p>
-
-
 <p> 
-Measure the distances between all reference points and store the results (in milimeters) in the file input/objectpoints.cls.
+Measure the distances between all reference points and store the results (in meters) in the file input/objectpoints.cls.
 The file is structured like a euclidian distance matrix, so the element i,j cooresponds to the distance between reference point i and j. 
 You only need to fill out lower diagonal of the matrix at it is symmetric. 
-Leave the upper diagonal blank or fill it with zeros (see Figure 6)
+Leave the upper diagonal blank or fill it with zeros (see Figure 5)
 </p>
 
 <figure>
 <img src="../images/objectpoints.png" width=500px>
 <figcaption> 
-Figure 6 - How to measure and save the distances between points.)
+Figure 5 - How to measure and save the distances between points.)
 </figcaption>    
 </figure>
 </p>
@@ -102,15 +113,14 @@ Figure 6 - How to measure and save the distances between points.)
 <h4> Checkerboard </h4>
 
 <p>
-If you are using the checkerboard for extrinsic calbiration, place the checkerboard on a white support and place reference points 1 in the 3 corners as shown in Figure 7. 
-
+If you are using the checkerboard for extrinsic calbiration, place the checkerboard on a white support and place reference points in the 3 corners as shown in Figure 6. 
 </p>
 
 
 <figure>
 <img src="../images/ref_checkerboard.png" width=500px>
 <figcaption> 
-Figure 7 - How to place checkerboard and reference points and the resulting numbering.)
+Figure 6 - How to place checkerboard and reference points and the resulting numbering.
 </figcaption>    
 </figure>
 </p>
@@ -135,12 +145,12 @@ For visualization, an x and y margin is addded to the basis reference. It can be
 
 <p>
 You can now run the program. Make sure that you have created an output folder (called "output" here) where you will to store all results
-of this session. Make sure that all parameters are available in the input folder (called "input" here), see Figure 8.
+of this session. Make sure that all parameters are available in the input folder (called "input" here), see Figure 7.
 
 <figure>
 <img src="../images/filestructure.png" width=500px>
 <figcaption> 
-Figure 8 - File structure. X corresponds to camera number (139, 141, etc.) and N to iteration number. TIME is the time when the program is started.
+Figure 7 - File structure. X corresponds to camera number (139, 141, etc.) and N to iteration number. TIME is the time when the program is started.
 </figcaption>    
 </figure>
 </p>
@@ -159,33 +169,46 @@ They depend on the camera location and the image resolution. The terminal output
 <h3> Verification </h3>
 
 <p> 
-Some verification is recommended before going on with the experiments.
+Some verification is recommended before going on with the experiments. See <a href="analyze.html"> Analysis </a> for more possible verifications.
 </p>
 
 <h4> Reprojection of reference points </h4>
 <p>
-A first thing to check is weather the projection works. 
-The reprojection corresponds to the red dots in output/summaryX.png.
+<figure>
+<img src="../images/ref_summary.png" width=500px>
+<figcaption>
+Figure 8 - Visualization of reprojection errors in "output/summary_X.png".
+</figcaption>
+</figure>
+You should check whether whether the projection works. The reprojection corresponds to the red dots in output/summaryX.png (see Figure 8).
 They need to be superimposed with the image of the respective positions.
 There can be several reasons for bad matches:
 
 <ul style="list-style-type:disc">
 <li>camera parameters (from calibration) not correct. Solution: recalibrate</li>
 <li>real reference point positions not correct. Solution: measure distances again</li>
-<li>image points not correctly detected. Solution: check h and s images to see weather applied color limits 
+<li>image points not correctly detected. Solution: check h and s images to see whether applied color limits 
 (MIN_REF and MAX_REF for reference points,
 (MIN, MAX for robot) are correct. </li>
 </ul>
 
-If the reprojection is completely off because of wrong numbering of the reference points, a warning appears and you should not continue with the experiments before fixing the problem.
+If the reprojection is completely off because of wrong numbering of the reference points, a warning appears (caused by the program not finding a valid homography) and you should not continue with the experiments before fixing the problem.
 
 </p>
 
 <h4> Camera centers </h4>
 
 <p>
-It is recommended to check weather the cameras are placed approximately at the correct positions. 
+It is recommended to check whether the cameras are placed approximately at the correct positions. 
 The camera centers are found in output/cameraX.png, and they are stored with respect to the reference point frame.
 See <a href="analyze.html">Analysis</a> for how to get a visualization of the camera centers in the room reference frame.
 </p>
 
+<h3> Audio setup </h3>
+
+<p> Some calibration is requried for the audio setup. If you wish to recalibrate the latency time of the sound system (the delay added to the impulse responses), you can do this following the steps proposed in <a href="analyze.html"> Analyze </a>. All you need to do is choose the sound.wav file to be an approximation of white noise and run the program location.py again, and answering yes to "Do you want to localize the robot using acoustics?". This sends the signal sound.wav and saves the recorded responses in the output folder. The class Analysis.py (<a href="analyze    .html"> Analyze </a>) then does the cross-correlation for you. All you need to do is change the latency time in Analysis.py (TLAT) manually to the time where the maximum of the cross correlation occurs. 
+</p>
+<p>
+<b>Important</b>: For accurate results, it is important to measure the actual temperature of the room and to adjust the speed of sound C in Analysis.py 
+</p>
+<p> Finally, make sure that the gains of the microphones and speakers are set appropriately for the given setup, meaning that no clipping occurs and there is a resonable signal to noise ratio </p>

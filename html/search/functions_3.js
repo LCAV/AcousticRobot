@@ -1,5 +1,6 @@
 var searchData=
 [
+<<<<<<< HEAD
   ['cachedlink',['cachedLink',['../navtree_8js.html#aaa2d293f55e5fe3620af4f9a2836e428',1,'navtree.js']]],
   ['calibrate',['calibrate',['../classrobot__tracking_1_1_calibration_widget.html#a4ca23bece5be50497dc2b60f3549abcd',1,'robot_tracking.CalibrationWidget.calibrate()'],['../classcalibrate_1_1_camera.html#ad6188defe134671f7acb608507f1ea2a',1,'calibrate.Camera.calibrate()']]],
   ['callback',['callback',['../namespaceplay__wave__callback.html#a11374c9878d80f1a676a2b780abe9751',1,'play_wave_callback.callback()'],['../namespacewire__callback.html#aa84dbe1a24b0ff085ccb6e626c736f5f',1,'wire_callback.callback()']]],
@@ -19,4 +20,8 @@ var searchData=
   ['create_5fsummary',['create_summary',['../namespaceperspective.html#a6dc4b78fa5edfa38cddb4a0f9b1e5fb4',1,'perspective']]],
   ['createindent',['createIndent',['../navtree_8js.html#a4d8f406d49520a0cede2e48347a3d7aa',1,'navtree.js']]],
   ['createresults',['createResults',['../search_8js.html#a6b2c651120de3ed1dcf0d85341d51895',1,'search.js']]]
+=======
+  ['default_5fstop',['default_stop',['../namespaceexecute__file__improved.html#aa0d379618b5efcb33ae5b405d593967d',1,'execute_file_improved']]],
+  ['draw',['draw',['../classperspective_1_1_interactive_plot_n.html#a61f7674a142b65b0713ef50d8318633a',1,'perspective::InteractivePlotN']]]
+>>>>>>> f2fcbe1144bae9a139e3ca2db48453e88eb3f146
 ];

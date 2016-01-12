@@ -1,5 +1,6 @@
 var searchData=
 [
+<<<<<<< HEAD
   ['i139',['i139',['../namespacecalibrate.html#acb05fd7dbb77c13285bc7202929e5591',1,'calibrate']]],
   ['i141',['i141',['../namespacecalibrate.html#a1bf1ca533c0e1d783e13d0718e5e4fbc',1,'calibrate']]],
   ['img',['img',['../namespacecalibrate.html#a62321db3bbb0077212b68440a56c9f6e',1,'calibrate.img()'],['../namespacelocation.html#a65abd7a67aa72a215af7a212339d4d65',1,'location.img()'],['../namespaceperspective.html#a27a1edae1133f731a93080ff1d225dfb',1,'perspective.img()'],['../namespacesetup.html#a767baf470ae12e6a60c0019372c06e2f',1,'setup.img()']]],
@@ -20,4 +21,7 @@ var searchData=
   ['interrupt_5f_5ftest_5f8py',['interrupt__test_8py',['../interrupt____test__8py_8js.html#a74758c4f7fd9bf7801ecf94b467c825f',1,'interrupt__test_8py.js']]],
   ['intrinsic',['INTRINSIC',['../namespacelocation.html#a16c9fca599733701b5f15b22a59a7fa3',1,'location']]],
   ['ip',['IP',['../classmove_1_1_robot.html#ab830ade5196d42f85461b623be5aa161',1,'move::Robot']]]
+=======
+  ['j',['j',['../namespacesetup.html#a18ac75bd4875f80a5108a910dc50bc5b',1,'setup']]]
+>>>>>>> f2fcbe1144bae9a139e3ca2db48453e88eb3f146
 ];

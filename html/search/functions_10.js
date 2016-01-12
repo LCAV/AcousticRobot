@@ -1,5 +1,6 @@
 var searchData=
 [
+<<<<<<< HEAD
   ['save',['save',['../classcalibrate_1_1_camera.html#abdcb4bc525746a0734dca35d661957eb',1,'calibrate::Camera']]],
   ['save_5fcheckpoints_5ffile',['save_checkpoints_file',['../classcalibrate_1_1_camera.html#a1bbbea60fb76b33a42c293edb9ed9699',1,'calibrate::Camera']]],
   ['save_5fcombinations',['save_combinations',['../namespacecalibrate.html#aa985e2477fc900f9860ebe0a41f31b50',1,'calibrate']]],
@@ -21,4 +22,8 @@ var searchData=
   ['storelink',['storeLink',['../navtree_8js.html#ade730323aadb971c053136b7758c9dce',1,'navtree.js']]],
   ['strippath',['stripPath',['../navtree_8js.html#a9336c21407bb7ced644331eb7a2a6e35',1,'navtree.js']]],
   ['strippath2',['stripPath2',['../navtree_8js.html#a70bc36adda6141a703fc7ee2b772ec63',1,'navtree.js']]]
+=======
+  ['visualization',['visualization',['../namespaceperspective.html#a57f571f2252da1714f458e5454a45497',1,'perspective']]],
+  ['visualize_5fpoints',['visualize_points',['../namespacegeometry.html#a7e5383dbdd37bfbe14b3821e30c6bff4',1,'geometry']]]
+>>>>>>> f2fcbe1144bae9a139e3ca2db48453e88eb3f146
 ];

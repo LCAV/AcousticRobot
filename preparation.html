@@ -1,15 +1,14 @@
 <h2> Prepare </h2>
 
-<p>Things that only need to be done once...</p>
+<p>Things that only need to be done once after you decided to do experiments with the echolocator robot.</p>
 
 <h3> Clone git repository </h3>
 <p>
-Create a clone of the git repository on your computer. To do that, type the following line in the terminal at a location of your choice. 
-<code>git clone https://github.com/LCAV/AcousticRobot.git</code>
-</p>
+Create a clone of the git repository on your computer. To do that, type the following line in the terminal at a location of your choice. <br>
+<code>git clone https://github.com/LCAV/AcousticRobot.git</code><br>
 Two branches are created: the branch <b>master</b>, where all files relevant for the experiments can be found, and 
-the branch <b>gh-pages</b>, where all files for this website are located. More information on the file structure can be found 
-in the <a href="develop.html"> Develop </a> section.
+the branch <b>gh-pages</b>, where all files for this website are located. 
+</p>
 
 <h3> Setup network </h3>
 <p>
@@ -19,16 +18,10 @@ The IP address of the router is <a href="https://172.16.156.1" target="_blank"> 
 
 <h3> Install Python 2 </h3>
 <p>
-All programs of this project are written for Python 2.7.10 or higher but not Python 3 because OpenCV2 was not yet available for Python 3.*. If you don't have python installed, you can download it for free <a href="https://www.python.org/downloads/" target="_blank"> here </a> or use a distributor such as <a href="https://www.continuum.io/why-anaconda" target="_blank">anaconda</a>. With anaconda, it is easy to switch between several python versions. Simply create a new python environment for the required version, for example:
-</p>
-<p>
-<code>conda create -n python2 python=2.7 anaconda</code>
-</p>
-<p>
-and type 
-</p>
-<p>
-<code>source activate python2 </code>
+All programs of this project are written for Python 2.7.10 or higher but not Python 3 because OpenCV2 was not yet available for Python 3.*. If you don't have python installed, you can download it for free <a href="https://www.python.org/downloads/" target="_blank"> here </a> or use a distributor such as <a href="https://www.continuum.io/why-anaconda" target="_blank">anaconda</a>. With anaconda, it is easy to switch between several python versions. Simply create a new python environment for the required version, for example:<br>
+<code>conda create -n python2 python=2.7 anaconda</code><br>
+and type <br>
+<code>source activate python2 </code><br>
 to switch to this version.
 </p>
 
@@ -46,16 +39,14 @@ To perform the calibration, you will need:
 </ul>
 
 Start by opening a terminal and navigating to location.py. 
-Run the program by typing 
-
-<code>python location.py -o output_folder -i input_folder -f 0100</code>
-
+Run the program by typing <br>
+<code>python location.py -o output_folder -i input_folder -f 0100</code><br>
 where input_folder is where your new camera parameters will be saved (there might already be such a folder with the previous parameters, called "input/") and output_folder is the folder where the images that are taken for calibration will be saved. 
 If the latter are not of interest to you you can delete them when you are done but they can be interesting for keeping a record of how the calibration was done. 
-The argument -f 0000 is used to specify weather a fisheye lens is used. 
-For every camera, you can save one file with the standard intrinsic parameters and one file with the parameters when a fisheye lens is added. 
+</p>
+<p>
+The argument -f 0000 is used to specify weather a fisheye lens is used. For every camera, you can save one file with the standard intrinsic parameters and one file with the parameters when a fisheye lens is added. 
 The four numbers of the argument correspond to the four cameras (139,141,143 and 145 respectively) and 0 or 1 indicates weather or not a fisheye lens is used. You can leave out this argument if you are not using fisheye lenses (default is '0000').
-
 </p>
 
 <p>

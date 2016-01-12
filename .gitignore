@@ -1,0 +1,9 @@
+# System files
+.DS_Store
+
+# Executable files
+*.pyc
+
+# Result files
+Localization/results/
+*.swp

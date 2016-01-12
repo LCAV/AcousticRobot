@@ -1,5 +1,6 @@
 var searchData=
 [
+<<<<<<< HEAD
   ['valid_5farray',['valid_array',['../namespaceexecute__file__improved.html#a82743837d3ae044c454a017e153e5e28',1,'execute_file_improved.valid_array()'],['../namespacemove.html#a3b143bcc1570865fc0854dbe74ba3aca',1,'move.valid_array()']]],
   ['valid_5fboards',['valid_boards',['../namespaceexecute__file__improved.html#a298664df19025a2d578f71c9e10d1357',1,'execute_file_improved.valid_boards()'],['../namespacemove.html#ab3086fb1fdbb407424c7a61385c87fbe',1,'move.valid_boards()']]],
   ['valid_5fparams_5fmotors',['valid_params_motors',['../namespaceexecute__file__improved.html#a53702768ed9c7cfe11174997e0edbf66',1,'execute_file_improved.valid_params_motors()'],['../namespacemove.html#a328b2f49953d83ef87430a9fba8ca4f3',1,'move.valid_params_motors()']]],
@@ -33,4 +34,19 @@ var searchData=
   ['variables_5ff_2ejs',['variables_f.js',['../variables__f_8js.html',1,'']]],
   ['visualization',['visualization',['../namespaceperspective.html#a57f571f2252da1714f458e5454a45497',1,'perspective']]],
   ['visualize_5fpoints',['visualize_points',['../namespacegeometry.html#a7e5383dbdd37bfbe14b3821e30c6bff4',1,'geometry']]]
+=======
+  ['w',['w',['../namespacegeometry.html#a36840ac59a8325bcaaa716494a3138b8',1,'geometry']]],
+  ['wave_5foutput_5ffilename',['WAVE_OUTPUT_FILENAME',['../namespacerecord.html#a173d74aaed7402977a5be6246f763f06',1,'record']]],
+  ['wf',['wf',['../namespaceplay__wave.html#aeebfc0bbc57d45276febe7c2ed017301',1,'play_wave.wf()'],['../namespaceplay__wave__callback.html#a4f672ffa9413cb4911663a149eba08e7',1,'play_wave_callback.wf()'],['../namespaceplay__wave__macosx__channelmap.html#a4928c541e5e042bbae2cc181dc075fd8',1,'play_wave_macosx_channelmap.wf()'],['../namespacerecord.html#a583f277bf970f01ed422e42302b4a263',1,'record.wf()']]],
+  ['width',['WIDTH',['../namespacewire__callback.html#a14297ecc25f9adbbdd8a37743693d0a0',1,'wire_callback.WIDTH()'],['../namespacewire__full.html#aa3dc426d5a81fdd88d379f92fff283ad',1,'wire_full.WIDTH()'],['../namespacewire__half.html#ac63a5eed9aab95d8cbe6bf3a0ef60336',1,'wire_half.WIDTH()']]],
+  ['win',['win',['../namespacerobot__tracking.html#ad8c0475deb300cf2210a6238fc0eb683',1,'robot_tracking']]],
+  ['wire_5fcallback',['wire_callback',['../namespacewire__callback.html',1,'']]],
+  ['wire_5fcallback_2epy',['wire_callback.py',['../wire__callback_8py.html',1,'']]],
+  ['wire_5ffull',['wire_full',['../namespacewire__full.html',1,'']]],
+  ['wire_5ffull_2epy',['wire_full.py',['../wire__full_8py.html',1,'']]],
+  ['wire_5fhalf',['wire_half',['../namespacewire__half.html',1,'']]],
+  ['wire_5fhalf_2epy',['wire_half.py',['../wire__half_8py.html',1,'']]],
+  ['write_5fpos',['write_pos',['../namespaceperspective.html#a6db660d7649bdd88a727c38067266e2f',1,'perspective']]],
+  ['write_5fref',['write_ref',['../namespaceperspective.html#a516eb40bcd2e329875666caf89ade6cf',1,'perspective']]]
+>>>>>>> f2fcbe1144bae9a139e3ca2db48453e88eb3f146
 ];

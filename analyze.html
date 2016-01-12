@@ -1,37 +1,42 @@
 <h2> Analyze </h2>
 
 <p>
-As explained in Section <a href="operate.html">Operate</a>, a big large number of files is created in the output folder after running to the experiments. 
+As explained in Section <a href="operate.html">Operate</a>, a large number of files is created in the output folder after running the experiments. Note that if the program had to be restarted for unexpected errors during the experiment, it is worth it to check and rearrange the measurements such that they respect the file structure suggested. (For example, group all measured encoder readings into one file, compensating for when it was reset to 0 because the robot needed to be stoped)
 </p>
 <h3> Analysis class </h3>
 <p>
-<b>Important</b>: you need to adjust the two variables "PTS_BASIS" and "MARGIN" manually for correct functioning of the program. 
+<b>Important</b>: you need to adjust the two variables "PTS_BASIS" and "MARGIN" manually for correct functioning of the program. See <a href="setup.html">Setup</a> for how they are defined.
 <h4> Positions </h4>
 First of all, there are text files of the robot's real positions, its odometry encoder measurements, its position calculated using the cameras and the camera's positions. For their evaluation, a Python class Analysis.py was created.
 You need to construct an Analysis object with at least the output folder as argument. Then, the names of the outputfiles of interest can be given to the respective fields, as explained in the Code documentation <a href="develop.html">Develop</a>. 
 </p>
 <p>
-For example, if you are only interested in plotting the robot's real positions, the odometry positions and the calculated camera postions, you could enter
+For example, if you are only interested in plotting the robot's real positions, the visual localization positions(using fixed height) and the calculated camera postions, you could enter
 PTS_BASIS. <br>
-
 <code>
     b = Analysis.Analysis('output_analysis/') <br>
     b.output_real = 'output/real_X.txt' <br>
     b.output_vis = 'output/posobj_fix_X.txt' <br>
     b.output_cam = 'output/cameras_X.txt'<br>
+    b.output_camreal = 'output/cameras_real_positions.txt'<br>
+    b.read_files()
 </code>
 </p>
 
 <p>
-Once the object is created, you can plot its components, as far as they're defined, by calling b.plot_geometry(fname). The resulting picture is saved under output_analysis/fname. It will look similar to Figure 1.
+Once the object is created, you can plot its components, as far as they're defined, by calling <br>
+<code>b.plot_geometry('my_name')</code>.
+<br>The resulting picture is saved under output_analysis/'my_name'. It will look similar to Figure 1.
 
 <figure>
-<img src="../images/res2_room.png" width=500px>
+<img src="../images/res2_room.png" width=400px>
 <figcaption>
-Figure 1 - Plot obtained from Analysis.plot_goemtry(fname).
+Figure 1 - Plot obtained from Analysis.plot_goemtry('my_name').
 </figcaption>
 </figure>
 
+If you would like to zoom into the trajectory of the robot only (not showing the camera positioning and the reference frames), simply type <br>
+<code> b.plot_geometry('my_name_zoomed',True)</code> <br>
 </p>
 
 <h4> Room impulse response </h4>
@@ -47,18 +52,19 @@ Simply declare the input_wav file and output_wav_list. If you also want to inclu
     # optional:<br>
     b.output_real = 'output/real_X.txt'<br>
     b.get_TOA()<br>
+    b.read_files()
     # get impulse responses<br>
     [t,h],[f,H]=b.get_RIR()<br>
 </code>
 <figure>
-<img src="../images/RIR.png" width=500px>
+<img src="../images/RIR.png" width=400px>
 <figcaption>
 Figure 2 - Plot obtained from Analysis.get_RIR().
 </figcaption>
 </figure>
 </p>
 <p>
-Note that the current program filters out certain harmonic frequencies for better results. The list of frequencies needs to be adjusted to contain all frequencies at which the reponse Y(w) shows peaks. If no filtering shall be done, you can comment the line b.apply_filter(time, freq).
+Note that the program can filter out certain harmonic frequencies for better results. The list of frequencies needs to be adjusted to contain all frequencies at which the reponse Y(w) shows peaks. If no filtering shall be done, you can comment the line b.apply_filter(time, freq).
 </p>
 
 <h4> Correlation </h4>
@@ -67,9 +73,8 @@ The analysis class also serves for doing the latency analysis, described in <a h
 You can use the b.get_corsscor() to plot the cross correlation between the input file b.input_wav and each output file from b.output_wav_list. (Figure 3)
 </p>
 
-
 <figure>
-<img src="../images/crosscor.png" width=500px>
+<img src="../images/crosscor.png" width=400px>
 <figcaption>
 Figure 3 - Plot of cross correlation with maximum.
 </figcaption>
@@ -81,18 +86,9 @@ Figure 3 - Plot of cross correlation with maximum.
 For the visual localization, a plot of the resulting 2D and 3D errors of the robot position or the reference point positions for the visual localization algorithm is created and saved under "output/N_combi_rob_X.png" (Figure 4).
 
 <figure>
-<img src="../images/res2_combi_rob.png" width=500px>
+<img src="../images/res2_combi_rob.png" width=400px>
 <figcaption>
 Figure 4 - 2D and 3D errors of robot position in "output/N_combi_rob_X.png".
-</figcaption>
-</figure>
-
-You can check the success of the extrinsic calibrating by looking at "output/summary_X.png", which visualizes the reprojection of all points of the image to x-y plane in the reference point coordinate frame (Figure 5).  
-
-<figure>
-<img src="../images/ref_summary.png" width=500px>
-<figcaption>
-Figure 5 - Visualization of reprojection errors in "output/summary_X.png".
 </figcaption>
 </figure>
 

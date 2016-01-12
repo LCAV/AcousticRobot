@@ -1,5 +1,6 @@
 var searchData=
 [
+<<<<<<< HEAD
   ['w',['w',['../namespacegeometry.html#a36840ac59a8325bcaaa716494a3138b8',1,'geometry']]],
   ['wave_5foutput_5ffilename',['WAVE_OUTPUT_FILENAME',['../namespacerecord.html#a173d74aaed7402977a5be6246f763f06',1,'record']]],
   ['wf',['wf',['../namespaceplay__wave.html#aeebfc0bbc57d45276febe7c2ed017301',1,'play_wave.wf()'],['../namespaceplay__wave__callback.html#a4f672ffa9413cb4911663a149eba08e7',1,'play_wave_callback.wf()'],['../namespaceplay__wave__macosx__channelmap.html#a4928c541e5e042bbae2cc181dc075fd8',1,'play_wave_macosx_channelmap.wf()'],['../namespacerecord.html#a583f277bf970f01ed422e42302b4a263',1,'record.wf()'],['../namespacetest.html#ad3938824cf90d2297eee7d544e8c705d',1,'test.wf()']]],
@@ -20,4 +21,8 @@ var searchData=
   ['write_5fpos',['write_pos',['../namespaceperspective.html#a6db660d7649bdd88a727c38067266e2f',1,'perspective']]],
   ['write_5fref',['write_ref',['../namespaceperspective.html#a516eb40bcd2e329875666caf89ade6cf',1,'perspective']]],
   ['writecookie',['writeCookie',['../resize_8js.html#ad0822459a7d442b8c5e4db795d0aabb4',1,'resize.js']]]
+=======
+  ['x',['X',['../classmarker__calibration_1_1_marker_set.html#abe042cecd46d12cc9361a6bd5ad5f370',1,'marker_calibration::MarkerSet']]],
+  ['x0',['x0',['../namespacecalibrate.html#a01ada7a7d75f9b76a7ac58aacc9b40d7',1,'calibrate']]]
+>>>>>>> f2fcbe1144bae9a139e3ca2db48453e88eb3f146
 ];
