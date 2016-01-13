@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-'''
-Analysis.py module
-==============
-
-Contains functions to analyze room impulse response, odometry measurements
-and visual localization.
-
-'''
+##@package Analysis
+# Analysis
+# ==============
+# Contains Analysis.Analysis class.
+#
+# created by Frederike Duembgen, December 2015
 import sys
 import numpy as np
 from scipy.io import wavfile
@@ -17,50 +15,67 @@ import calibrate as calib
 # Odometry
 N = 512 # Counts per revolution
 G = 43/1 # Gear ratio
-N_tot = N*G
+N_tot = N*G # Counts per wheel revolution
 R_wheels =150. # radius of robot wheels in mm
 D=710. # distance between two wheels in mm
 
 # RIR
-MIN_F = 50# minimum of sine sweep
-MAX_F = 20000  # maximum of sine sweep
+## Minimum f of sine_sweep
+MIN_F = 50
+## Maximum f of sine_sweep
+MAX_F = 20000
 Fs = 44100. # sampling rate
 T = 10 # seconds of interest for room impulse response
 WIDTH_ROOM = 7078 # in mm
 HEIGHT_ROOM = 7311 # in mm
 HEIGHT_CEILING = 1494 # in mm, measured from microphones
-N_WALLS = 5
-C = 343200 # speed of sound at 20C, dry air, in mm/s
+N_WALLS = 5 # number of walls and ceiling
+## Speed of sound at experiment conditions in mm/s
+C = 343200
 # CROSS CORRELATION
 MAX_LENGTH = Fs*2
-TLAT = 0.1454 # Latency time, found with 660mm distance test
+## Latency time in s, found with calibation in Analysis
+TLAT = 0.1454
 
-# res2:
-MARGIN = np.array([2000,2000],dtype=np.float) #MARGIN from leftmost and downlost ref point to reference (in mm)
-PTS_BASIS = np.array(([2746,3066],[3506,2708])) #position of first and second reference points from wall (in mm)
+
+## Margin from leftmost and downlost ref point to reference in mm
+MARGIN = np.array([2000,2000],dtype=np.float)
+## Coordinates of two basis points
+PTS_BASIS = np.array(([2746,3066],[3506,2708]))
+## Rotation of robot axis with respect to x axis of reference frame at first position, in positive trigonometry sense
+THETA_0=3*np.pi/2
 # res2:
-#THETA_0=round(np.pi/4,4)
-THETA_0=round(3*np.pi/2,4)
-# res1:
-#MARGIN = np.array([1000,1000],dtype=np.float) #MARGIN from leftmost and downlost ref point to reference (in mm)
-#PTS_BASIS = np.array(([2500,3000],[4000,1500])) #position of first and second reference points from wall (in mm)
+#THETA_0=np.pi/4
 
 class Analysis():
+    '''
+    Contains functions to analyze room impulse response, odometry measurements
+    and visual localization.
+
+    _Members_: (All optional members are set to '' if not specified and ignored
+    in further analysis)
+
+    out_dir: folder where results should be saved
+
+    [input_wav]: audio input file with path (most likely sine sweep)
+
+    [output_wav_list]: list of audio output files
+
+    [output_enc]: encoder output file (with absoltue encoder positions)
+
+    [output_mov]: expected robot movement file
+
+    [output_real]: real positions output file
+
+    [output_vis]: visual localization output file
+
+    [output_cam]: camera centers output file
+
+    [output_camreal]: real camera centers file
+
+    '''
     def __init__(self,out_dir,input_wav='', output_wav_list='', output_enc='',output_mov='',
                  output_real='',output_vis_fix='',output_vis_free='',output_cam='',output_camreal=''):
-        '''
-        _Parameters_:
-        out_dir: folder where results should be saved
-        input_wav: audio input file with path (most likely sine sweep)
-        output_wav_list: list of audio output files
-        output_enc: encoder output file
-        output_mov: expected robot movement file
-        output_real: real positions output file
-        output_vis: visual localization output file
-        output_cam: camera centers output file
-        output_camreal: real camera centers file
-
-        '''
         if out_dir[-1]!='/':
             out_dir = out_dir+'/'
         self.out_dir = out_dir
@@ -108,7 +123,7 @@ class Analysis():
                 y_arr.append(y_dic)
             return y_arr
     def read_files(self):
-        ''' reads the files if they are specified'''
+        ''' Reads all files that have been specified'''
         if self.input_wav!='':
             self.u=self.read_file(self.input_wav)
         if self.output_wav_list!='':
@@ -132,10 +147,15 @@ class Analysis():
         Calculate matrix of estimated time of arrival based on distances
         to wall, calculated from real positions and room width and height.
 
+        _Parameters_:
+
+        self.output_real needs to be defined.
+
         _Returns_:
-            np.Array U of size K*N_steps, where N_steps is number of steps and
-            K is number of walls. Therefore, the rows correspond the response
-            times from the K walls and the columns correspond to steps.
+
+        np.Array U of size K*N_steps, where N_steps is number of steps and
+        K is number of walls. Therefore, the rows correspond the response
+        times from the K walls and the columns correspond to steps.
         '''
         U = np.zeros((N_WALLS,self.real.shape[0]))
         for i in range(0,self.real.shape[0]):
@@ -149,12 +169,18 @@ class Analysis():
     def get_RIR(self):
         ''' calculates the RIR from self.input_wav and all corresponding
         self.output_wav_list files and saves plots in self.out_dir with the
-        same step_number and channel number in name.
+        same stepnumber and channel number in name.
         (for example: "out_dir/0_1_RIR_....png" saves impulse response at
-        step 0 of channel 1.
+        step 0 of channel 1)
+
+        _Parameters_:
+
+        self.output_wav_list and self.input_wav have to be defined.
 
         _Returns_:
+
         (t,h_filtered): time vector and impulse response
+
         (f,H_filtered): frequency vector and FFT of impulse response
         '''
         for output_wav in self.y:
@@ -252,26 +278,34 @@ class Analysis():
                 plt.savefig(name+'_zoom'+str(i))
                 i = i+1
             plt.show(block=False)
-            #self.save_RIR(output_wav,h_filtered)
         return np.array([t,h_filtered]),np.array([f,H_filtered])
     def apply_filter(self,time,freq,method='Y'):
         '''
         Filters out required frequencies from frequency spectrum of signal.
 
         _Parameters_:
-            time:   [t,h] nparray of time vector and corresponding time response,
-                    as returned by get_RIR(). Only used in method 'kaiser'
-            freq:   [f,H] nparray of frequency vector and corresponding FFT, as
-                    returned by get_RIR(). Indirectly filtered with 'kaiser',
-                    directly filtered with other methods.
 
-            method: if set to 'kaiser', the Kaiser method from
-                    http://nbviewer.ipython.org/github/LORD-MicroStrain/SensorCloud/blob/master/MathEngine/Example%20Notebooks/LORD%20Notch%20Filter.ipynb
-                    ATTENTION: never tested completely because it always led to
-                    crash because of overloaded software memory.
-                    When set to anything other than 'kaiser', the desired
-                    frequencies are simply set to 0 and the parameter method is
-                    only used for naming the output files.(default: Y)
+        time:   [t,h] nparray of time vector and corresponding time response,
+                as returned by Analysis.Analysis.get_RIR. Only used in method 'kaiser'
+
+        freq:   [f,H] nparray of frequency vector and corresponding DFT, as
+                returned by Analysis.Analysis.get_RIR. Indirectly filtered with 'kaiser',
+                directly filtered with other methods.
+
+        method: if set to 'kaiser', the Kaiser method from
+                http://nbviewer.ipython.org/github/LORD-MicroStrain/SensorCloud/blob/master/MathEngine/Example%20Notebooks/LORD%20Notch%20Filter.ipynb
+                ATTENTION: never tested completely because it always led to
+                crash because of overloaded software memory.
+                When set to anything other than 'kaiser', the desired
+                frequencies are simply set to 0 and the parameter method is
+                only used for naming the output files.(default: Y)
+
+        _Returns_:
+
+        [t,h_filt]: vectors of time and corresponding filtered impulse response
+
+        [f,H_filt]: vectors of frequency and corresponding DFT of filtered
+                    impulse response
         '''
 
         t=time[0]
@@ -351,8 +385,19 @@ class Analysis():
 
         return np.array([t,h_filt]),np.array([f_filt,H_filt])
     def get_crosscorr(self):
-        ''' Get cross correlation between self.input_files and
-        self.output_files'''
+        '''
+        Computes and plots cross correlation between self.input_files and
+        self.output_files
+
+        _Parameters_:
+
+        self.output_wav_list and self.input_wav need to be defined.
+
+        _Returns_:
+
+        corrs: list of correlations for each output-file.
+
+        '''
         global MAX_LENGTH
         MAX_L = MAX_LENGTH
         corrs = []
@@ -392,7 +437,9 @@ class Analysis():
         ''' Saves RIR in binary file
 
         _Parameters_:
+
         y_file: input file for rir response (used for naming only)
+
         h: vector of impulse response
 
         _Returns_: Nothing
@@ -401,18 +448,20 @@ class Analysis():
         wav_file = wav_file.split('/')[-1]
         wav_file = self.out_dir+wav_file
         wavfile.write(wav_file,Fs,h)
-    def odometry(self,position_0,encoders):
+    def odometry(self,position_0):
         '''
         Calculates positions based on encoder measures and start position.
 
         _Parameters_:
+
         position_0: nparray of start position ([x0,y0,theta0]) in mm and radians rsp.
-        theta0 is measured with respect to y axis, positive in the counter-clockwise
+        Theta0 is measured with respect to y axis, positive in the trigonometric
         sense.
-        encoders: nparray of encoder measures at the N steps of the form
-        [[left0, right0],[left1,right1],...]. size: 2*N
+
+        self.enc has to be defined.
 
         _Returns_:
+
         positions: nparray of all resulting positons (x,y,theta)
         '''
         positions = []
@@ -421,9 +470,9 @@ class Analysis():
         pos_old = position_0
         print(pos_old)
         positions.append(pos_old)
-        enc_old=encoders[0]
-        for i in range(len(encoders)-1):
-            enc = encoders[i+1]-encoders[i]
+        enc_old=self.enc[0]
+        for i in range(len(self.enc)-1):
+            enc = self.enc[i+1]-self.enc[i]
 
             x1 = pos_old[0]
             y1 = pos_old[1]
@@ -444,37 +493,19 @@ class Analysis():
             dthetas.append(dtheta)
             rs.append(r)
         return np.array(positions)
-    def plot_odometry(self,odometry, real,fname):
-        '''
-        Plots the positions of the real positions and the positions calculated with
-        odoemtry.
-
-        _Parameters_:
-            odometry:   nparray of odometry positions at N steps
-                        ((x0',y0',[theta0']),(x1',y1'[theta1']),...) of size 2*N or 3*N
-            real:   nparray of the real positions at N steps
-                    ((x0,y0,[theta0]),(x1,y1,[theta1]),...) of size 2*N or 3*N.
-            theta amy be given but won't be used in the plot.
-        _Returns_: Nothing.
-        '''
-        plt.figure(5)
-        plt.plot(pos[:,0],pos[:,1],label='odometry',marker='*'),
-        plt.plot(real[:,0],real[:,1],label='real',marker='*')
-        plt.xlabel('x [mm]'),plt.ylabel('y [mm]'),plt.legend()
-        plt.title('Odometry precision study')
-        plt.axis('equal'),plt.show(block=False)
-        plt.savefig(out_dir+'odometry')
     def plot_geometry(self,fname='',zoom=False):
         '''
         Plots all results read by read_files() in the wall reference frame.
         Run read_files() before running this function.
 
         _Parameters_:
-            [fname:]    file name where resulting image is saved (within self.out_dir)
+
+        [fname:]    file name where resulting image is saved (within self.out_dir)
                         no output saved if not specified or set to '' (default '')
-            [zoom:]     weather to zoom to positions or not. (default False)
-        _Returns_:
-            nothing
+
+        [zoom:]     weather to zoom to positions or not. (default False)
+
+        _Returns_: Nothing
         '''
         if zoom:
             plt.figure(figsize=(10,5))
@@ -525,7 +556,7 @@ class Analysis():
         # plot odometry positions
         if self.output_enc!='':
             pos_0 = [round(self.real[0,0]),round(self.real[0,1]),THETA_0]
-            self.odo = self.odometry(pos_0,self.enc)
+            self.odo = self.odometry(pos_0)
             plt.plot(self.odo[:,0],self.odo[:,1],marker='x',color='k')
             if zoom:
                 error = np.linalg.norm(self.real[:,:2]-self.odo[:,:2])/self.real.shape[0]
@@ -576,17 +607,3 @@ class Analysis():
         plt.show(block=False)
         if fname!='':
             plt.savefig(self.out_dir+fname)
-
-def get_parameters():
-    ''' Get parameters from command line '''
-    if len(sys.argv) < 3:
-        print("Perform analysis: \n\nUsage: %s u_file.wav y_file.wav [y_file2.wav y_file3.wav ...] out_dir" % sys.argv[0])
-        sys.exit(-1)
-    u_file = sys.argv[1]
-    y_files = sys.argv[2:-1]
-    out_dir = sys.argv[-1]
-    return u_file,y_files,out_dir
-def get_crosscor2(t,y1,y2):
-    sig=50000
-    plot(t[:sig],y1[:sig])
-

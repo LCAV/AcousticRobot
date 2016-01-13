@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+##@package random_signal
+# Random signal
+# ============
+# Creates randomn signal (white noise) and saves it in .wav file
+#
 import numpy as np
 from scipy.io import wavfile
 import wave

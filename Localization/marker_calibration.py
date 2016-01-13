@@ -1,12 +1,12 @@
-"""
-MarkerSet
-========
-
-Given a number of  markers and their interdistance, this class aims at
-reconstructing their relative coordinates.
-
-"""
-
+##@package marker_calibration
+# marker_calibration
+#===================
+#Contains MarkerSet class.
+#
+#Given a number of  markers and their interdistance, this class aims at
+#reconstructing their relative coordinates.
+#
+# Provided by LCAV
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -28,8 +28,11 @@ class MarkerSet:
 
     def fromEDM(self, D, dim=2, method='mds'):
         ''' Compute the position of markers from their Euclidean Distance Matrix
+
         D: Euclidean Distance Matrix (matrix containing squared distances between points
+
         dim: dimension of underlying space (default: 2)
+
         method: 'mds' for multidimensional scaling (default)
                 'tri' for trilateration
         '''
@@ -75,7 +78,9 @@ class MarkerSet:
     def trilateration(self, D, dim=2):
         '''
         Find the location of points based on their distance matrix using trilateration
+
         D: EDM corresponding to point set
+
         dim: dimension of underlying space (default: 2)
         '''
 

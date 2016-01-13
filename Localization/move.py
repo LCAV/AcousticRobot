@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
+##@package move
+# move
+# ==============
+# Contains Robot class
+#
+#created by Frederike Duembgen, July 2015
 from __future__ import division, print_function
 import csv, time, sys, getopt, socket, os, signal
 import numpy as np
-
 USAGE = '''
 ---------------------------------------------
                How to use:
@@ -52,8 +57,8 @@ def touchopen(filename,*args, **kwargs):
     fd = os.open(filename, os.O_RDWR | os.O_CREAT)
     return os.fdopen(fd, *args, **kwargs)
 def get_parameters():
-    global DEBUG
     ''' Get parameters from command line '''
+    global DEBUG
     inputfile=''
     output_odo='output/odometry.txt'
     output_tim='output/timings.txt'
@@ -153,6 +158,9 @@ def read_file(R,inputfile):
         else:
             R.cleanup()
 class Robot:
+    '''
+    This class implements functions used to control robot and read its encoder data.
+    '''
     def __init__(self,IP=TCP_IP,port=TCP_PORT,buffsize=BUFFER_SIZE):
         self.IP=IP
         self.port=port
@@ -170,7 +178,7 @@ class Robot:
             print('error11: could not connect to robot')
             self.cleanup()
     def cleanup(self,output_tim='',output_odo=''):
-        ''' Close socket, delete empty outputfiles.'''
+        ''' Close socket, delete empty outputfiles'''
         try:
             self.socket.close()
             print('Robot socket closed succesfully')

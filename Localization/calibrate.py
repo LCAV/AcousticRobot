@@ -1,25 +1,17 @@
 #-*- coding: utf-8 -*-
 #!/usr/bin/env python
-
-'''
-Calibrate
-===============
-
-Contains all functions necessary for intrinsic and extrinsic camera calibration,
-including the triangulation between cameras for 3D reconstruction.
-
-The class _Camera_ contains the camera's intrinsic and extrinsic parameters
-and the functions used for calibration.
-
-The class _Image_ contains all image- and object space positions of the
-reference points and the robot location in the respective images.
-
-All functions using more than one camera are not owned by an object.
-
-created by Frederike Duembgen, August 2015
-last modified: 08.12.2015
-
-'''
+##@package calibrate
+# calibrate
+#=============
+# Contains Image and Camera classes.
+#
+#Contains all functions necessary for intrinsic and extrinsic camera calibration,
+#including the triangulation between cameras for 3D reconstruction.
+#
+# All functions using more than one camera are not owned by an object.
+#
+# created by Frederike Duembgen, August 2015
+#
 
 from __future__ import division
 from __future__ import print_function
@@ -88,20 +80,29 @@ def get_param():
 def get_leastsquares(cam,pt,method='hz',r_height='',p_real=''):
     '''
     Solve least squares problem for point position with or without fixed height
+
     _Parameters_:
-        cam:    nparray of Camera objects used for triangulation
-        pt:     nparray of points to be measured
-        method: 'hz' (default) uses Hartley Zisserman Aglorithm, 'my' uses own
-                algorithm. Only use 'hz' only!
-        r_height:   real height of robot in mm. if specified, the fixed height
-                    algorithm is used.
-        p_real:     nparray of real position of robot (3x1), for error calculation
-                    only. default '' returns err2=err3=0.
+
+    cam:    nparray of Camera objects used for triangulation
+
+    pt:     nparray of points to be measured
+
+    method: 'hz' (default) uses Hartley Zisserman Aglorithm, 'my' uses own
+            algorithm. Only use 'hz' only!
+
+    r_height:   real height of robot in mm. if specified, the fixed height
+                algorithm is used.
+
+    p_real:     nparray of real position of robot (3x1), for error calculation
+                only. default '' returns err2=err3=0.
 
     _Returns_:
-        x: nparray of real positions of points. Size 3xN_pts
-        err2: nparray of 2D errors. Size 1xN_pts
-        err3: nparray of 3D errors. Size 1xN_pts
+
+    x: nparray of real positions of points. Size 3xN_pts
+
+    err2: nparray of 2D errors. Size 1xN_pts
+
+    err3: nparray of 3D errors. Size 1xN_pts
     '''
     A_part = dict()
     b_part = dict()
@@ -185,20 +186,31 @@ def get_leastsquares_combinations(n_cameras,numbers,cam,pt,method='hz',r_height=
     "number" made of elements of "n_cameras".
 
     _Parameters_:
+
     n_cameras: array of cameras to be tested (e.g. [139,141,145])
+
     numbers: array of numbers of cameras to be tested.
+
     cam: list of corresponding camera instances
+
     pt: vector of augmented image positions of point to be triangulated
     (matrix with [x,y,1]) in all cameras
+
     method: method to be used in leastsquares (with or without fixed height),
-    see get_leastsquares for more details.
+    see get_leastsquares() for more details.
+
     r_height: real height of point (if known)
+
     p_real: real position of point (if known)
 
     _Returns_:
+
     pts: 3D position
+
     2D: 2D error
+
     3D: 3D error
+
     arrs: list of camera number combination
     '''
     arrs = dict()
@@ -234,18 +246,24 @@ def get_best_combination(crit):
             c_best = c
             i_best = i
     return i_best, c_best
-def save_combinations(out_dir,fname,arrs,pts,errs,errors,title):
+def save_combinations(out_dir,fname,arrs,pts,errs,errors='',title=''):
     '''
     Saves obtained 2D and 3D errors in .png and textfile.
 
     _Parameters_:
+
     out_dir: output directory
+
     fname: file name
+
     arrs: list of used camera combinations
-    pts:
-    errs:
+
+    pts: array with estimated positions for all camera combinations
+
+    errs: array with errors for all camera combinations
 
     _Returns_:
+
     Nothing
 
     '''
@@ -286,11 +304,16 @@ def triangulate(P1,P2,i1,i2,p_real=''):
     Performs triangulation with cv2-function triangulatePoints.
 
     _Parameters_:
+
     P1,P2: camera Projection matrixes
+
     i1,i2: point image positions in 2 cameras
+
     p_real: real position of point (if known), for error calculation
 
-    _Returns_: position of corresponding 3D point, 2D and 3D error.
+    _Returns_:
+
+    position of corresponding 3D point, 2D and 3D error.
     '''
     p_test = cv2.triangulatePoints(P1,P2,i1,i2)
     p_norm = p_test/p_test[3]
@@ -304,12 +327,18 @@ def change_wall_to_ref(pts_basis,margin,pt_wall):
     Change of basis from wall to reference points.
 
     _Parameters_: (all distances in mm)
+
     pts_basis: list of positions of first and second reference points in wall
+
     reference. ([x1,y1],[x2,y2])
+
     margin: margin from leftmost and downmost reference points to new reference.
+
     pt_wall: position of point in wall reference
 
-    _Returns_: position of point in reference point basis (in meters)
+    _Returns_:
+
+    position of point in reference point basis (in meters)
     '''
     pt_ref = pt_wall.copy()
     pt1 = pts_basis[0]
@@ -364,10 +393,15 @@ def write_ref(dirname,name,pts_img,M,pts_obj):
     ''' Save reference points positions in file, overwriting old results
 
         _Parameters_:
+
         dirname = directory
+
         name = name of file
+
         pts_img = np array with image positions of reference points.
+
         M = geometric transformation np matrix(3x3) obtained from geometric_transformationN
+
         pts_obj = np array with object positions of reference points
 
         format of pts_img, pts_obj: row i: (pi_x, pi_y) with i going from 1 to m
@@ -384,11 +418,14 @@ def write_ref(dirname,name,pts_img,M,pts_obj):
         for pt in pts_obj:
             f.write(str(pt[0])+"\t"+str(pt[1])+"\n")
 def write_pos(dirname,name,p):
-    ''' save robot position (img,obj or real) in file, appending to old results
+    ''' Save robot position (img,obj or real) in file, appending to old results
 
         _Parameters_:
+
         dirname = directory
+
         name = name of file
+
         p = np array with robot position (x,y)
 
         _Returns_: Nothing'''
@@ -404,16 +441,32 @@ def write_pos(dirname,name,p):
                 f.write("{0}\t{1}\t{2}\n".format(p[0,0],p[0,1],p[0,2]))
 
 class Camera:
+    '''
+    This class contains the camera's intrinsic and extrinsic parameters
+    and the functions used for calibration.
+    '''
     def __init__(self,n,rms=0,C=0,dist=0,r=0,t=0):
-        # “raw parameters"
+        ## Camera IP number
         self.n = n
+        ## rms error from intrinsic calibration
         self.rms=rms
+        ## Camera matrix from intrinsic calibration
         self.C = np.matrix(C)
+        ## Distortion coefficients
         self.dist = np.matrix(dist)
+        ## Rotation vector
         self.r = np.matrix(r)
+        ## Translation vector
         self.t = np.matrix(t)
+        ## Camera rotation matrix
+        self.R = ''
+        ## Projection matrix [R,t]
+        self.Proj= ''
+        ## Camera centers in object reference frame
+        self.Center = ''
     def update(self):
-        ''' Update R,Proj and Center'''
+        ''' Update R (Camera rotation matrix), Proj (Projection matrix [R,t]
+        and the Center coordinates in object reference frame'''
         R,__ = cv2.Rodrigues(self.r)
         self.R = np.matrix(R)
         self.Proj = self.C*np.hstack((self.R,self.t))
@@ -775,12 +828,22 @@ class Camera:
         return np.array(dst)
 
 class Image:
+    '''
+    The class Image contains all image- and object space positions of the
+    reference points and the robot location in the respective images.
+    '''
     def __init__(self,n,ref_obj=0,r_truth=0,ref_img=0,ref=0,r_img=0,r=0):
+        ## Camera IP number
         self.n = n
+        ## reference image points
         self.ref_img = ref_img
+        ## reference object points
         self.ref_obj = ref
+        ## robot image point
         self.r_img = r_img
+        ## robot object point
         self.r_obj = r
+        ## robot real position
         self.r_truth = r_truth
     def take_image(self):
         ''' Get image from camera'''
@@ -788,11 +851,15 @@ class Image:
         self.img = get.get_image(self.n)
     def load_image(self,fname,swop=True):
         ''' Load image from file.
+
         _Parameters_:
+
         fname: path to picture to be loaded
+
         swop: if True, picture will be converted from BGR(cv2 default) to RGB (matplotlib default)
 
         _Returns_:
+
         None (updates self.img)
 
         '''
@@ -814,10 +881,13 @@ class Image:
         "fname" and camera number
 
         _Parameters_:
+
         dirname: directory where file is to be searched for.
+
         fname: start of filename (will be followed by camera number)
 
         _Returns_:
+
         Full relative path to newest file
 
         '''
@@ -829,7 +899,7 @@ class Image:
         return dirname+f_newest
     def read_ref(self,dirname,fname,m):
         '''
-        get reference point img positions from newest file in directory
+        Get reference point img positions from newest file in directory
         'dirname'
         '''
         fname = self.get_newest(dirname,fname)
@@ -855,7 +925,7 @@ class Image:
         self.M = M
     def read_pos(self,dirname,fname):
         '''
-        get newest robot position from pos_img file of this camera
+        Get newest robot position from pos_img file of this camera
         '''
         fname = self.get_newest(dirname,fname)
         #fname=dirname+fname+str(self.n)+".txt"
@@ -877,15 +947,20 @@ class Image:
         else:
             return np.matrix(np.hstack((pt,z.reshape(dim,1)))).astype(np.float32)
     def get_robotimage(self,R,THRESH,MIN,MAX,save=0,out_dir='',TIME=0,loop=''):
-        ''' Finds robot position in image using persp.imagepoints.
+        ''' Finds robot position in image using perspective.imagepoints().
 
         _Parameters_:
-        R,THRESH,MIN,MAX: parameters used by persp.imagepoints
+
+        R,THRESH,MIN,MAX: parameters used by perspective.imagepoints().
+
         save: set to 1 if you wish to save results (images)
+
         out_dir: directory where to save images.
+
         TIME: start time of program (for file naming)
 
         _Returns_:
+
         Nothing
         '''
         img_red,circ_red,p,__ = persp.imagepoints(self.img,R,1,THRESH,MIN,MAX)
@@ -898,15 +973,20 @@ class Image:
             persp.save_open_images(out_dir,loop)
             plt.close('all')
     def get_refimage(self,R,THRESH,MIN,MAX,NPTS,save=0,out_dir='',TIME=0,loop=''):
-        ''' Finds reference position in image using persp.imagepoints.
+        ''' Finds reference position in image using perspective.imagepoints()
 
         _Parameters_:
-        R,NPTS,THRESH,MIN,MAX: parameters used by persp.imagepoints
+
+        R,NPTS,THRESH,MIN,MAX: parameters used by perspective.imagepoints()
+
         save: set to 1 if you wish to save results (images)
+
         out_dir: directory where to save images.
+
         TIME: start time of program (for file naming)
 
         _Returns_:
+
         Nothing
         '''
         img_org,circ_org,pts_img,th_org = persp.imagepoints(self.img,R,NPTS,THRESH,
@@ -1009,32 +1089,3 @@ class Image:
             persp.save_open_images(out_dir)
 
         return 1
-
-if __name__ == '__main__':
-    import getopt
-    TIME = str(int(time.mktime(time.gmtime())))
-    w=7
-    h=5
-    MIN_REF = np.array([175,100,0],dtype=np.uint8)
-    MAX_REF = np.array([20,250,255],dtype=np.uint8)
-    R_REF=30
-    THRESH=10
-    imgs=dict()
-    MARGIN=np.array([1000,1000])
-
-    out_dir,in_dir,n,fisheye = get_param()
-
-    for n in [139,141]:
-        img = Image(n)
-        img.load_image(in_dir+"_image"+str(n)+"_new.png",False)
-        imagepoints=img.get_checkerboard(in_dir,fisheye,w,h,MARGIN,
-                               R_REF,THRESH,MIN_REF,MAX_REF,1,out_dir,TIME)
-        name='ref_'+str(n)+'_'+TIME+str('.txt')
-        img.write_ref(out_dir,name,img.ref_img,img.M,img.ref_obj)
-        img.read_ref(out_dir,"ref_",w*h)
-        img.ref_obj = img.augment(img.ref_obj)
-
-        cam = Camera(n)
-        cam.read(in_dir,False)
-        cam.reposition(img.ref_obj,img.ref_img,0)
-        imgs[n]=img

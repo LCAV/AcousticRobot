@@ -1,19 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-Audio.py class
-==============
+##@package Audio
+#Audio
+#============
+#Contains Audio.Audio class
+#
+#created by Frederike Duembgen, October 2015
 
-Plays a .wav file of your choice on a source and records simultaneously
-the response from 1 or more microphones. The source and all microphones must be
-connected to a soundcard which is connected to your computer. (Or use your
-computer as a soundcard directly)
-
-For each microphone channel, a output .wav-file is created.
-
-The program was tested for MOTU 897HD Soundcard and for the internal speakers
-and microphones of a MAC OS X.
-
-"""
 from __future__ import print_function, division
 import pyaudio
 import wave
@@ -21,42 +13,40 @@ import sys
 import numpy as np
 from scipy.io import wavfile
 
-def get_parameters():
-    '''
-    Gets parameters from command line
-
-    _Parameters_: none
-
-    _Returns_: inputfile, outputfile
-    '''
-    if len(sys.argv) < 2:
-        print("Plays a wave file.\n\nUsage: %s input.wav output.wav" % sys.argv[0])
-        sys.exit(-1)
-    input_file = sys.argv[1]
-    output_file = sys.argv[2]
-    output_file = output_file.replace(".wav","")
-    return input_file,output_file
-
 class Audio:
+    '''
+    This class can be used to play a .wav file of your choice on a speaker
+    of your choice and
+    record simultaneously the response from 1 or more microphones. The source
+    and all microphones must be
+    connected to a soundcard which is connected to your computer. (Or use your
+    computer as a soundcard directly)
+
+    For each microphone channel, a output .wav-file is created.
+
+    _Members_:
+
+    input_file = path to .wav file to be played (sine sweep or other)
+
+    output_file = path to new file where data results are stored
+    (with or without .wav ending)
+
+    [channels] = number of channels to be recorded (1 by default)
+    the channels will be recorded in ascending order from 0 to n_channels-1
+    all channels will be saved in separate files (output_file0,1,2,...)
+
+    [index] = index of audio device to use (3 by default)
+
+    [rate] = sampling frequency in Hz (44100 by default)
+
+    [chunk] = chunk size (frames per buffer, 1024 by default)
+
+    [format_au] = format of output, in pyaudio.pa... notation (default: pyaudio.paInt16)
+
+    [format_np] = format of output, in numpy.... notation (default: np.int16)
+    '''
     def __init__(self,input_file,output_file,channels=1,index=3,rate=44100,chunk=1024,
                  format_au=pyaudio.paInt16,format_np=np.int16):
-        '''
-        Constructor
-
-        _Parameters_:
-            input_file = path to .wav file to be played (sine sweep or other)
-            output_file = path to new file where data results are stored
-            (with or without .wav ending)
-
-            [channels] = number of channels to be recorded (1 by default)
-            the channels will be recorded in ascending order from 0 to n_channels-1
-            all channels will be saved in separate files (output_file0,1,2,...)
-            [index] = index of audio device to use (3 by default)
-            [rate] = sampling frequency in Hz (44100 by default)
-            [chunk] = chunk size (frames per buffer, 1024 by default)
-            [format_au] = format of output, in pyaudio.pa... notation (default: pyaudio.paInt16)
-            [format_np] = format of output, in numpy.... notation (default: np.int16)
-        '''
         self.input_file = input_file
         self.output_file = output_file.replace('.wav','')
         self.channels=channels
@@ -83,10 +73,9 @@ class Audio:
         elif byte_type ==np.int8:
             byte_number = 1
         return byte_number
-
     def play_and_record(self):
         ''' Plays input file and records output channels. Same as
-        play_and_record_long but recording time is only as long as inputfile.
+        play_and_record_long() but recording time is only as long as inputfile.
         '''
         print("Playing sound:",self.input_file)
         wf_out = wave.open(self.input_file,'rb')
@@ -142,13 +131,12 @@ class Audio:
         ''' Plays input file and records output channels,
         recording longer than input file is.
 
-        _Parameters_: none
+        _Returns_:
 
-        _Returns_: frames
-        frames is a list with #BUFFER elements
+        frames, a list with #BUFFER elements
         (#BUFFER ~= Time of input_file * rate / chunk), each element is one frame
-        with N chunk*channels.
-        the samples for different channels are stored in
+        with number of elements chunk*channels.
+        The samples for different channels are stored in
         alternating order.
         (for channels x and o, one frame would be [xoxo ... xo])
 
@@ -221,9 +209,10 @@ class Audio:
         '''
         Saves frames in audio files.
 
-        _Parameters_: frames
-        frames is a list of #BUFFER elements, each element is one frame.
-        (see output of play_and_record for more details)
+        _Parameters_:
+
+        frames, a list of #BUFFER elements, each element is one frame.
+        (see output of play_and_record() for more details)
 
         _Returns_: 1 if succeeded
         '''
@@ -262,20 +251,12 @@ class Audio:
     def get_device_index(self,p):
         ''' Updates the audio device id to be used based on user input
 
-        _Parameters_: Audio manager created with pyaudio
+        _Parameters_: the audio-manager created with pyaudio
 
-        _Returns_: nothing
+        _Returns_: Nothing
         '''
         for i in range(p.get_device_count()):
             print("Index ",i,":\n",p.get_device_info_by_index(i))
 
         self.index = int(input("\nEnter index of Audio device to be used from above list: \n"))
 
-if __name__ == "__main__":
-    rate = 44100
-    chunk = 1024
-    n_channels = 1
-    input_file,output_file = get_parameters()
-    Au = Audio(input_file,output_file,n_channels,3,rate,chunk)
-    frames=Au.play_and_record()
-    Au.save_wav_files(frames)

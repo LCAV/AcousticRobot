@@ -1,5 +1,18 @@
 #-*- coding: utf-8 -*-
 #!/usr/bin/env python
+## @package location
+# Location
+# ========
+# This is the main file to run during experiments.
+# It implements the intrinsic, extrinsic and triangulation algorithms,
+# the robot control and the audio and odometry measurements.
+#
+# The variables listed in the documentation are the ones that are
+# the most likely to change for each setup. All other variables of
+# the code should only be touched when necessary.
+#
+# created by Frederike Duembgen, September 2015
+
 from __future__ import division
 from __future__ import print_function
 
@@ -50,44 +63,58 @@ Do you want to move the robot? ('y' for yes or 'n' for no)
 ROBOT_REAL='''Real Robot           :
 Do you want to save the real position? ('y' for yes or 'n' for no)
 '''
-# color frame ƒor robot detection
-# res3:
+## Radius of referencepoints (in pixels)
+R_REF = 8
+## Radius of robot point (in pixels)
+R_ROB = 20
+## Empiric threshold for circle detection robot
+THRESH_ROB = 40
+## Empiric threshold for circle detection reference points
+THRESH_REF = 20
+## Height of robot in mm
+R_HEIGHT = 1650
+## Number of cameras in camera combinations to be considered (2 to 4)
+NUMBERS=range(2,5)
+
+
+## HSV min for robot detection
 MIN = np.array([150,100,0],dtype=np.uint8)
+## HSV max for robot detection
 MAX = np.array([10,250,255],dtype=np.uint8)
 # res2:
 #MIN = np.array([0,150,0],dtype=np.uint8)
 #MAX = np.array([10,250,255],dtype=np.uint8)
-# color frame for reference poitn detection
-MIN_REF = np.array([0,150,0],dtype=np.uint8)
+
+## HSV min for reference point detection
+MIN_REF = np.array([0,150,0],dtype=np.uint8) 
+## HSV max for reference point detection
 MAX_REF = np.array([10,250,255],dtype=np.uint8)
-R_REF = 8 # radius of referencepoints (in pixels)
-R_ROB = 20 # radius of robot point (in pixels)
-THRESH_ROB = 40 # empiric threshold for circle detection
-THRESH_REF = 20 # empiric threshold for circle detection
+
+## Margin from leftmost and downlost ref point to reference (in mm)
+MARGIN = np.array([2000,2000],dtype=np.float)
+## Coordinates of two basis points
+PTS_BASIS = np.array(([2746,3066],[3506,2708]))
 # res 2
 # MARGIN = np.array([2000,1000],dtype=np.float) #margin from leftmost and downlost ref point to reference (in mm)
 # PTS_BASIS = np.array(([2275,3769],[3128,3713])) #position of first and second reference points from wall (in mm)
 # res 1
-#MARGIN = np.array([1000,1000],dtype=np.float) #margin from leftmost and downlost ref point to reference (in mm)
-#PTS_BASIS = np.array(([4000,1500],[2500,3000])) #position of first and second reference points from wall (in mm)
-# res3
-MARGIN = np.array([2000,2000],dtype=np.float) #margin from leftmost and downlost ref point to reference (in mm)
-PTS_BASIS = np.array(([2746,3066],[3506,2708])) #position of first and second reference points from wall (in mm)
+# MARGIN = np.array([1000,1000],dtype=np.float) #margin from leftmost and downlost ref point to reference (in mm)
+# PTS_BASIS = np.array(([4000,1500],[2500,3000])) #position of first and second reference points from wall (in mm)
 
-R_HEIGHT = 1650
-NCAMERAS = [139,141,143,145]
-NUMBERS=range(4,5) # number of cameras to loop through
+
+
+NCAMERAS = [139,141,143,145]# IP numbers of cameras to be considered
 CHECKERBOARD = 0 # weather or not to use checkerboard for extrinsic calculation
-WIDTH = 7
-HEIGHT = 5
+WIDTH = 7 # width of checkerboard
+HEIGHT = 5 # height of checkerboard
 WIDTH_SENSOR = 3.67 #CCD sensor width in mm
 FOCAL_MM = 3.6 #focal width in mm
 WIDTH_IMG=1280#width of image in pixels
 
 # Audio
-N_CHANNELS=2
-RATE = 44100
-CHUNK = 1024
+N_CHANNELS=2 # number of channels to be used (1 or 2)
+RATE = 44100 # sampling rate
+CHUNK = 1024 # chunk size (in bit)
 def get_param():
     global DEBUG
     global CHECKERBOARD
@@ -201,8 +228,6 @@ def signal_handler(signal, frame):
 if __name__ == '__main__':
     print("updated")
     robot_connected=False
-    p_real_list = []
-    p_obj_list = []
    # try:
     import sys
     import getopt
@@ -221,7 +246,6 @@ if __name__ == '__main__':
         real_pos_file = np.loadtxt(in_dir+'posreal.txt')
 
     TIME = str(int(time.mktime(time.gmtime())))
-
     # Input positions.
     input_au =in_dir+"sound.wav"
     input_mov = in_dir+"control.txt"
@@ -330,7 +354,6 @@ if __name__ == '__main__':
             calib.write_pos(out_dir,name,np.matrix(np.array(r_wall)[0]).reshape(((1,3))))
             name='posreal_ref_'+TIME+'.txt'
             calib.write_pos(out_dir,name,np.matrix(np.array(np.array(r_real)[0]).reshape((1,3))))
-            p_real_list.append(r_wall.copy())
 
 #--------------------------- 4.1 Visual localization ----------------------#
 #--------------------------- 4.1.a Get Image Points  ----------------------#
@@ -393,8 +416,6 @@ if __name__ == '__main__':
             name='posobj_free_'+str(choice_ref)+'_'+TIME+'.txt'
             p_lq_free_wall = calib.change_ref_to_wall(PTS_BASIS,MARGIN,p_lq_free.T)
             calib.write_pos(out_dir,name,p_lq_free_wall[0])
-
-            p_obj_list.append(p_lq_fix_wall)
 
 #--------------------------- 4.2 Odometry Localization   ------------------#
         if DEBUG:

@@ -1,17 +1,16 @@
 #-*- coding: utf-8 -*-
 #!/usr/bin/env python
-'''
-Perspective
-===========
-
-Contains all functions related to image processing for marker detection,
-object point reading and image reprojection functions.
-
-
-created by Frederike Duembgen, July 2015
-'''
-
-
+##@package perspective
+#
+#perspective
+#==============
+#
+# Contains all functions related to image processing for marker detection,
+# object point reading and image reprojection functions.
+#
+#
+# created by Frederike Duembgen, July 2015
+#
 from __future__ import division
 from __future__ import print_function
 import cv2, sys, getopt, urllib, operator
@@ -59,9 +58,11 @@ def visualization(imgs,n_cam,colorbar=0,switch=0):
     ''' Visualize results in matplotlib figures with title given and colorbar.
 
     _Parameters_:
-    imgs: image dictionary with keys: image titles (string)
-    and values: corresponding image (np.array)
+
+    imgs: image dictionary with keys: image titles (string) and values: corresponding image (np.array)
+
     [colorbar]: if set to 1, a colorbar is shown in figure (default 0)
+
     [swtich]: if set to 1, the picture is shown from bottom to top. (default 0)
 
     _Returns_: None
@@ -164,10 +165,12 @@ def save_open_images(outputpath,loopcounter=''):
     and the loop counter.
 
     _Parameters_:
-        outputpath:     path to folder where file is saved
-        loopcounter:    integer, counter of robot steps (used for naming the
-                        images
-    _Returns_: nothing
+
+    outputpath:     path to folder where file is saved
+
+    loopcounter:    integer, counter of robot steps (used for naming the images
+
+    _Returns_: Nothing
     '''
     for i in plt.get_figlabels():
         plt.figure(i)
@@ -177,23 +180,29 @@ def save_open_images(outputpath,loopcounter=''):
 def get_circles_count(img,contours,t,w,r):
     '''
     Circles detection by counting pixels around contour centers.
-    Tests weather the contours obtained by extract_color are indeed of circular
+    Tests weather the contours obtained by extract_color() are indeed of circular
     shape by checking that in a square of given radius r, the average color
     is much brighter than in a square of given width w, surrounding the square.
     The average colors around the circle and inside the circle need to be
     separable by a color threshold t.
 
     _Parameters_:
-        img         Image to work on
-        contours    centers of contours found in the image after applying the
-                    color filter.
-        t           color threshold
-        w           width of test squares
-        r           radius of test circles
+
+    img:         Image to work on
+
+    contours:    centers of contours found by extract_color()
+
+    t:           color threshold
+
+    w:           width of test squares
+
+    r:          radius of test circles
 
     _Returns_:
-        cimg        Original image with drawn centers
-        centers     nparray of obtained centers.
+
+    cimg:        Original image with drawn centers
+
+    centers:     nparray of obtained centers.
 
     '''
     t_pixels=r*4 #minimum distance between two circle centers
@@ -258,18 +267,25 @@ def extract_color(img,range_min,range_max,r):
     expected area of points of interest in image)
 
     _Parameters_:
-        img         Image to work on
-        range_min   minimum of color range
-        range_max   maximum of color range
-        r           Radius of reference points in pixels
+
+    img:        Image to work on
+
+    range_min:   minimum of color range
+
+    range_max:  maximum of color range
+
+    r:           Radius of reference points in pixels
 
     _Returns_:
-        img             Image with obtained contours drawn on it, contour of
+
+    img:             Image with obtained contours drawn on it, contour of
                         maximum area pointed out
-        contours_big    list of centers of contours that are bigger than min_area
+
+    contours_big:    list of centers of contours that are bigger than min_area
                         calculated from r (min_area = 1/20 * r^2*pi)
-        cx,cy           Center of contour of biggest area
-        img_diff        Binary image obtained after applying the color filter.
+    cx,cy:           Center of contour of biggest area
+
+    img_diff:        Binary image obtained after applying the color filter.
 
 
 
@@ -325,14 +341,19 @@ def manual_calibration(img,n,R):
     circles around points of interest.
 
     _Parameters_:
-        img:    Image to work on
-        n:      Number of points of interest
-        R:      Radius of circlearound points to be kept in img_mask
+
+    img:    Image to work on
+
+    n:      Number of points of interest
+
+    R:      Radius of circlearound points to be kept in img_mask
 
     _Returns_:
-        img_mask:   Image where all pixels but the ones in a circle around the
+
+    img_mask:   Image where all pixels but the ones in a circle around the
                     chosen points of interest are white.
-        points:     List of chosen points (x,y), used later by restore_order()
+
+    points:     List of chosen points (x,y), used later by restore_order()
                     to restore the order of clicking.
     '''
     #Get point of interest
@@ -363,17 +384,24 @@ def automatic_calibration(img,range_min,range_max,zvalue=2):
     deviation.
 
     _Parameters_:
-        img:        Image to be worked on
-        range_min:  nparray of minimum of color range
-        range_max:  nparray of maximum of color range
-        zvalue:     interval of normal color function to be considered for the
-                    color refinement. (default 2)
+
+    img:        Image to be worked on
+
+    range_min:  nparray of minimum of color range
+
+    range_max:  nparray of maximum of color range
+
+    zvalue:     interval of normal color function to be considered for the
+                color refinement. (default 2)
 
     _Returns_:
-        rmin:   nparray of new minimum color to be applied to points of interest
-        rmax:   nparray of new maximum color to be applied to points of interest
-        colors_clean:   nparray of all the colors present around points
-                        of interest with standard deviation less than coll_diff.
+
+    rmin:   nparray of new minimum color to be applied to points of interest
+
+    rmax:   nparray of new maximum color to be applied to points of interest
+
+    colors_clean:   nparray of all the colors present around points
+                    of interest with standard deviation less than coll_diff.
     '''
 
     img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
@@ -403,13 +431,18 @@ def get_histograms(img,img_mask,n):
     ''' Plots histograms of colors of image within a given mask.
 
     _Parameters_:
-        img:        Image to be worked on
-        img_mask:   Defines regions of interest
-        n:          Number of figure to be used for histograms.
+
+    img:        Image to be worked on
+
+    img_mask:   Defines regions of interest
+
+    n:          Number of figure to be used for histograms.
 
     _Returns_:
-        hist_h:     Histogram of h-component of image in mask (nparray)
-        hist_s:     Histogram of s-component of image in mask (nparray)
+
+    hist_h:     Histogram of h-component of image in mask (nparray)
+
+    hist_s:     Histogram of s-component of image in mask (nparray)
     '''
     img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     img_mask = img_mask.astype(np.uint8)
@@ -433,16 +466,18 @@ def get_histograms(img,img_mask,n):
     return hist_h,hist_s
 def imagepoints_auto(img,r1,n,t,col_min,col_max,points,r2):
     '''
-    Get positions of robot automatically (ignoring reference poitns)
+    Get positions of robot automatically (ignoring reference points)
 
     _Parameters_:
-        img,r1,n,t,col_min,col_max: Parameters used by imagepoints for detecting
-        the robot position (see imagepoints for more details)
-        points: nparray of reference point locations
-        r2:     radius of reference points (in pxls)
 
+    img,r1,n,t,col_min,col_max: Parameters used by imagepoints() for detecting
+        the robot position (see imagepoints() for more details)
+
+    points: nparray of reference point locations
+        r2:     radius of reference points (in pxls)
     _Returns_:
-        output of imagepoints, but without manually selecting the robot's position.
+
+    output of imagepoints, but without manually selecting the robot's position.
         Instead, only color filtering is applied to the image, excluding the
         region of radius r around the referencepoints.
     '''
@@ -458,24 +493,33 @@ def imagepoints_auto(img,r1,n,t,col_min,col_max,points,r2):
         img_reduced[circle==1] = [255,255,255]
     return imagepoints(img_reduced,r1,n,t,col_min,col_max,1)
 def imagepoints(img,r,n,t,col_min,col_max,reduced=0):
-    ''' Get positions of reference points or robot.
-     in picutre.
+    ''' Get positions of reference points or robot in picture.
 
      _Parameters_:
-         img:       Image to work on
-         r:         Radius of points of interest (in px)
-         n:         Number of points to be detected
-         col_min:   np.array of minimum of color range in HSV
-         col_max:   np.array of maximum of color range in HSV
-         reduced:   if set to 1, the whole picture will be taken into account.
+
+    img:       Image to work on
+
+    r:         Radius of points of interest (in px)
+
+    n:         Number of points to be detected
+
+    col_min:   np.array of minimum of color range in HSV
+
+    col_max:   np.array of maximum of color range in HSV
+
+    reduced:   if set to 1, the whole picture will be taken into account.
                     if set to 0, the user may choose regions of interest.
                     (default 0)
 
     _Returns_:
-        img_color:  image showing region of interest and extracted circles
-        circ_color: image showing extracted color and detected circles
-        pos_color:  np.array with positions of the extracted points
-        th:         image of extracted color.
+
+    img_color:  image showing region of interest and extracted circles
+
+    circ_color: image showing extracted color and detected circles
+
+    pos_color:  np.array with positions of the extracted points
+
+    th:         image of extracted color.
      '''
     img_reduced = img.copy()
     w = r*5
@@ -524,13 +568,17 @@ def objectpoints(m,name):
     reads objectpoint positions from file.
 
     _Parameters_:
-        m:      Number of points
-        name:   File name of .csv or text sheet where objectpoints positions are
+
+    m:      Number of points
+
+    name:   File name of .csv or text sheet where objectpoints positions are
                 stored (in form of euclidean distance matrix)
 
     _Returns_:
-        pts_obj:Object positions of reference points (in cm)
-        M1      MarkerSet Object.
+
+    pts_obj:Object positions of reference points (in cm)
+
+    M1      marker_calibration.MarkerSet Object.
     '''
     # Initialisation
     dim = 2
@@ -555,14 +603,20 @@ def geometric_transformationN(img,pts_obj,pts_img,size):
     ''' Find Homography for 4 points from pts_obj to pts_img.
 
     _Parameters_:
-        img     Image to work on
-        pts_obj Object space positions of reference points
-        pts_img Image space positions of reference points
-        size    Image size of resulting transformed image
+
+    img:     Image to work on
+
+    pts_obj: Object space positions of reference points
+
+    pts_img: Image space positions of reference points
+
+    size:    Image size of resulting transformed image
 
     _Returns_:
-        img_flat:   "flat image" to which Homography has been applied.
-        M:          npmatrix of homography matrix.
+
+    img_flat:   "flat image" to which Homography has been applied.
+
+    M:          npmatrix of homography matrix.
     '''
     pts_obj = pts_obj.astype(np.float32)
     pts_img = pts_img.astype(np.float32)
@@ -572,16 +626,20 @@ def geometric_transformationN(img,pts_obj,pts_img,size):
     img_flat = cv2.warpPerspective(img,M,size)
     return img_flat, np.matrix(M)
 def restore_order(original,moved,min_dist):
-    ''' reorganize points of interest in order of clicking.
+    ''' Reorganize points of interest in order of clicking.
 
     _Parameters_:
-        original:   list of points of interest in order of clicking (returned by
+
+    original:   list of points of interest in order of clicking (returned by
         manual_calibration)
-        moved:      list of refined reference point positions, unordered.
-        min_dist:   minimum distance between original and moved position for
+
+    moved:      list of refined reference point positions, unordered.
+
+    min_dist:   minimum distance between original and moved position for
                     points to be considered as corresponding.
     _Returns_:
-        pts:        nparray of refined reference point positions, ordered in the
+
+    pts:        nparray of refined reference point positions, ordered in the
                     order of clicking.
     '''
 
@@ -599,19 +657,25 @@ def restore_order(original,moved,min_dist):
         pts = moved
     return pts
 def format_points(pts_obj,margin,mask = 'all'):
-    ''' reset the cooridnate system of object points such that all points
+    ''' Reset the cooridnate system of object points such that all points
     are in positive range.
 
     _Parameters_:
-        pts_obj:    np.array of object points.
-        margin:     Margin to add to leftmost and downmost points in final image.
-        mask:       np.array of indicator for all reference points
+
+    pts_obj:    np.array of object points.
+
+    margin:     Margin to add to leftmost and downmost points in final image.
+
+    mask:       np.array of indicator for all reference points
                     to be taken into consideration (1 or 0)
 
     _Returns_:
-        img_test    Resulting image with object points drawn in it.
-        pts_obj     object points in new reference frame.
-        (w,h)       Size or resulting image.
+
+    img_test:    Resulting image with object points drawn in it.
+
+    pts_obj:     object points in new reference frame.
+
+    (w,h):       Size or resulting image.
     '''
 
 
@@ -635,6 +699,3 @@ def format_points(pts_obj,margin,mask = 'all'):
 
     return img_test,pts_obj,(int(size[0]),int(size[1]))
 
-
-if __name__ == "__main__":
-    sys.exit(1)

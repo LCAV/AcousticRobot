@@ -1,4 +1,8 @@
 #-*- coding: utf-8 -*-
+##@package get_image
+#
+# Simple module to read image from specified webcam.
+
 from __future__ import print_function
 import urllib
 import cv2
