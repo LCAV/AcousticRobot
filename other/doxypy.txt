@@ -1,0 +1,14 @@
+##
+#  Create 1-channel CV_8U image 
+def gray_conversion(img):
+    if img.dtype != 'uint8' or len(img.shape) != 2:
+        img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    return img
+
+def gray_conversion(img):
+    ‘’’
+Create 1-channel CV_8U image 
+‘’’
+    if img.dtype != 'uint8' or len(img.shape) != 2:
+        img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    return img
