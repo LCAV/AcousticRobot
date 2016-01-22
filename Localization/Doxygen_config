@@ -876,9 +876,6 @@ IMAGE_PATH             =
 # or removed, the anchors will not be placed correctly.
 
 INPUT_FILTER = "python /Users/kiki/anaconda/envs/python2/bin/doxypy.py"
-#INPUT_FILTER = 
-
-#INPUT_FILTER           = "python2  ~/doxypy-0.3/doxypy.py"
 
 # The FILTER_PATTERNS tag can be used to specify filters on a per file pattern
 # basis. Doxygen will compare the file name with each pattern and apply the

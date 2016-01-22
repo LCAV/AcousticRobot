@@ -1,5 +1,0 @@
-Best combination (based on best robot 2D error with fixed height):[[139 141]], error:     36
-Fixed height [mm]: [ 3123 ,  2805 ,  1650], error 2D:    36
-Free height [mm]:  [ 3127 ,  2800 ,  1621], error 2D:    29 3D:    41
-Real position [mm]:[ 3140 ,  2774 ,  1650]
-Error reference points [px]: [[ 0.5539  0.8002  0.9161  0.4338]] 
