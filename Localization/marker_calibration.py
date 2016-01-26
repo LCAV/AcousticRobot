@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 ##@package marker_calibration
 # marker_calibration
 #===================

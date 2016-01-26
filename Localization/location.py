@@ -86,7 +86,7 @@ MAX = np.array([10,250,255],dtype=np.uint8)
 #MAX = np.array([10,250,255],dtype=np.uint8)
 
 ## HSV min for reference point detection
-MIN_REF = np.array([0,150,0],dtype=np.uint8) 
+MIN_REF = np.array([0,150,0],dtype=np.uint8)
 ## HSV max for reference point detection
 MAX_REF = np.array([10,250,255],dtype=np.uint8)
 

@@ -5,8 +5,8 @@
 #=============
 # Contains Image and Camera classes.
 #
-#Contains all functions necessary for intrinsic and extrinsic camera calibration,
-#including the triangulation between cameras for 3D reconstruction.
+# Contains all functions necessary for intrinsic and extrinsic camera calibration,
+# including the triangulation between cameras for 3D reconstruction.
 #
 # All functions using more than one camera are not owned by an object.
 #
