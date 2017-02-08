@@ -6,9 +6,9 @@
 <base href="http://lcav.github.io/AcousticRobot/">
 <title>Acousticrobot by LCAV</title>
 
-<link rel="stylesheet" href="../stylesheets/styles.css">
-<link rel="stylesheet" href="../stylesheets/github-dark.css">
-<script src="../javascripts/scale.fix.js"></script>
+<link rel="stylesheet" href="stylesheets/styles.css">
+<link rel="stylesheet" href="stylesheets/github-dark.css">
+<script src="javascripts/scale.fix.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
 <!--[if lt IE 9]>
@@ -38,7 +38,7 @@
 <li><a href="pages/develop.html"><strong> Develop </strong></a></li> 
 </ul>     
 </overview> 
-<h1><a id="acoustic-robot" class="anchor" href="#acoustic-robot" aria-hidden="true"><span class="octicon octicon-link"></span></a>Acoustic Robot</h1>
+<h1><a id="acoustic-robot" class="anchor" href="index.html" aria-hidden="true"><span class="octicon octicon-link"></span></a>Acoustic Robot</h1>
 <h2>Setup</h2>
 
 <p> Things that need to be done before every new experimentimental setup... </p>
@@ -70,10 +70,10 @@ For the full experiment you will need: </p>
 
 
 <figure>
-<img src="../images/1_1_robot.png" height=150px>
-<img src="../images/1_2_camera.png" height=150px>
-<img src="../images/1_3_refandcheck.png" height=150px>
-<img src="../images/1_5_speaker.png" height=150px>
+<img src="images/1_1_robot.png" height=150px>
+<img src="images/1_2_camera.png" height=150px>
+<img src="images/1_3_refandcheck.png" height=150px>
+<img src="images/1_5_speaker.png" height=150px>
 <figcaption> 
 Figure 1 - from left to right: Robot with acoustic head, Webcam, Reference point and checkerboard, Speaker
 </figcaption>    
@@ -102,7 +102,7 @@ You can find the visible area by always considering two neighbouring cameras and
 the reference point where both cameras can just see it (see Figure 2).
 
 <figure>
-<img src="../images/refplacement.png" width=500px>
+<img src="images/refplacement.png" width=500px>
 <figcaption> 
 Figure 4 - Example for finding the biggest common visible area)
 </figcaption>    
@@ -114,7 +114,7 @@ Mark an area where the robot should be allowed to move. Place the robot in the c
 orientation such that it can just see the robot's head (See Figure 3).
 
 <figure>
-<img src="../images/robotplacement.png" width=500px>
+<img src="images/robotplacement.png" width=500px>
 <figcaption> 
 Figure 3 - Example of well adjusted camera for robot detecting. 
 The white crosses mark the area where the robot is allowed to move.
@@ -130,7 +130,7 @@ Place the points such that all reference points are above an imaginary
 line drawn from the first reference point to the second reference point. (see Figure 4)
 
 <figure>
-<img src="../images/reference.png" width=500px>
+<img src="images/reference.png" width=500px>
 <figcaption> 
 Figure 4 - Example of correct reference points placements (All points are above line between points 1 and 2)
 </figcaption>    
@@ -144,7 +144,7 @@ Leave the upper diagonal blank or fill it with zeros (see Figure 5)
 </p>
 
 <figure>
-<img src="../images/objectpoints.png" width=500px>
+<img src="images/objectpoints.png" width=500px>
 <figcaption> 
 Figure 5 - How to measure and save the distances between points.)
 </figcaption>    
@@ -159,7 +159,7 @@ If you are using the checkerboard for extrinsic calbiration, place the checkerbo
 
 
 <figure>
-<img src="../images/ref_checkerboard.png" width=500px>
+<img src="images/ref_checkerboard.png" width=500px>
 <figcaption> 
 Figure 6 - How to place checkerboard and reference points and the resulting numbering.
 </figcaption>    
@@ -189,7 +189,7 @@ You can now run the program. Make sure that you have created an output folder (c
 of this session. Make sure that all parameters are available in the input folder (called "input" here), see Figure 7.
 
 <figure>
-<img src="../images/filestructure.png" width=500px>
+<img src="images/filestructure.png" width=500px>
 <figcaption> 
 Figure 7 - File structure. X corresponds to camera number (139, 141, etc.) and N to iteration number. TIME is the time when the program is started.
 </figcaption>    
@@ -216,7 +216,7 @@ Some verification is recommended before going on with the experiments. See <a hr
 <h4> Reprojection of reference points </h4>
 <p>
 <figure>
-<img src="../images/ref_summary.png" width=500px>
+<img src="images/ref_summary.png" width=500px>
 <figcaption>
 Figure 8 - Visualization of reprojection errors in "output/summary_X.png".
 </figcaption>
