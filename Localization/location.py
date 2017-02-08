@@ -21,14 +21,13 @@ import get_image as get
 import marker_calibration as mark
 import numpy as np
 import matplotlib.pyplot as plt
-import cv2.cv as cv
 import cv2
 import time
 import move
 import Audio
 import os
 USAGE = '''
-USAGE: locate.py -o <output path> -i <input path> [-m <number of points>]
+USAGE: locate.py -o <output dir> -i <input dir> [-m <number of points>]
 [-f <fisheye on (0/1)>] [-d for debugging] [-h to show this help]
 
 default:
@@ -125,7 +124,7 @@ def get_param():
     fisheye = '0000'
     try:
         opts,args = getopt.getopt(sys.argv[1:],"o:i:m:f:d",
-                                  ['output=','input=','m=','fisheye=','debug='])
+                                  ['outdir=','indir=','m=','fisheye=','debug='])
     except getopt.GetoptError:
         print(USAGE)
         sys.exit(2)
@@ -133,9 +132,9 @@ def get_param():
         if opt == 'h':
             print(USAGE)
             sys.exit(2)
-        if opt in ('--output',"-o"):
+        if opt in ('--outdir',"-o"):
             out_dir = str(arg)
-        if opt in ('--input',"-i"):
+        if opt in ('--indir',"-i"):
             in_dir = str(arg)
         if opt in ('--m',"-m"):
             m = int(arg)
@@ -269,7 +268,7 @@ if __name__ == '__main__':
 
 #--------------------------- 0. Intrinsic Calibration   -------------------#
 
-    n = raw_input(INTRINSIC)
+    n = input(INTRINSIC)
     if n!='q':
         n=int(n)
         i=NCAMERAS.index(n)
@@ -278,12 +277,12 @@ if __name__ == '__main__':
         cam.calibrate(obj_points,img_points,size)
         f_theo=WIDTH_IMG*FOCAL_MM/WIDTH_SENSOR
         if (abs(cam.C[0,0]-f_theo)>100):
-            choice = raw_input("focal width obtained ({0}) far from theory {1}. Continue? (yes=y, no=n)".
+            choice = input("focal width obtained ({0}) far from theory {1}. Continue? (yes=y, no=n)".
                                format(int(cam.C[0,0]),f_theo))
             if choice == 'n':
                 sys.exit(2)
         if (abs(cam.C[1,1]-f_theo)>100):
-            choice = raw_input("focal height obtained ({0}) far from theory {1}. Continue? (yes=y, no=n)".
+            choice = input("focal height obtained ({0}) far from theory {1}. Continue? (yes=y, no=n)".
                                format(int(cam.C[1,1]),f_theo))
             if choice == 'n':
                 sys.exit(2)
@@ -291,7 +290,7 @@ if __name__ == '__main__':
 #--------------------------- 3. Extrinsic Calibration   -------------------#
     n = ''
     while True:
-        n = raw_input(EXTRINSIC)
+        n = input(EXTRINSIC)
         if n != 'q':
             result=1
             plt.close('all')
@@ -334,14 +333,14 @@ if __name__ == '__main__':
     loop_counter = 0
     times=0
     commands=''
-    choice_loc = raw_input(ROBOT_LOC)
+    choice_loc = input(ROBOT_LOC)
     while choice_loc != "n":
 #--------------------------- 4.1 Real Position    -------------------------#
-        choice = raw_input(ROBOT_REAL)
+        choice = input(ROBOT_REAL)
         if choice != 'n':
             if real_pos_file=='':
-                x = raw_input("robot position x in mm, measured from wall: ")
-                y = raw_input("robot position y in mm, measured from wall: ")
+                x = input("robot position x in mm, measured from wall: ")
+                y = input("robot position y in mm, measured from wall: ")
                 if x!='':
                     r_wall[0,0]=x
                 if y!='':
@@ -358,7 +357,7 @@ if __name__ == '__main__':
 #--------------------------- 4.1 Visual localization ----------------------#
 #--------------------------- 4.1.a Get Image Points  ----------------------#
 
-        choice = raw_input(ROBOT_VIS)
+        choice = input(ROBOT_VIS)
         if choice != 'n':
             plt.close('all')
             # save new robot position in file
@@ -421,7 +420,7 @@ if __name__ == '__main__':
         if DEBUG:
             choice='n'
         else:
-            choice = raw_input(ROBOT_ODO)
+            choice = input(ROBOT_ODO)
         if choice == 'y':
 
             # Connect to robot
@@ -436,7 +435,7 @@ if __name__ == '__main__':
         if DEBUG:
             choice='n'
         else:
-            choice = raw_input(ROBOT_ACO)
+            choice = input(ROBOT_ACO)
         if choice == 'y':
             print("Acoustic localization")
             out_au = output_au.replace('/','/'+str(loop_counter)+'_')
@@ -447,7 +446,7 @@ if __name__ == '__main__':
         if DEBUG:
             choice='n'
         else:
-            choice = raw_input(ROBOT_MOVE)
+            choice = input(ROBOT_MOVE)
         if choice == 'y':
             if not robot_connected:
                 Robot = move.Robot()
@@ -468,7 +467,7 @@ if __name__ == '__main__':
             Robot.move(t,c,output_tim)
 
         loop_counter += 1
-        choice_loc = raw_input(ROBOT_LOC)
+        choice_loc = input(ROBOT_LOC)
 #--------------------------- 6. Terminate               -------------------#
     # disconnect robot in the end.
     if robot_connected:

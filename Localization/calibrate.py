@@ -15,10 +15,8 @@
 
 from __future__ import division
 from __future__ import print_function
-from future.utils import iteritems
 import numpy as np
 import cv2
-import cv2.cv as cv
 import matplotlib.pyplot as plt
 import csv
 import get_image as get
@@ -557,11 +555,11 @@ class Camera:
                         img_points.append(img_pt)
                         obj_points.append(obj_pt)
                         counter += 1
-                    choice = raw_input("Do you want to take another image? (y/n)")
+                    choice = input("Do you want to take another image? (y/n)")
                 elif choice == "n":
                     return img_points, obj_points, (w,h)
                 else:
-                    choice = raw_input("Enter valid choice (y/n)")
+                    choice = input("Enter valid choice (y/n)")
             except KeyboardInterrupt:
                 print("program terminated by user")
                 sys.exit(1)
@@ -630,11 +628,11 @@ class Camera:
                         img = get.get_image(n)
                         cv2.imwrite('{0}/input{1}_{2}.jpg'.format(out_dir,n,counter),img)
                     counter += 1
-                    choice = raw_input("Do you want to take another image? (y/n)")
+                    choice = input("Do you want to take another image? (y/n)")
                 elif choice == "n":
                     return counter
                 else:
-                    choice = raw_input("Enter valid choice (y/n)")
+                    choice = input("Enter valid choice (y/n)")
 
             except KeyboardInterrupt:
                 print("program terminated by user")
@@ -683,7 +681,7 @@ class Camera:
         self.dist = np.array(dist)
         self.r = np.matrix(r[0])
         self.t = np.matrix(t[0])
-    def reposition(self,opts,ipts,flag=cv2.CV_P3P,ransac=0,err=8):
+    def reposition(self,opts,ipts,flag=cv2.SOLVEPNP_P3P,ransac=0,err=8):
         '''
         Redefines the position vectors r and t of the camera given a set of
         corresponding image and object points
@@ -694,7 +692,7 @@ class Camera:
         '''
         rvec = 0
         tvec = 0
-        if flag == cv2.CV_P3P or flag == cv2.CV_EPNP:
+        if flag == cv2.SOLVEPNP_P3P or flag == cv2.SOLVEPNP_EPNP:
             n_points = ipts.shape[0]
             ipts = np.ascontiguousarray(ipts[:,:2]).reshape((n_points,1,2))
         if ransac:

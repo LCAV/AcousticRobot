@@ -16,7 +16,7 @@ from __future__ import print_function
 import cv2, sys, getopt, urllib, operator
 import sys
 import numpy as np
-import cv2.cv as cv
+#import cv2.cv as cv
 import matplotlib.pyplot as plt
 import marker_calibration as mark
 import time
@@ -126,7 +126,7 @@ def get_parameters():
                 inputfile = arg
             else:
                 while cv2.imread(inputfile,0)==None:
-                    inputfile=raw_input("Could not open input file, enter valid filename (or q to quit)")
+                    inputfile=input("Could not open input file, enter valid filename (or q to quit)")
                     if inputfile == "q":
                         sys.exit(2)
         elif opt in ("-o","--opath"):

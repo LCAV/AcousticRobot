@@ -123,7 +123,7 @@ def read_file(R,inputfile):
             # Check if file starts with i
             if (counter_blocks==-1) and (file_command != 'i'):
                 while 1:
-                    choice = raw_input("warning1: file doesn't start with 'i'. Continue anyways?(yes=y,no=n) ")
+                    choice = input("warning1: file doesn't start with 'i'. Continue anyways?(yes=y,no=n) ")
                     if choice == 'y':
                         break
                     elif choice =='n':
@@ -152,7 +152,7 @@ def read_file(R,inputfile):
         # Add last array to block
         time_blocks[counter_blocks] = time_array
         command_blocks[counter_blocks] = command_array
-        choice = raw_input("proceed with above listed commands?(yes=y,no=n)")
+        choice = input("proceed with above listed commands?(yes=y,no=n)")
         if (choice=='y'):
             return time_blocks, command_blocks
         else:
