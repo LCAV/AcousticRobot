@@ -34,7 +34,7 @@ Add -d to run program in "simulation mode" (without connecting to robot)
 -------------------------------------------- '''
 
 DEBUG = 0
-N = 512 # Counts per revolution
+N = 512 #Â Counts per revolution
 R_wheels =10 # radius of robot wheels in mm
 D=30 # distance between two wheels in mm
 valid_array = ['i','f','b','l','r','e','v','u','d','a','o','c','sh','sa','s','pl','pr','g','tu','td','z'] # valid commands
@@ -94,10 +94,10 @@ def read_setandget(command):
         if (command[1] == ' ') and (command[3] == ' '): # spaces after command and board
             if valid_boards.count(command[2]) > 0: # board is valid
                 if command[0] == 'g':
-                    #Â get mode
+                    #Ã‚Â get mode
                     print('get mode')
                 elif command[0] == 'p':
-                    #Â set mode
+                    #Ã‚Â set mode
                     print('set mode')
     return 1
 def read_file(R,inputfile):
@@ -112,7 +112,7 @@ def read_file(R,inputfile):
         c=csv.DictReader(f,delimiter = '\t', fieldnames = ['time','command'],skipinitialspace=True)
         for line in c :
             print(line)
-            # read new time and command
+            #Â read new time and command
             try:
                 file_time = float(line['time'])
             except:
@@ -120,19 +120,19 @@ def read_file(R,inputfile):
                 R.cleanup()
             file_command = line['command']
 
-            # Check if file starts with i
-            if (counter_blocks==-1) and (file_command != 'i'):
-                while 1:
-                    choice = input("warning1: file doesn't start with 'i'. Continue anyways?(yes=y,no=n) ")
-                    if choice == 'y':
-                        break
-                    elif choice =='n':
-                        R.cleanup()
+ #           # Check if file starts with i
+ #           if (counter_blocks==-1) and (file_command != 'i'):
+ #               while 1:
+ #                   choice = input("warning1: file doesn't start with 'i'. Continue anyways?(yes=y,no=n) ")
+ #                   if choice == 'y':
+ #                       break
+ #                   elif choice =='n':
+ #                       R.cleanup()
 
             if file_time != 0 and file_time-last_time<0:
                 print('error7: non-incrementing time values:',file_time,last_time)
                 R.cleanup()
-            # save old command block and initialize for next one.
+            #Â save old command block and initialize for next one.
             elif file_time == 0:
                 if counter_blocks != -1:
                     time_blocks[counter_blocks] = time_array
@@ -141,7 +141,7 @@ def read_file(R,inputfile):
                     command_array = []
                 counter_blocks += 1
 
-            # Add new valid commands and times to current array
+            #Â Add new valid commands and times to current array
             if (valid_array.count(file_command) > 0) or read_setandget(file_command):
                 time_array.append(file_time)
                 command_array.append(file_command)
@@ -194,6 +194,12 @@ class Robot:
         except:
             sys.exit(1)
     def move(self,time_array,command_array,outputf):
+
+        position = dict()
+        motors=["l","r"]
+        position[motors[0]]=-1
+        position[motors[1]]=-1
+
         ''' Send commands from command_array at cooresponding times in time_array'''
         last_time = 0
         with touchopen(outputf,'a') as f:
@@ -203,19 +209,40 @@ class Robot:
                 time_diff = t - last_time
                 time.sleep(time_diff)
 
-                # send command
+                #Â send command
                 command = command_array[i]
                 if not DEBUG:
+
                     self.socket.send(command.encode())
-                c.writerow([time.time()-start,command])
+                c.writerow([command])
                 print('{0:15s} \t {1:5.4f} \t {2:5.4f}'.format(command, t,time.time()-start))
 
-                # wait for response
+                #Â wait for response
                 if command[0]=='g':
                     if not DEBUG:
                         data = self.socket.recv(BUFFER_SIZE)
+                        print('data',data)
                         c.writerow([round(time.time()-start,4),data])
                 last_time = t
+
+                for motor in motors:
+                    cmd = "g "+motor+" ACT_POS"
+
+                    if not DEBUG:
+                        self.socket.send(cmd.encode())
+                #wait for response
+                    found = 0
+                    if not DEBUG:
+                        while not found:
+                            data = self.socket.recv(BUFFER_SIZE)
+                            if data.find(cmd.encode())!= -1:
+                                pos = int(data.replace(cmd.encode(),b""))
+                                found = 1
+                        #pos = data
+                        #found = 1
+                        position[motor]=pos
+                c.writerow([position[motors[0]],position[motors[1]]])
+
     def activate(self):
         ''' Set motors back into control mode (to be called after every stop) '''
         if not DEBUG:
@@ -233,18 +260,18 @@ class Robot:
         position[motors[1]]=-1
         with touchopen(outputfile,'a') as f:
             c=csv.writer(f,delimiter='\t')
-            # send request to get position
+            #Â send request to get position
             for motor in motors:
                 cmd = "g "+motor+" ACT_POS"
                 if not DEBUG:
-                    self.socket.send(cmd.encode())
+                    self.socket.send(cmd)
                 #wait for response
                 found = 0
                 if not DEBUG:
                     while not found:
                         data = self.socket.recv(BUFFER_SIZE)
-                        if data.find(cmd.encode())!= -1:
-                            pos = int(data.replace(cmd.encode(),b""))
+                        if data.find(cmd)!= -1:
+                            pos = int(data.replace(cmd,""))
                             found = 1
                         #pos = data
                         #found = 1
@@ -254,9 +281,9 @@ class Robot:
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
-    # Create robot instance
+    #Â Create robot instance
     R = Robot(TCP_IP,TCP_PORT,BUFFER_SIZE)
-    # Get parameters
+    #Â Get parameters
     inputfile,output_odo,output_tim = get_parameters()
     if (DEBUG):
         print("running in debug mode")
@@ -266,21 +293,20 @@ if __name__ == '__main__':
     # Store commands
     (times, commands) = read_file(R,inputfile)
 
-    # Connect to robot
+    #Â Connect to robot
     if not DEBUG:
         R.connect()
 
-    # Get initial position
-    R.get_position(output_odo)
-    # Execute commands (in blocks)
+    #Â Get initial position
+    #R.get_position(output_odo)
+    #Â Execute commands (in blocks)
     for i,c in commands.items():
         #print("activate motors")
         #R.activate()
-
         print("starting new movement")
         t=times[i]
         R.move(t,c,output_tim)
-        R.get_position(output_odo)
+        #R.get_position(output_odo)
         print("movement done")
         time.sleep(2)
     if not DEBUG:

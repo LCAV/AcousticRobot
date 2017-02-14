@@ -1,0 +1,4 @@
+0	s
+1	p l CONTROL 0
+1	p r CONTROL 0
+2	s

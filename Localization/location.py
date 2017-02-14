@@ -355,6 +355,17 @@ if __name__ == '__main__':
             calib.write_pos(out_dir,name,np.matrix(np.array(np.array(r_real)[0]).reshape((1,3))))
 
 #--------------------------- 4.1 Visual localization ----------------------#
+        if DEBUG:
+            choice='n'
+        else:
+            choice = input(ROBOT_ACO)
+        if choice == 'y':
+            print("Acoustic localization")
+            out_au = output_au.replace('/','/'+str(loop_counter)+'_')
+            Au = Audio.Audio(input_au,out_au,N_CHANNELS,3,RATE,CHUNK)
+            frames=Au.play_and_record_long()
+            Au.save_wav_files(frames)
+            
 #--------------------------- 4.1.a Get Image Points  ----------------------#
 
         choice = input(ROBOT_VIS)
@@ -432,16 +443,7 @@ if __name__ == '__main__':
             print("Odometry localization")
             Robot.get_position(output_odo)
 #--------------------------- 4.3 Acoustic Localization   ------------------#
-        if DEBUG:
-            choice='n'
-        else:
-            choice = input(ROBOT_ACO)
-        if choice == 'y':
-            print("Acoustic localization")
-            out_au = output_au.replace('/','/'+str(loop_counter)+'_')
-            Au = Audio.Audio(input_au,out_au,N_CHANNELS,3,RATE,CHUNK)
-            frames=Au.play_and_record_long()
-            Au.save_wav_files(frames)
+ 
 #--------------------------- 5. Make Robot Move        --------------------#
         if DEBUG:
             choice='n'
