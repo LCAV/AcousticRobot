@@ -4,7 +4,7 @@
 # ==============
 # Contains Robot class
 #
-#created by Frederike Duembgen, July 2015
+#created by Frederike Duembgen, Yuan Yao, Feb 2017
 from __future__ import division, print_function
 import csv, time, sys, getopt, socket, os, signal
 import numpy as np
@@ -12,7 +12,6 @@ USAGE = '''
 ---------------------------------------------
                How to use:
 ---------------------------------------------
-
 python file.py -i <inputfile> [-d] manual drive with input
 python file.py -a [-d] manual drive without input
 
@@ -21,11 +20,9 @@ time1 \t command1
 time2 \t command2
 etc.
 
+the output will be saved in the "output/" folder with the name as move.txt
 
-the output will be saved in the "output/" folder with the same name as the
-inputfile but with appendix _odo for odometry data and _tim for timing data
-
-Add -d to run program in "simulation mode" (without connecting to robot)
+Add -d to run program in "simulation mode", known as "debug mode" (without connecting to robot)
 -------------------------------------------- '''
 
 DEBUG = 0
@@ -53,7 +50,7 @@ def touchopen(filename,*args, **kwargs):
     return os.fdopen(fd, *args, **kwargs)
 
 def mode_classification():
-    global DEBUG
+    ''' Classify the mode used in recent trial '''
     try:
         opts,args = getopt.getopt(sys.argv[1:],"hi:da",["ifile="])
     except getopt.GetoptError:
@@ -63,15 +60,7 @@ def mode_classification():
         if opt in ("-h"):
             print(USAGE)
             sys.exit(2)
-        elif opt in ("-d"):
-            DEBUG=1
         elif opt in ("-i","--ifile"):
-            try:
-                with touchopen(arg,'r+'):
-                    inputfile = arg
-            except:
-                print('error: please choose a valid input file')
-                sys.exit(2)
             mode='withinput'
             return mode
         elif opt in ('-a'):
@@ -79,11 +68,10 @@ def mode_classification():
             return mode
 
 def get_parameters_with(mode):
-    ''' Get parameters from command line '''
+    ''' Get parameters from text file, manual drive with input '''
     global DEBUG
     inputfile=''
     output_result='output/move.txt'
-    
     try:
         opts,args = getopt.getopt(sys.argv[1:],"hi:d",["ifile="])
     except getopt.GetoptError:
@@ -110,9 +98,8 @@ def get_parameters_with(mode):
     return inputfile, output_result
 
 def get_parameters_without(mode):
-    ''' Get parameters from command line '''
+    ''' Get parameters from command line, manual drive without input '''
     global DEBUG
-    inputfile=''
     output_result='output/move.txt'   
     try:
         opts,args = getopt.getopt(sys.argv[1:],"hda")
@@ -127,7 +114,7 @@ def get_parameters_without(mode):
             DEBUG=1
         elif opt in ('-a'):
             mode='withoutinput'
-    print('Input file is ',inputfile)
+    print('No inputfile in this mode')
     output_result='output/move.txt'
     return output_result
 
@@ -143,6 +130,7 @@ def read_setandget(command):
                     #Â set mode
                     print('set mode')
     return 1
+
 def read_file(R,inputfile):
     ''' Read file and check if it is valid, save commands and times in dicts'''
     command_array = []
@@ -191,10 +179,9 @@ def read_file(R,inputfile):
             return time_blocks, command_blocks
         else:
             R.cleanup()
+
 class Robot:
-    '''
-    This class implements functions used to control robot and read its encoder data.
-    '''
+    '''This class implements functions used to control robot and read its encoder data.'''
     def __init__(self,IP=TCP_IP,port=TCP_PORT,buffsize=BUFFER_SIZE):
         self.IP=IP
         self.port=port
@@ -228,12 +215,10 @@ class Robot:
         except:
             sys.exit(1)
     def move(self,time_array,command_array,outputf):
-
         position = dict()
         motors=["l","r"]
         position[motors[0]]=-1
         position[motors[1]]=-1
-
         ''' Send commands from command_array at cooresponding times in time_array'''
         last_time = 0
         with touchopen(outputf,'a') as f:
@@ -272,13 +257,10 @@ class Robot:
                             if data.find(cmd.encode())!= -1:
                                 pos = int(data.replace(cmd.encode(),b""))
                                 found = 1
-                        #pos = data
-                        #found = 1
                         position[motor]=pos
                 c.writerow([position[motors[0]],position[motors[1]]])
 
-    def driven(self,outputf):
-        
+    def driven(self,outputf):        
         command = 'i'
         position = dict()
         motors=["l","r"]
@@ -286,13 +268,13 @@ class Robot:
         position[motors[1]]=-1
         t0 = time.time()
         
-        command0 = input('Drive mode begins, please enter your command:')
-        while command0 != 'end':
-            if (command0 != 'f' and command0 != 'b' and command0 != 'l' and command0 != 'r' and command0 != 'end' and command0 != 's'):
+        valid_command = input('Drive mode begins, please enter your command:')
+        while valid_command != 'end':
+            if (valid_command != 'f' and valid_command != 'b' and valid_command != 'l' and valid_command != 'r' and valid_command != 's' and valid_command[0] != 'g'):
                 print('wrong command and try another one')
                 
             else:
-                command = command0
+                command = valid_command
                 while command != 'end':
                     with touchopen(outputf,'a') as f:
                         c=csv.writer(f,delimiter='\t')                    
@@ -309,10 +291,8 @@ class Robot:
                                 data = self.socket.recv(BUFFER_SIZE)
                                 print('data',data)
                                 c.writerow([round(time.time()-start,4),data])
-
                         for motor in motors:
                             cmd = "g "+motor+" ACT_POS"
-
                             if not DEBUG:
                                 self.socket.send(cmd.encode())
                         #wait for response
@@ -328,7 +308,7 @@ class Robot:
                         break
                     break
                         
-            command0=input('type another command as you want:...')
+            valid_command=input('type another command as you want:...')
 
     def activate(self):
         ''' Set motors back into control mode (to be called after every stop) '''
@@ -337,8 +317,6 @@ class Robot:
             time.sleep(1)
             self.socket.send("p r CONTROL 2")
         return 1
-
-
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
@@ -359,7 +337,7 @@ if __name__ == '__main__':
             t=times[i]
             R.move(t,c,output_result)
             print("movement done")
-            time.sleep(2)
+            time.sleep(1)
             if not DEBUG:
                 R.cleanup()
     
@@ -374,6 +352,6 @@ if __name__ == '__main__':
         print("starting new movement")
         R.driven(output_result)
         print("movement done")
-        time.sleep(2)
+        time.sleep(1)
         if not DEBUG:
             R.cleanup()
