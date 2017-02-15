@@ -4,7 +4,7 @@
 # Simple module to read image from specified webcam.
 
 from __future__ import print_function
-import urllib
+import urllib.request
 import cv2
 import numpy as np
 
@@ -15,7 +15,7 @@ def get_image(n):
     counter = 1
     bytes=''
     stream =  ''
-    stream = urllib.urlopen("http://172.16.156."+str(n)+":8080/?action=stream")
+    stream = urllib.request.urlopen("http://172.16.156."+str(n)+":8080/?action=stream")
     while not_found:
         counter = counter+1
         bytes+=stream.read(1024)

@@ -91,7 +91,7 @@ class MarkerSet:
         self.X = np.zeros((self.dim, self.m))
 
         self.X[:,1] = np.array([0, dist[0,1]])
-        for i in xrange(2,m):
+        for i in range(2,m):
             self.X[:,i] = self.trilateration_single_point(self.X[1,1],
                     dist[0,i], dist[1,i])
 
@@ -137,7 +137,7 @@ class MarkerSet:
 
         if labels:
             eps = np.linalg.norm(self.X[:,0] - self.X[:,1])/100
-            for i in xrange(self.m):
+            for i in range(self.m):
                 axes.text(self.X[0,i]+eps, self.X[1,i]+eps, str(i+1))
 
 

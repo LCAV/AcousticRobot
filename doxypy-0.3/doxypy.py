@@ -344,7 +344,7 @@ def optParse():
 	(options, filename) = parser.parse_args()
 	
 	if not filename:
-		print >>sys.stderr, "No filename given."
+		print ("No filename given.",file=sys.stderr)
 		sys.exit(-1)
 	
 	return filename[0]
@@ -357,13 +357,13 @@ def main():
 	
 	try:
 		input = loadFile(filename)
-	except IOError, (errno, msg):
+	except (IOError, (errno, msg)):
 		print >>sys.stderr, msg
 		sys.exit(-1)
 	
 	fsm = Doxypy()
 	output = fsm.parse(input)
-	print output
+	print (output)
 
 if __name__ == "__main__":
 	main()
