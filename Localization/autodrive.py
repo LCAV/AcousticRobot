@@ -67,5 +67,5 @@ def get_para(inputfile):
 
 
 
-angle,distance=get_para('autocommand.txt')
+angle,distance=get_para('\output\autocommand.txt')
 

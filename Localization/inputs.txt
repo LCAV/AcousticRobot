@@ -1,7 +1,0 @@
-0	s
-1	p l ACT_POS 0
-1	p r ACT_POS 0
-1	p l POS 2000
-1	p r POS -2000
-1	p l CONTROL 3
-1	p r CONTROL 3
