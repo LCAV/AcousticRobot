@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 import cv2, sys, getopt, urllib, operator
 import numpy as np
-import cv2.cv as cv
+import cv2
 from PIL import Image
 from PIL.ImageQt import ImageQt
 
