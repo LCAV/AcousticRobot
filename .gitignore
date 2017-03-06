@@ -7,3 +7,6 @@
 # Result files
 Localization/results/
 *.swp
+
+# Python notebooks
+*.ipynb

@@ -19,8 +19,13 @@ The file has to have only entries of the syntax
 time1 \t command1
 time2 \t command2
 etc.
+where the time is given in integer or decimal seconds (e.g. 1.503 or 3) and
+command is a valid command taken from the text file "commands.txt"
+The times describe the absolute times (starting from the moment of execution)
+and therefore need to be incrementing. If two commands are given at the same time,
+they will in fact be executed one after the other.
 
-the output will be saved in the "output/" folder with the name as move.txt
+the output will be saved in the "output/" folder under the name move.txt
 
 Add -d to run program in "simulation mode", known as "debug mode" (without connecting to robot)
 -------------------------------------------- '''
@@ -317,6 +322,34 @@ class Robot:
             time.sleep(1)
             self.socket.send("p r CONTROL 2")
         return 1
+
+    def get_position(self,outputfile):
+        ''' gets encoder position from left and right motor and writes them into
+        the odometry output file'''
+        position = dict()
+        motors=["l","r"]
+        position[motors[0]]=-1
+        position[motors[1]]=-1
+        with touchopen(outputfile,'a') as f:
+            c=csv.writer(f,delimiter='\t')
+            # send request to get position
+            for motor in motors:
+                cmd = "g "+motor+" ACT_POS"
+                if not DEBUG:
+                    self.socket.send(cmd)
+                #wait for response
+                found = 0
+                if not DEBUG:
+                    while not found:
+                        data = self.socket.recv(BUFFER_SIZE)
+                        if data.find(cmd)!= -1:
+                            pos = int(data.replace(cmd,""))
+                            found = 1
+                        #pos = data
+                        #found = 1
+                    position[motor]=pos
+            c.writerow([position[motors[0]],position[motors[1]]])
+
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
